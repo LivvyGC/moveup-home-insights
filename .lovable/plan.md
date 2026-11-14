@@ -1,27 +1,23 @@
-# MoveUp — City Cost Predictor for Homebuyers
+# MoveUp: Port the Developers' Code and Make It Work
 
-## What it does
-A buyer picks a city, enters a home budget and down payment, and gets a report: the expected home price, the monthly cost, the full cost of ownership over 5 or 10 years, and a forecast of where prices are heading.
+Your developers' prototype is the source of truth. It combines two prediction-market signals (the chance of a Fed rate cut and the chance that mortgage rates fall below 6%) with a cost calculator for each city. The result is a BUY, WAIT or MIXED verdict, plus the monthly cost now and after a rate cut.
 
-## Pages
-- **Home (/)**: city search, budget and down payment inputs, a "Generate report" button.
-- **Report (/report/$city)**: 
-  - City snapshot: median price, price trend, rent compared with buying.
-  - Cost scenarios side by side (conservative, expected, optimistic): mortgage, property tax, insurance, HOA, maintenance and utilities.
-  - A 5-year price forecast chart built from the trend data, with each assumption stated.
-  - An AI summary of the scenarios in plain English.
-- **Saved reports (/reports)**: optional; needs sign-in. Listed as a later phase.
+## What gets built
+- **Home page (/)**: the MoveUp editorial interface. It includes:
+  - a city picker covering the 10 cities in the developers' data
+  - inputs for loan amount and timeline
+  - two signal cards, each labeled LIVE or ESTIMATE
+  - the verdict, with a breakdown of mortgage, tax, insurance and total monthly cost
+- Live market odds come from the Polymarket Gamma API (the "two signals"). This API needs no key. If no exact market match is found, the card shows ESTIMATE at 50%, and the app never fabricates a value.
+- Disclaimers stay in place: this is educational, not financial advice, and there are no property listings.
 
-## Data sources (assumed; confirm)
-1. Housing and market data: a RentCast-style API for prices, rents and trends.
-2. Cost-of-living and economic data: FRED for mortgage rates and inflation, which needs a free API key.
-I will ask for both API keys when the build starts and store them securely. They are only used on the server.
-
-## Design
-- Editorial, data-forward style: a warm off-white background, a deep green accent, a serif display font with a clean sans-serif for body text, and charts built with Recharts.
+## Rules kept from the developers' AGENTS.md
+- Never call a fallback value "live." Never invent probabilities.
+- No logins, payments or database for this version.
+- Keep the 45/55 neutral thresholds, the rule that a timeline under 3 months means BUY, and the rates of 6.80% now and 6.55% after a cut, with 20% down.
 
 ## Technical
-- TanStack server functions call both APIs and return normalized data. Results are cached through TanStack Query.
-- The forecast uses linear regression on the historical price series (`src/lib/forecast.ts`). Scenarios adjust the rate and growth inputs.
-- Mortgage and total-cost math live in `src/lib/costs.ts`, with vitest tests.
-- The AI summary uses the Lovable AI Gateway, which requires enabling Lovable Cloud.
+- `combineSignals.ts`, `config.ts`, `cities.json` and their tests are copied unchanged into `src/lib` and `src/data`. The vitest suite runs and passes.
+- The Supabase edge function (`signal/index.ts` + `parse.ts`) is replaced by a TanStack `createServerFn` that calls Gamma. Its timeout, matching and estimate fallback stay the same, and `parse.test.ts` is kept. No Cloud is needed.
+- The `App.tsx` UI and `index.css` brand styles are ported into `src/routes/index.tsx` and `src/styles.css` as tokens, and the page gets proper head metadata.
+- Live checks: one real Gamma call, to confirm whether the configured market queries currently match active markets. The developers' README flags this as unverified.
