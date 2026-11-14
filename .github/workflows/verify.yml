@@ -1,0 +1,17 @@
+name: Verify MoveUp prototype
+on:
+  push:
+    branches: [main, codex/verification]
+  pull_request:
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: bun install --frozen-lockfile
+      - run: bun run test
+      - run: bun run build
