@@ -17,7 +17,7 @@ function Tag({ direction }: {direction:Direction}) {
   return <span className={"pill direction " + direction.toLowerCase()}>{direction}</span>;
 }
 function SignalCard({label,signal,direction,loading,index}:{
-  label:string;signal?:SignalResult;direction?:Direction;loading:boolean;index:string;
+  label:string;signal?:SignalResult|undefined;direction?:Direction|undefined;loading:boolean;index:string;
 }) {
   return <div className="signal">
     <div className="micro signal-id">{index} / "SIGNAL"</div>
