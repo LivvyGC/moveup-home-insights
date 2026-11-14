@@ -13,3 +13,4 @@ export const SIGNAL_B = {
   fallback: 50,
 } as const;
 export const REQUEST_TIMEOUT_MS = 10000;
+export interface SignalConfig { name: string; query: string; match: readonly string[]; fallback: number; }
