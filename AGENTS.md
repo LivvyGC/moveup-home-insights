@@ -28,3 +28,6 @@ use the editor.
   own key and store it in Secrets.
 - **Secrets.** Lovable manages them. Do not put secret values in the repo.
 <!-- LOVABLE:END -->
+
+- MoveUp is a port of the developers prototype; keep its src/lib logic + tests as source of truth (combineSignals, signal-parse).
+- Polymarket Gamma calls go through src/lib/signal.functions.ts (server fn) so the browser never hits the API directly.

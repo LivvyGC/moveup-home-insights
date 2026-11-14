@@ -1,0 +1,62 @@
+[
+  {
+    "city": "Los Angeles",
+    "state": "CA",
+    "property_tax_rate": 0.012,
+    "annual_insurance": 1800
+  },
+  {
+    "city": "San Francisco",
+    "state": "CA",
+    "property_tax_rate": 0.012,
+    "annual_insurance": 2100
+  },
+  {
+    "city": "San Diego",
+    "state": "CA",
+    "property_tax_rate": 0.012,
+    "annual_insurance": 1700
+  },
+  {
+    "city": "New York",
+    "state": "NY",
+    "property_tax_rate": 0.012,
+    "annual_insurance": 2200
+  },
+  {
+    "city": "Austin",
+    "state": "TX",
+    "property_tax_rate": 0.018,
+    "annual_insurance": 2400
+  },
+  {
+    "city": "Dallas",
+    "state": "TX",
+    "property_tax_rate": 0.019,
+    "annual_insurance": 2600
+  },
+  {
+    "city": "Miami",
+    "state": "FL",
+    "property_tax_rate": 0.011,
+    "annual_insurance": 4800
+  },
+  {
+    "city": "Orlando",
+    "state": "FL",
+    "property_tax_rate": 0.011,
+    "annual_insurance": 3200
+  },
+  {
+    "city": "Seattle",
+    "state": "WA",
+    "property_tax_rate": 0.01,
+    "annual_insurance": 1600
+  },
+  {
+    "city": "Denver",
+    "state": "CO",
+    "property_tax_rate": 0.006,
+    "annual_insurance": 2300
+  }
+]
