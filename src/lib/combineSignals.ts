@@ -18,7 +18,7 @@ export interface CombineInputs {
   signal_b_estimate: boolean;
   timeline_months: number;
   loan_amount: number;
-  city_data?: CityData | null;
+  city_data?: CityData | null | undefined;
 }
 
 export interface CombineResult {

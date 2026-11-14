@@ -58,7 +58,7 @@ describe("combineSignals and mortgage", () => {
 describe("city dataset", () => {
   it("has 10 cities, LA first, with only the four approved keys", () => {
     expect(cities).toHaveLength(10);
-    expect(cities[0].city).toBe("Los Angeles");
+    expect(cities[0]?.city).toBe("Los Angeles");
     for (const city of cities) expect(Object.keys(city).sort()).toEqual(["annual_insurance","city","property_tax_rate","state"]);
   });
 });
