@@ -8,8 +8,8 @@ export const SIGNAL_A = {
 } as const;
 export const SIGNAL_B = {
   name: "Mortgage rate below 6% probability",
-  query: "mortgage rate below 6%",
-  match: ["mortgage", "6%"],
+  query: "30-year mortgage",
+  match: ["30-year", "mortgage", "6.00%", "low"],
   fallback: 50,
 } as const;
 export const REQUEST_TIMEOUT_MS = 10000;
