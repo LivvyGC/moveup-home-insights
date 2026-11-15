@@ -87,16 +87,16 @@ describe("V4 renter flow",()=>{
   fireEvent.change(screen.getByLabelText("Offered rent / month"),{target:{value:"2300"}});
   expect(screen.queryByText("Save your renewal summary")).toBeNull();
  });
- it("reflects changed protection answers in the report and organizer preview",()=>{
+ it("reflects changed protection answers in the summary that is ready for support",()=>{
   render(<RenewalPage/>);fill({offer:"3000",bedrooms:"2br"});submit();
   fireEvent.change(screen.getByLabelText("State rent protection coverage"),{target:{value:"yes"}});
   fireEvent.change(screen.getByLabelText("Local rent control coverage"),{target:{value:"no"}});
   fireEvent.change(screen.getByLabelText("Other increases in the last 12 months?"),{target:{value:"none"}});
   expect(screen.getAllByText(/Reported covered: not independently verified/).length).toBeGreaterThan(0);
   expect(screen.getAllByText(/Reported exempt: not independently verified/).length).toBeGreaterThan(0);
-  fireEvent.click(screen.getByRole("button",{name:"Preview renter inquiry"}));
   expect(screen.getAllByText(/No earlier increases reported/).length).toBeGreaterThan(0);
-  expect(screen.getByText("RENTER INQUIRY PREVIEW")).toBeTruthy();
+  expect(screen.getByText(/summary that will be included automatically/i)).toBeTruthy();
+  expect(screen.queryByText("RENTER INQUIRY PREVIEW")).toBeNull();
  });
  it("does not show redundant action cards or an unrelated complaint prompt",()=>{
   const {container}=render(<RenewalPage/>);fill({offer:"2010",bedrooms:"2br"});submit();
@@ -165,11 +165,14 @@ describe("V4 renter flow",()=>{
   expect(screen.getByLabelText("Local rent control coverage")).toBeTruthy();
   expect(screen.getByLabelText("State rent protection coverage")).toBeTruthy();
  });
- it("puts tenant connection before the optional summary",()=>{
+ it("shows the reusable renewal summary before the three-field support form",()=>{
   const {container}=render(<RenewalPage/>);fill();submit();
-  const a=container.querySelector("#moveup-connect"),r=container.querySelector(".v4-report");
-  expect(a).toBeTruthy();expect(r).toBeTruthy();
-  expect((a?.compareDocumentPosition(r!)??0)&Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  const support=container.querySelector("#moveup-connect");
+  const summary=container.querySelector("#moveup-summary");
+  expect(support).toBeTruthy();expect(summary).toBeTruthy();
+  expect((summary?.compareDocumentPosition(support!)??0)&Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  expect(container.querySelectorAll(".v8-contact-fields input")).toHaveLength(3);
+  expect(screen.getByRole("link",{name:"View your summary"}).getAttribute("href")).toBe("#moveup-summary");
  });
  it("shows the organization directory only at the bottom next to the network story",()=>{
   const {container}=render(<RenewalPage/>);fill();submit();
@@ -181,7 +184,7 @@ describe("V4 renter flow",()=>{
   expect(network?.contains(directory)).toBe(true);
   expect(intake?.contains(directory)).toBe(false);
   expect((report?.compareDocumentPosition(network!)??0)&Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-  expect(screen.getByRole("link",{name:/Explore renter organizations below/})).toBeTruthy();
+  expect(screen.getByRole("link",{name:"Find renter organizations below"})).toBeTruthy();
  });
  it("the report only appears after a completed analysis",()=>{
   render(<RenewalPage/>);
