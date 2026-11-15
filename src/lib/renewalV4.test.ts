@@ -1,7 +1,8 @@
 import {describe,it,expect} from "vitest";
-import {evaluateRenewal} from "./renewalActions";
+import {evaluateRenewal, type Coverage, type IncreaseHistory} from "./renewalActions";
 import {assessMarketOffer} from "./renewalV4";
-const base={city:"Los Angeles" as const,currentRent:2400,offeredRent:2400,effectiveDate:"2027-01-09",stateCoverage:"no" as const,localCoverage:"no" as const,priorIncrease:"none" as const,noticeDate:""};
+const base:{city:"Los Angeles";currentRent:number;offeredRent:number;effectiveDate:string;stateCoverage:Coverage;localCoverage:Coverage;priorIncrease:IncreaseHistory;noticeDate:string}=
+ {city:"Los Angeles",currentRent:2400,offeredRent:2400,effectiveDate:"2027-01-09",stateCoverage:"no",localCoverage:"no",priorIncrease:"none",noticeDate:""};
 const finding=(offer:number,options:Partial<typeof base>={})=>evaluateRenewal({...base,offeredRent:offer,...options});
 describe("V4 independent market and legal assessment",()=>{
  it("uses exact dollar and percentage differences",()=>{
