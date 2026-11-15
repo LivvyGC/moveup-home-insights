@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { TenantOrganizationDirectory } from "./TenantOrganizationDirectory";
-import { DIRECTORY_LAST_REVIEWED } from "../data/tenantOrganizations";
+import { DIRECTORY_LAST_REVIEWED, organizationsForCity } from "../data/tenantOrganizations";
 import { type TenantCaseRecord, coverageLabel, increaseLabel, currency, signedCurrency } from "../lib/tenantCase";
 import {
   createDemoRecord, readDemoRegistry, saveDemoRecord, clearDemoRegistry,
@@ -178,7 +178,7 @@ export function TenantIntakeDemo({caseRecord,children,onReceiptChange}:{caseReco
       </form>
       {statusText?<p role="status" className={"v4-delivery-"+status}>{statusText}</p>:null}
       <div className="v9-embedded-network" aria-label={"Potential tenant support organizations in "+caseRecord.city}>
-        <h4>Tenant organizations in {caseRecord.city}</h4>
+        <div className="v9-network-heading"><div><span className="v9-network-kicker">SUPPORT NETWORK</span><h4>Database of tenant organizations below</h4><p>Explore organizations serving {caseRecord.city}.</p></div><span className="v9-network-count">{organizationsForCity(caseRecord.city).length.toString().padStart(2,"0")} <small>listed groups</small></span></div>
         <TenantOrganizationDirectory city={caseRecord.city} embedded/>
       </div>
       <details className="v6-demo-tools">
