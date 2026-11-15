@@ -5,6 +5,8 @@ import type { City } from "@/lib/renewalPolicy";
 import { evaluateRenewal, negotiationMessage, type Coverage, type IncreaseHistory } from "@/lib/renewalActions";
 import { assessMarketOffer } from "@/lib/renewalV4";
 import { isStale } from "@/lib/renewalCalculator";
+import { buildTenantCase,coverageLabel,increaseLabel } from "@/lib/tenantCase";
+import { House } from "lucide-react";
 import { TenantIntakeDemo } from "@/components/TenantIntakeDemo";
 
 const CITIES: City[] = ["Los Angeles", "San Francisco", "San Diego", "Seattle"];
@@ -89,17 +91,23 @@ export function RenewalPage(){
   const marketLabel=submitted?.bedrooms==="1br"?"1-bedroom":submitted?.bedrooms==="2br"?"2-bedroom":"unsupported size";
   const benchmarkMonth=row.apartmentList.month;
   const stale=isStale(row.apartmentList.observationDate,new Date());
-  const statusLabel=assessment?.legalScreen==="possible_issue"?"Potential issue — verify":
-    assessment?.legalScreen==="needs_information"?"Eligibility unknown":"No specific issue identified";
+  const statusLabel=assessment?.legalScreen==="possible_issue"?"Potential concern — check details":
+    assessment?.legalScreen==="needs_information"?"Coverage not confirmed":"No specific concern from entered facts";
   const followUp=rules.length>0||submitted?.city==="Seattle";
   const supportAction=finding?.action==="check_rent_limits"||finding?.action==="review_notice";
   const legalLink= finding?.actionUrl??"";
   const legalLabel= finding?.actionName??"";
+  const caseRecord=submitted&&finding&&assessment?buildTenantCase({
+    city:submitted.city,bedrooms:marketLabel,currentRent:submitted.current,offeredRent:submitted.offer,
+    effectiveDate:submitted.effective,periodMonths:months,benchmark,benchmarkMonth,
+    assessment,finding,legalStatus:statusLabel,stateCoverage,localCoverage,priorIncrease,noticeReceived,
+    sourceUrl:RESEARCH_URL,supportUrl:supportAction?legalLink:finding.eligibilityUrl,
+  }):null;
 
   return <div className="v4-app">
     <header className="v4-header">
       <div className="v4-container v4-nav">
-        <strong className="v4-logo">MOVEUP</strong>
+        <strong className="v4-logo"><House size={28} strokeWidth={2.5} aria-hidden="true"/> MOVEUP</strong>
         <span>RENEWAL CHECK</span>
         <details className="v4-about"><summary>ABOUT US</summary><div className="v4-about-panel">
           <strong>MOVEUP TEAM</strong>
@@ -110,16 +118,17 @@ export function RenewalPage(){
     </header>
     <main className="v4-container">
       <div className="v4-intro">
-        <p className="v4-kicker">RENEWAL CHECK</p>
-        <h1>CHECK YOUR<br/>RENT OFFER.</h1>
-        <p>Compare your renewal with local rents. Check your protections. Know what to do next.</p>
+        <p className="v4-kicker">MOVEUP · RENEWAL CHECK</p>
+        <h1>YOUR HOME.<br/>YOUR RENT.<br/>YOUR RIGHTS.</h1>
+        <p>Understand your renewal, compare local rents, and prepare for tenant support.</p>
+        <a className="v4-scroll-link" href="#renewal-offer">Check my offer ↓</a>
       </div>
       <div className="v4-toolbar">
-        <button type="button" onClick={loadExample}>Load example</button>
+        <button type="button" onClick={loadExample}>Try sample</button>
         <button type="button" className="v4-text-button" onClick={clear}>Clear</button>
       </div>
-      {example?<div className="v4-example">EXAMPLE INPUTS — For demonstration, not a real renewal.</div>:null}
-      <section className="v4-card v4-intake">
+      {example?<span className="v4-sample-badge">Sample data · replace any value to use your own</span>:null}
+      <section className="v4-card v4-intake" id="renewal-offer">
         <h2>Your offer</h2>
         <form noValidate onSubmit={submit}>
           <div className="v4-fields">
@@ -164,33 +173,52 @@ export function RenewalPage(){
               <p className="v4-muted">City estimate, not a property appraisal. Price relative to market does not establish whether a renewal is lawful.</p>
             </div>}
         </section>
-        <section className="v4-section">
+        <section className="v4-section v4-protections">
           <div className="v4-heading"><h2>Your protections</h2><span className="v4-legal-status">{statusLabel}</span></div>
-          <div className="v4-card">
-            {rules.length===0?<p>No effective rent-limit record is available for this date. Check current official guidance.</p>:
-              <div className="v4-rule-list">
-                {rules.map(c=><div className="v4-rule" key={c.rule.id}>
-                  <div className="v4-rule-title"><strong>{c.rule.title}</strong><span>{c.coverage==="no"?"Reported exempt":c.coverage==="yes"?"Reported covered":"Coverage unknown"}</span></div>
-                  <p>Published standard: {c.rule.cap_pct}% · {c.rule.effective_from}–{c.rule.effective_to}</p>
-                  {c.abovePublishedStandard?<p className="v4-rule-alert">Your offer exceeds this published standard if the rule applies. This is not a finding of illegality.</p>:null}
-                  <a href={c.rule.source_url} target="_blank" rel="noopener noreferrer">Official policy source</a>
-                </div>)}
-              </div>}
-            {followUp&&<div className="v4-followups">
-              <p className="v4-followup-title">Check the details that may change your result</p>
-              {rules.some(c=>c.rule.type==="statewide")&&<label className="v4-field"><span>State rent protection coverage</span><select aria-label="State rent protection coverage" value={stateCoverage} onChange={e=>setStateCoverage(e.target.value as Coverage)}>
-                <option value="unknown">Not sure</option><option value="yes">Likely covered — I checked</option><option value="no">Reported exempt — I checked</option>
-              </select></label>}
-              {rules.some(c=>c.rule.type==="city")&&<label className="v4-field"><span>Local rent control coverage</span><select aria-label="Local rent control coverage" value={localCoverage} onChange={e=>setLocalCoverage(e.target.value as Coverage)}>
-                <option value="unknown">Not sure</option><option value="yes">Likely covered — I checked</option><option value="no">Reported not covered — I checked</option>
-              </select></label>}
-              {finding.potentialStandardConcern&&<label className="v4-field"><span>Other increases in the last 12 months?</span><select aria-label="Other increases in the last 12 months?" value={priorIncrease} onChange={e=>setPriorIncrease(e.target.value as IncreaseHistory)}>
-                <option value="unknown">Not sure</option><option value="none">No</option><option value="yes">Yes</option>
-              </select></label>}
-              {submitted.city==="Seattle"&&amountChange>0&&<label className="v4-field"><span>When did you receive written notice?</span><input aria-label="When did you receive written notice?" type="date" value={noticeReceived} onChange={e=>setNoticeReceived(e.target.value)}/></label>}
-            </div>}
-            <p className="v4-muted">Coverage, prior increases, exemptions and authorized adjustments can change legal outcomes. This screening is educational information, not legal advice.</p>
+          <p className="v4-section-intro">These published rules may protect your home. Select what you know—your answers are not independently verified.</p>
+          <div className="v4-law-grid">
+            {rules.length===0?<div className="v4-card">No effective rule is in our stored records for this date. Review official guidance before drawing conclusions.</div>:
+              rules.map(check=>{
+                const selected=check.rule.type==="city"?localCoverage:stateCoverage;
+                const change=evaluateRenewal?finding.increasePercent:0;
+                return <article className="v4-law-card" key={check.rule.id}>
+                  <div className="v4-law-top"><span>{check.rule.type==="city"?"CITY PROTECTION":"STATE PROTECTION"}</span><span className="v4-law-shield" aria-hidden="true">✦</span></div>
+                  <h3>{check.rule.title}</h3>
+                  <div className="v4-law-value"><strong>{check.rule.cap_pct}%</strong><span>published {check.rule.type==="city"?"standard adjustment":"rent limit"}</span></div>
+                  <p>{check.abovePublishedStandard
+                    ?"Your "+change.toFixed(2)+"% proposed increase exceeds this published standard if the rule applies."
+                    :"Your "+change.toFixed(2)+"% proposed change is compared with this published standard; coverage and exceptions still matter."}</p>
+                  <label className="v4-field"><span>{check.rule.type==="city"?"Does local rent control cover your home?":"Do state rent limits cover your home?"}</span>
+                    <select aria-label={check.rule.type==="city"?"Local rent control coverage":"State rent protection coverage"} value={selected} onChange={e=>
+                      check.rule.type==="city"?setLocalCoverage(e.target.value as Coverage):setStateCoverage(e.target.value as Coverage)}>
+                      <option value="unknown">I'm not sure</option>
+                      <option value="yes">I believe it's covered</option>
+                      <option value="no">I believe it's exempt</option>
+                    </select>
+                  </label>
+                  <span className="v4-law-report">{coverageLabel(selected)}</span>
+                  <details className="v4-law-details"><summary>Who qualifies? · Dates and exceptions</summary>
+                    <p>{check.rule.conditions}</p>
+                    <p>Published for {check.rule.effective_from} to {check.rule.effective_to}. Prior increases and authorized adjustments may change the outcome.</p>
+                  </details>
+                  <a href={check.rule.source_url} target="_blank" rel="noopener noreferrer">Read official law guidance</a>
+                </article>;
+              })}
           </div>
+          {submitted.city==="Seattle"&&amountChange>0?<div className="v4-card v4-notice-card">
+            <h3>Seattle · Written notice</h3>
+            <p>Seattle generally requires at least 180 days' written notice for housing-cost increases. Exceptions and rules may vary.</p>
+            <label className="v4-field"><span>When did you receive notice?</span><input aria-label="When did you receive written notice?" type="date" value={noticeReceived} onChange={e=>setNoticeReceived(e.target.value)}/></label>
+            <a href="https://seattle.gov/construction-and-inspections/codes/common-code-questions/housing-cost-increases" target="_blank" rel="noopener noreferrer">Official Seattle notice guidance</a>
+          </div>:null}
+          {amountChange>0&&rules.length>0?<div className="v4-history-row">
+            <label className="v4-field"><span>Other rent increases in the last 12 months?</span>
+              <select aria-label="Other increases in the last 12 months?" value={priorIncrease} onChange={e=>setPriorIncrease(e.target.value as IncreaseHistory)}>
+                <option value="unknown">I'm not sure</option><option value="none">No</option><option value="yes">Yes</option>
+              </select></label>
+            <p>Previous increases may affect how a rent limit applies. <strong>{increaseLabel(priorIncrease)}</strong>.</p>
+          </div>:null}
+          <p className="v4-muted">These figures are published standards, not a certified legal maximum for your lease. Eligibility, jurisdiction and exceptions require verification.</p>
         </section>
         <section className="v4-section">
           <div className="v4-heading"><h2>Your next step</h2></div>
@@ -209,35 +237,42 @@ export function RenewalPage(){
           </div>
         </section>
         <section className="v4-section v4-report" aria-label="Tenant support summary">
-          <div className="v4-heading"><h2>Renewal summary</h2></div>
+          <div className="v4-heading"><h2>Your renewal summary</h2></div>
           <div className="v4-card">
-            <h3>MOVEUP / TENANT SUPPORT SUMMARY</h3>
-            <p><strong>{submitted.city} · {marketLabel}</strong> · New rate effective {submitted.effective}</p>
-            <dl className="v4-report-grid">
-              <div><dt>Current rent</dt><dd>{money(submitted.current)}</dd></div>
-              <div><dt>Renewal offer</dt><dd>{money(submitted.offer)}</dd></div>
-              <div><dt>Monthly change</dt><dd>{signedMoney(amountChange)}</dd></div>
-              <div><dt>{months}-month change</dt><dd>{signedMoney(amountChange*months)}</dd></div>
-              <div><dt>Market comparison</dt><dd>{benchmark===null?"Not available":signedMoney(assessment.difference??0)+" ("+signedPct(assessment.differencePct??0)+")"}</dd></div>
-              <div><dt>Legal screening</dt><dd>{statusLabel}</dd></div>
-            </dl>
-            <p className="v4-report-provenance">Market: Apartment List, {benchmarkMonth}, {marketLabel}; <a href={RESEARCH_URL}>source</a>. Data age {stale?"over 45 days":"within 45 days"} as of {new Date().toISOString().slice(0,10)}.</p>
-            {rules.map(c=><p key={c.rule.id} className="v4-report-provenance">{c.rule.title}: {c.rule.cap_pct}% standard ({c.coverage==="unknown"?"coverage unknown":c.coverage==="yes"?"self-reported covered":"self-reported exempt"}). <a href={c.rule.source_url}>Official source</a>, verified {c.rule.last_verified_at}.</p>)}
-            <p><strong>Next action:</strong> {finding.heading}. <a href={supportAction?legalLink:finding.eligibilityUrl}>Official guidance</a>.</p>
-            <TenantIntakeDemo
-              key={submitted.city+"-"+submitted.effective+"-"+submitted.offer}
-              city={submitted.city}
-              bedrooms={marketLabel}
-              currentRent={submitted.current}
-              offeredRent={submitted.offer}
-              effectiveDate={submitted.effective}
-              benchmark={benchmark}
-              benchmarkMonth={benchmarkMonth}
-              legalStatus={statusLabel}
-              policyNotes={rules.map(c=>c.rule.title+": "+c.rule.cap_pct+"% published standard; "+c.rule.source_url)}
-              nextAction={finding.heading}
-            />
-            <p className="v4-muted">No rent-law outcome is certified. No lease document has been reviewed. This summary is educational and can be taken to a tenant support organization. No account or payment required.</p>
+            <div className="v4-report-title"><strong>MOVEUP / CASE SUMMARY</strong><span>{submitted.city} · {marketLabel} · starts {submitted.effective}</span></div>
+            <div className="v4-summary-groups">
+              <div className="v4-summary-group">
+                <h3>Your offer</h3>
+                <dl className="v4-report-grid">
+                  <div><dt>Current monthly rent</dt><dd>{money(submitted.current)}</dd></div>
+                  <div><dt>Proposed monthly rent</dt><dd>{money(submitted.offer)}</dd></div>
+                  <div><dt>Change per month</dt><dd>{signedMoney(amountChange)}</dd></div>
+                  <div><dt>{months}-month difference</dt><dd>{signedMoney(amountChange*months)}</dd></div>
+                </dl>
+              </div>
+              <div className="v4-summary-group">
+                <h3>Your assessment</h3>
+                <dl className="v4-summary-list">
+                  <div><dt>Market difference</dt><dd>{benchmark===null?"Unavailable":signedMoney(assessment.difference??0)+" ("+signedPct(assessment.differencePct??0)+")"}</dd></div>
+                  <div><dt>Legal screening</dt><dd>{statusLabel}</dd></div>
+                  {rules.some(r=>r.rule.type==="statewide")?<div><dt>State rent protection</dt><dd>{coverageLabel(stateCoverage)}</dd></div>:null}
+                  {rules.some(r=>r.rule.type==="city")?<div><dt>Local rent control</dt><dd>{coverageLabel(localCoverage)}</dd></div>:null}
+                  {amountChange>0?<div><dt>Prior increases</dt><dd>{increaseLabel(priorIncrease)}</dd></div>:null}
+                  {submitted.city==="Seattle"&&amountChange>0?<div><dt>Notice received</dt><dd>{noticeReceived||"Not entered"}</dd></div>:null}
+                </dl>
+              </div>
+              <div className="v4-summary-group">
+                <h3>Your next step</h3>
+                <p>{finding.heading}. {assessment.legalScreen==="possible_issue"?"Verify the applicable protections and previous notices before taking further action.":"Confirm coverage and review your renewal terms before deciding."}</p>
+              </div>
+            </div>
+            <details className="v4-report-details"><summary>Data, sources and legal qualifications</summary>
+              <p>Apartment List · {benchmarkMonth} · city {marketLabel} new-lease benchmark: <a href={RESEARCH_URL} target="_blank" rel="noopener noreferrer">data source</a>. {stale?"Dataset is older than 45 days.":"Dataset is within 45 days."}</p>
+              {rules.map(c=><p key={c.rule.id}>{c.rule.title}: {c.rule.cap_pct}% standard, {coverageLabel(c.coverage)}. <a href={c.rule.source_url} target="_blank" rel="noopener noreferrer">Official government source</a>.</p>)}
+              <p>None of these sources verifies your individual rent-law eligibility.</p>
+            </details>
+            {caseRecord?<TenantIntakeDemo key={submitted.city+"-"+submitted.effective+"-"+submitted.offer} caseRecord={caseRecord}/>:null}
+            <p className="v4-muted">The report is renter-prepared, not legal advice. Nothing is sent unless you explicitly submit to a connected demo receiver.</p>
             <button type="button" className="v4-print-button" onClick={()=>{if(typeof window!=="undefined")window.print();}}>Print / Save as PDF</button>
           </div>
         </section>
