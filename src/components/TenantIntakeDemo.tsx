@@ -1,120 +1,93 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { type TenantCaseRecord, coverageLabel, increaseLabel, currency, signedCurrency } from "../lib/tenantCase";
 import {
-  createDemoRecord, readDemoRegistry, saveDemoRecord,
-  clearDemoRegistry,
-  type DemoRegistryRecord, type SupportPurpose,
+  createDemoRecord, readDemoRegistry, saveDemoRecord, clearDemoRegistry,
+  type DemoRegistryRecord,
 } from "../lib/demoRegistry";
 
-type Evidence = "renewal" | "lease" | "prior";
-type Concern = "increase" | "notice" | "clarification" | "negotiation";
+export type RenterContact = { name: string; email: string; phone: string };
 type DeliveryState = "idle" | "sending" | "success" | "error";
 
-const evidenceNames: Record<Evidence,string> = {
-  renewal:"Written renewal offer or increase notice",
-  lease:"Current lease or rental agreement",
-  prior:"Previous rent increase notices, if any",
-};
-const concernNames: Record<Concern,string> = {
-  increase:"Review a proposed rent increase",
-  notice:"Question about a notice or deadline",
-  clarification:"Understand my renewal terms",
-  negotiation:"Get help negotiating",
-};
 const FORM_ENDPOINT = (import.meta.env.VITE_MOVEUP_INTAKE_ENDPOINT ?? "").trim();
 export const intakeEndpointConfigured = /^https:\/\/formspree\.io\/f\/[a-zA-Z0-9]+$/.test(FORM_ENDPOINT);
-const PURPOSE_NAMES:Record<SupportPurpose,string> = {
-  assistance:"Assistance with my housing concern",
-  organizing:"Information about tenant organizing",
-};
 
-export function composeTenantPacket(
-  input:TenantCaseRecord, concern:Concern, available:Evidence[],
-  details:string, purposes:SupportPurpose[]=["assistance"],
-):string {
-  const missing=(Object.keys(evidenceNames) as Evidence[]).filter(k=>!available.includes(k));
+/** The case packet reflects the completed MoveUp renewal summary plus renter contact details. */
+export function composeTenantPacket(input: TenantCaseRecord, contact: RenterContact): string {
   return [
-    "MOVEUP: RENTER-PREPARED INQUIRY",
-    "Not a legal finding or formal government complaint.",
+    "MOVEUP / RENTER SUPPORT REQUEST",
+    "Renter-prepared information. Not a legal finding or a government complaint.",
     "",
-    "Requested connection: "+(purposes.length?purposes.map(k=>PURPOSE_NAMES[k]).join("; "):"Not selected"),
-    "Reason for support: "+concernNames[concern],
+    "CONTACT INFORMATION",
+    "Name: "+contact.name.trim(),
+    "Email: "+contact.email.trim(),
+    "Phone: "+contact.phone.trim(),
+    "",
+    "MOVEUP / RENEWAL SUMMARY",
     "City: "+input.city+" | Unit: "+input.bedrooms,
     "Renewal effective: "+input.effectiveDate,
     "Current monthly rent: "+currency(input.currentRent),
-    "Offered monthly rent: "+currency(input.offeredRent),
-    "Monthly change: "+signedCurrency(input.offeredRent-input.currentRent),
-    String(input.periodMonths)+"-month change (fixed rent comparison): "+signedCurrency((input.offeredRent-input.currentRent)*input.periodMonths),
-    "Apartment List city benchmark: "+(input.benchmark===null?"Unavailable for this unit size":currency(input.benchmark)+" ("+input.benchmarkMonth+")"),
-    "Offer vs benchmark: "+(input.marketDifference===null?"Unavailable":signedCurrency(input.marketDifference)+" ("+String(input.marketDifferencePct)+"%)"),
-    "Rent protection screen: "+input.legalStatus+" (unverified and conditional)",
-    "State coverage: "+coverageLabel(input.stateCoverage),
-    "Local coverage: "+coverageLabel(input.localCoverage),
+    "Proposed monthly rent: "+currency(input.offeredRent),
+    "Change per month: "+signedCurrency(input.offeredRent-input.currentRent),
+    String(input.periodMonths)+"-month difference: "+signedCurrency((input.offeredRent-input.currentRent)*input.periodMonths),
+    "New-lease city benchmark: "+(input.benchmark===null?"Unavailable for this bedroom count":currency(input.benchmark)+" ("+input.benchmarkMonth+")"),
+    "Market difference: "+(input.marketDifference===null?"Unavailable":signedCurrency(input.marketDifference)+" ("+String(input.marketDifferencePct)+"%)"),
+    "Legal screening: "+input.legalStatus+" (conditional and unverified)",
+    "State rent protection: "+coverageLabel(input.stateCoverage),
+    "Local rent control: "+coverageLabel(input.localCoverage),
     "Prior increases: "+increaseLabel(input.priorIncrease),
     "Written notice received: "+(input.noticeReceived||"Not entered"),
     "Published protection references:",
-    ...(input.rules.length?input.rules.map(r=>"  * "+r.title+": "+r.rate+"% ("+r.from+" to "+r.to+"); "+coverageLabel(r.coverage)+"; "+r.url):["  * No dated rule in stored records"]),
-    "Documents reported available: "+(available.length?available.map(k=>evidenceNames[k]).join("; "):"None confirmed"),
-    "Documents to verify: "+(missing.length?missing.map(k=>evidenceNames[k]).join("; "):"None from checklist"),
-    "Renter notes: "+(details.trim()||"None"),
-    "Suggested action: "+input.nextAction,
-    "Government guidance: "+input.nextActionUrl,
-    "Market source: "+input.sourceUrl,
+    ...(input.rules.length
+      ? input.rules.map(r=>"  * "+r.title+": "+r.rate+"% ("+r.from+" to "+r.to+"); "+coverageLabel(r.coverage)+"; "+r.url)
+      : ["  * No dated rule in stored records"]),
+    "Next step: "+input.nextAction,
+    "Official guidance: "+input.nextActionUrl,
+    "Market data source: "+input.sourceUrl,
     "",
-    "A reviewer must verify property jurisdiction, coverage, exceptions, notices and past increases.",
-    "This report is renter-prepared. Downloading it does not send it to a tenant organization.",
+    "Property jurisdiction, eligibility, exceptions, notice and rental history require independent verification.",
+    "Submission in the MoveUp demo does not notify any tenant organization.",
   ].join("\n");
-}
-export function downloadTenantPacket(value:string):void {
-  const blob=new Blob([value],{type:"text/plain;charset=utf-8"});
-  const url=URL.createObjectURL(blob);
-  const link=document.createElement("a");
-  link.href=url;link.download="moveup-renter-intake.txt";link.click();
-  URL.revokeObjectURL(url);
 }
 
 export function TenantIntakeDemo({caseRecord}:{caseRecord:TenantCaseRecord}) {
-  const [concern,setConcern]=useState<Concern>("increase");
-  const [available,setAvailable]=useState<Evidence[]>([]);
-  const [details,setDetails]=useState("");
-  const [preview,setPreview]=useState(false);
-  const [assistance,setAssistance]=useState(false);
-  const [organizing,setOrganizing]=useState(false);
+  const [contactName,setContactName]=useState("");
   const [contactEmail,setContactEmail]=useState("");
+  const [contactPhone,setContactPhone]=useState("");
   const [consent,setConsent]=useState(false);
   const [status,setStatus]=useState<DeliveryState>("idle");
   const [statusText,setStatusText]=useState("");
   const [records,setRecords]=useState<DemoRegistryRecord[]>([]);
   const [showRegistry,setShowRegistry]=useState(false);
   const caseFingerprint=JSON.stringify(caseRecord);
+  const hasLAOrdinance=caseRecord.city==="Los Angeles" && caseRecord.rules.some(rule=>
+    rule.title.toLowerCase().includes("stabilization") || rule.title.toLowerCase().includes("rso")
+  );
+
   useEffect(()=>{
     setStatus("idle");setStatusText("");setConsent(false);
+    setContactName("");setContactEmail("");setContactPhone("");
   },[caseFingerprint]);
   useEffect(()=>{
     try{if(typeof window!=="undefined")setRecords(readDemoRegistry(window.localStorage));}
     catch{setRecords([]);}
   },[]);
-  const purposes:SupportPurpose[] = [
-    ...(assistance?["assistance" as const]:[]),
-    ...(organizing?["organizing" as const]:[]),
-  ];
-  const packet=composeTenantPacket(caseRecord,concern,available,details,purposes);
-  const missing=(Object.keys(evidenceNames) as Evidence[]).filter(k=>!available.includes(k));
-  const resetDelivery=()=>{setStatus("idle");setStatusText("");setConsent(false);};
-  const toggle=(key:Evidence)=>{
-    setAvailable(prev=>prev.includes(key)?prev.filter(k=>k!==key):[...prev,key]);
-    resetDelivery();
-  };
+
+  const resetDelivery=()=>{setStatus("idle");setStatusText("");};
   async function submitInquiry(event:FormEvent<HTMLFormElement>){
     event.preventDefault();
-    if(!purposes.length||!consent||status==="sending"||status==="success"){
-      setStatus("error");
-      setStatusText("Select an interest and consent before recording this demo inquiry.");
-      return;
+    if(status==="sending"||status==="success")return;
+    const contact:RenterContact={
+      name:contactName.trim(),email:contactEmail.trim(),phone:contactPhone.trim(),
+    };
+    const emailValid=/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact.email);
+    const digits=contact.phone.replace(/\D/g,"");
+    if(!contact.name||contact.name.length>120||!emailValid||contact.email.length>254||digits.length<7||digits.length>15){
+      setStatus("error");setStatusText("Enter your name, a valid email, and a valid phone number.");return;
     }
-    if(intakeEndpointConfigured&&(!contactEmail.trim()||!contactEmail.includes("@"))){
-      setStatus("error");setStatusText("A valid contact email is required for a remote demo submission.");return;
+    if(!consent){
+      setStatus("error");setStatusText("Consent is required before saving or sending your contact details.");return;
     }
+    const packet=composeTenantPacket(caseRecord,contact);
     setStatus("sending");setStatusText("");
     let delivery:"local_demo"|"moveup_demo_inbox"="local_demo";
     if(intakeEndpointConfigured){
@@ -123,10 +96,9 @@ export function TenantIntakeDemo({caseRecord}:{caseRecord:TenantCaseRecord}) {
           method:"POST",
           headers:{"Content-Type":"application/json","Accept":"application/json"},
           body:JSON.stringify({
-            email:contactEmail.trim(),
-            subject:"MoveUp demo inquiry for "+caseRecord.city,
-            city:caseRecord.city,
-            support_purposes:purposes.join(", "),
+            email:contact.email,name:contact.name,phone:contact.phone,
+            subject:"MoveUp renter support demo inquiry for "+caseRecord.city,
+            city:caseRecord.city,support_purpose:"assistance",
             renter_case_packet:packet,
             recipient_type:"MoveUp demo inbox. No tenant union is connected.",
           }),
@@ -135,110 +107,81 @@ export function TenantIntakeDemo({caseRecord}:{caseRecord:TenantCaseRecord}) {
         delivery="moveup_demo_inbox";
       }catch{
         setStatus("error");
-        setStatusText("The demo inbox did not confirm receipt. Nothing was submitted. You can download the case packet.");
-        return;
+        setStatusText("MoveUp's demo inbox did not confirm receipt. Nothing was sent to an organization.");return;
       }
     }
     try{
       const id="MU-"+Date.now().toString(36).toUpperCase()+"-"+Math.floor(Math.random()*100000).toString(36).toUpperCase();
       const record=createDemoRecord({
-        id,createdAt:new Date().toISOString(),city:caseRecord.city,purposes,
-        issue:concernNames[concern],packet,delivery,
+        id,createdAt:new Date().toISOString(),city:caseRecord.city,
+        purposes:["assistance"],issue:"Renter support inquiry",packet,delivery,
       });
-      const result=saveDemoRecord(window.localStorage,record);
-      setRecords(result);
+      setRecords(saveDemoRecord(window.localStorage,record));
       setStatus("success");
       setStatusText(delivery==="local_demo"
-        ?"Success! Inquiry "+record.id+" submitted to the MoveUp demo database for "+caseRecord.city+". Saved on this device only; no organizations were contacted."
-        :"MoveUp demo inbox accepted the inquiry. A local copy was saved. No tenant organizations were contacted.");
+        ?"Success! Inquiry "+record.id+" saved to the MoveUp browser-only demo database. Your contact details and renewal summary were saved on this device; no organizations were contacted."
+        :"Success! MoveUp's demo inbox accepted inquiry "+record.id+". A local copy was saved. No tenant organizations were contacted.");
       setShowRegistry(false);
     }catch{
       if(delivery==="moveup_demo_inbox"){
         setStatus("success");
-        setStatusText("The MoveUp demo inbox accepted this inquiry, but a local copy was not saved. No tenant organizations were contacted.");
+        setStatusText("Success! MoveUp's demo inbox accepted the inquiry, but a local copy could not be saved. No tenant organization was contacted.");
       }else{
         setStatus("error");
-        setStatusText("This browser could not save the inquiry. Nothing was registered or sent. Download the case packet instead.");
+        setStatusText("Your browser could not save the inquiry. Nothing was registered or sent. Please try again.");
       }
     }
   }
   function clearRegistry(){
-    try{clearDemoRegistry(window.localStorage);setRecords([]);setShowRegistry(false);setStatus("idle");setStatusText("");setConsent(false);}
-    catch{setStatus("error");setStatusText("This browser could not clear the demo registry.");}
+    try{
+      clearDemoRegistry(window.localStorage);
+      setRecords([]);setShowRegistry(false);setStatus("idle");setStatusText("");setConsent(false);
+    }catch{
+      setStatus("error");setStatusText("This browser could not clear the demo registry.");
+    }
   }
-  return <section id="moveup-connect" className="v4-intake-demo" aria-label="Connect with tenant support">
+  return <section id="moveup-connect" className="v4-intake-demo v8-support" aria-label="Request tenant support">
     <div className="v4-intake-header">
-      <span>OPTIONAL RENTER CONNECTION</span>
-      <h3>Connect with tenant support</h3>
-      <p>You can request assistance, learn about organizing, or both. No legal violation is required.</p>
-      <p className="v4-network-anchor">Looking for local groups? <a href="#moveup-network">Explore renter organizations below</a>.</p>
+      <span>RENTER SUPPORT</span>
+      <h3>{hasLAOrdinance
+        ?"Filed an RSO complaint? Still unhappy with your rent adjustment? Find help now."
+        :"Still unhappy with your rent adjustment? Find help now."}</h3>
+      <p>Your MoveUp renewal summary above is ready. Just add your contact details; the summary is included automatically.</p>
     </div>
-    <div className="v4-interest-choices">
-      <label><input aria-label="I want assistance with my housing concern" type="checkbox" checked={assistance}
-        onChange={e=>{setAssistance(e.target.checked);resetDelivery();}}/>
-        <span><strong>I want help with my housing concern</strong><small>Get assistance with a renewal or negotiation question.</small></span>
-      </label>
-      <label><input aria-label="I am interested in tenant organizing" type="checkbox" checked={organizing}
-        onChange={e=>{setOrganizing(e.target.checked);resetDelivery();}}/>
-        <span><strong>I'm interested in tenant organizing</strong><small>Learn how renters can connect and organize collectively.</small></span>
-      </label>
+    <div className="v8-attached-summary" aria-label="Attached renewal summary">
+      <span>READY TO INCLUDE</span>
+      <strong>Your renewal summary</strong>
+      <p>{caseRecord.city} · {caseRecord.bedrooms} · {currency(caseRecord.currentRent)} to {currency(caseRecord.offeredRent)} per month</p>
+      <a href="#moveup-summary">View your summary</a>
     </div>
-    {assistance?<div className="v4-intake-controls">
-      <label className="v4-field"><span>What do you need help with?</span>
-        <select aria-label="Reason for tenant support" value={concern} onChange={e=>{setConcern(e.target.value as Concern);resetDelivery();}}>
-          {Object.entries(concernNames).map(([key,label])=><option key={key} value={key}>{label}</option>)}
-        </select>
-      </label>
-      <fieldset className="v4-intake-checklist"><legend>Documents you have</legend>
-        {(Object.keys(evidenceNames) as Evidence[]).map(key=><label key={key}>
-          <input type="checkbox" checked={available.includes(key)} onChange={()=>toggle(key)}/>
-          <span>{evidenceNames[key]}</span>
-        </label>)}
-      </fieldset>
-    </div>:null}
-    {purposes.length>0?<label className="v4-intake-notes">
-      <span>Anything you want to add? (optional)</span>
-      <textarea aria-label="Notes for tenant support" maxLength={500} rows={3}
-        value={details} onChange={e=>{setDetails(e.target.value);resetDelivery();}}
-        placeholder="For example, what you have already asked your landlord."/>
-    </label>:null}
-    <div className="v4-intake-buttons">
-      <button type="button" className="v4-intake-preview-button" aria-expanded={preview} onClick={()=>setPreview(v=>!v)}>
-        {preview?"Hide inquiry preview":"Preview renter inquiry"}
-      </button>
-      <button type="button" onClick={()=>downloadTenantPacket(packet)}>Download case packet</button>
-    </div>
-    {preview?<div className="v4-intake-organizer">
-      <div className="v4-intake-organizer-head"><strong>RENTER INQUIRY PREVIEW</strong><span>NOT SHARED WITH ANY ORGANIZATION</span></div>
-      <p><strong>Interest:</strong> {purposes.length?purposes.map(k=>PURPOSE_NAMES[k]).join("; "):"None selected"}</p>
-      <p><strong>Renewal:</strong> {caseRecord.city}, {caseRecord.bedrooms}. {currency(caseRecord.currentRent)} to {currency(caseRecord.offeredRent)}</p>
-      <p><strong>Market:</strong> {caseRecord.marketDifference===null?"Benchmark unavailable":signedCurrency(caseRecord.marketDifference)+" versus the city benchmark"}</p>
-      <p><strong>Legal screening:</strong> {caseRecord.legalStatus}</p>
-      {assistance?<p><strong>Reason:</strong> {concernNames[concern]}</p>:null}
-      {assistance?<p><strong>Unconfirmed documents:</strong> {missing.length?missing.map(k=>evidenceNames[k]).join("; "):"Checklist complete"}</p>:null}
-      <p><strong>State coverage:</strong> {coverageLabel(caseRecord.stateCoverage)}</p>
-      <p><strong>Local coverage:</strong> {coverageLabel(caseRecord.localCoverage)}</p>
-      {details.trim()?<p><strong>Renter note:</strong> {details.trim()}</p>:null}
-      <p className="v4-intake-disclaimer">Renter-prepared information. A tenant organization has not reviewed or received this packet.</p>
-    </div>:null}
     <div className="v4-demo-delivery">
       <h4>Submit your inquiry to MoveUp</h4>
-      <p>This demo shows how a future MoveUp network could collect renter inquiries and, with permission, connect them with participating support organizations.</p>
-      {intakeEndpointConfigured?
-        <p>The configured receiver is a MoveUp demo inbox, not a tenant union. Only a confirmed response can mark it received.</p>
-        :<p><strong>Prototype database:</strong> submissions are saved in this browser only. The shared network and organization delivery are not live yet.</p>}
+      <p>In the future, participating tenant-support organizations could receive inquiries like this with renter permission.</p>
+      {intakeEndpointConfigured
+        ?<p><strong>Demo submission:</strong> Your contact details and renewal summary are sent to a MoveUp-operated demo inbox, not a tenant organization.</p>
+        :<p><strong>Prototype database:</strong> Your contact details and summary are saved in this browser only, not a shared network. No tenant organizations receive them. Use sample contact details for this hackathon demo.</p>}
       <form onSubmit={submitInquiry}>
-        {intakeEndpointConfigured?<label className="v4-field"><span>Contact email</span>
-          <input aria-label="Contact email" type="email" required autoComplete="email" value={contactEmail}
-            onChange={e=>{setContactEmail(e.target.value);resetDelivery();}} placeholder="you@example.com"/>
-        </label>:null}
+        <div className="v8-contact-fields">
+          <label className="v4-field"><span>Full name</span>
+            <input aria-label="Full name" autoComplete="name" required maxLength={120} value={contactName}
+              onChange={e=>{setContactName(e.target.value);resetDelivery();}} placeholder="Jane Doe"/>
+          </label>
+          <label className="v4-field"><span>Email address</span>
+            <input aria-label="Email address" inputMode="email" type="email" autoComplete="email" required maxLength={254}
+              value={contactEmail} onChange={e=>{setContactEmail(e.target.value);resetDelivery();}} placeholder="jane@example.com"/>
+          </label>
+          <label className="v4-field"><span>Phone number</span>
+            <input aria-label="Phone number" type="tel" inputMode="tel" autoComplete="tel" required
+              value={contactPhone} onChange={e=>{setContactPhone(e.target.value);resetDelivery();}} placeholder="(555) 010-1234"/>
+          </label>
+        </div>
         <label className="v4-consent"><input aria-label="Consent to record this demo inquiry" type="checkbox" checked={consent}
-          onChange={e=>setConsent(e.target.checked)}/>
+          onChange={e=>{setConsent(e.target.checked);resetDelivery();}}/>
           <span>{intakeEndpointConfigured
-            ?"I consent to send my inquiry and email to MoveUp's demo inbox, not to any listed organization."
-            :"I consent to save this inquiry in MoveUp's browser-only demo database. I understand no organization will receive it."}</span>
+            ?"I consent to send my name, email, phone, and renewal summary to MoveUp's demo inbox. No tenant organization receives it."
+            :"I consent to save my name, email, phone, and renewal summary on this device for the MoveUp demo. No tenant organization receives it."}</span>
         </label>
-        <button type="submit" disabled={!consent||purposes.length===0||status==="sending"||status==="success"}>
+        <button type="submit" disabled={!consent||status==="sending"||status==="success"}>
           {status==="sending"?"Submitting...":intakeEndpointConfigured?"Send to MoveUp demo inbox":"Submit to database"}
         </button>
       </form>
@@ -253,23 +196,16 @@ export function TenantIntakeDemo({caseRecord}:{caseRecord:TenantCaseRecord}) {
         </div>
         {showRegistry?<div className="v4-registry" aria-label="Local demo registry">
           <strong>Local demo records</strong>
-          <p>These are stored only in this browser, not in a shared service or organization inbox.</p>
+          <p>Records are stored in this browser only (unless a MoveUp demo inbox is configured). No tenant-union intake service is connected.</p>
           {records.length===0?<p>No inquiries saved on this device.</p>:
             records.map(record=><div className="v4-registry-city" key={record.id}>
               <strong>{record.id}</strong>
-              <p>{record.city}: {record.purposes.map(p=>PURPOSE_NAMES[p]).join(" and ")}.
+              <p>{record.city}: Renter support inquiry.
                 {record.delivery==="local_demo"?" Saved on this device.":" Accepted by the MoveUp demo inbox."}</p>
             </div>)}
         </div>:null}
       </details>
     </div>
-    <div className="v4-intake-print">
-      <strong>TENANT INQUIRY: {purposes.map(p=>PURPOSE_NAMES[p]).join("; ")||"No interest selected"}</strong>
-      <p>City: {caseRecord.city}. State coverage: {coverageLabel(caseRecord.stateCoverage)}. Local coverage: {coverageLabel(caseRecord.localCoverage)}.</p>
-      <p>Previous increases: {increaseLabel(caseRecord.priorIncrease)}. Notice received: {caseRecord.noticeReceived||"Not supplied"}.</p>
-      {assistance?<p>Issue: {concernNames[concern]}. Documents to confirm: {missing.length?missing.map(k=>evidenceNames[k]).join("; "):"None"}.</p>:null}
-      {details.trim()?<p>Renter note: {details.trim()}</p>:null}
-      <p>Not a government filing. No tenant union delivery is confirmed.</p>
-    </div>
+    <p className="v8-network-link">Want to contact an organization yourself? <a href="#moveup-network">Find renter organizations below</a>.</p>
   </section>;
 }
