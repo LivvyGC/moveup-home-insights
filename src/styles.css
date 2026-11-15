@@ -1036,3 +1036,82 @@ html{scroll-behavior:smooth}
   .v9-routing-simple{padding:17px}
   .v9-routing-simple>h2{margin-bottom:15px}
 }
+
+
+/* One continuous renter support flow: ready assessment -> contact -> local network. */
+.v8-support{
+  padding:clamp(18px,3vw,30px);
+  background:linear-gradient(135deg,#FFFDF8 0%,#FBF2E9 100%);
+}
+.v8-support .v4-intake-header{margin:0 0 13px}
+.v8-support .v4-intake-header h3{
+  font-size:clamp(25px,3.2vw,35px);
+  letter-spacing:-.045em;
+  margin:5px 0 7px;
+}
+.v8-support .v4-intake-header p{margin:0;color:#514840;font-size:16px}
+.v8-support .v4-demo-delivery{
+  margin:0;
+  padding:0;
+  border:0;
+  border-radius:0;
+  background:transparent;
+}
+.v8-support .v4-demo-delivery form{gap:10px}
+.v8-support .v4-report{margin:0}
+.v8-support .v4-report .v4-heading{margin-bottom:8px}
+.v8-support .v4-report h2{margin:0;font-size:clamp(18px,2.4vw,24px)}
+.v8-support .v4-report .v4-heading>span{font-size:13px}
+.v8-support .v4-report>.v4-card{padding:clamp(14px,2.3vw,21px)}
+.v8-support .v8-contact-title{padding-top:15px;margin:7px 0 0;font-size:19px}
+.v8-support .v4-demo-delivery form>button{margin-top:2px}
+.v9-embedded-network{
+  margin-top:22px;
+  padding-top:19px;
+  border-top:1px solid #DCC7B5;
+}
+.v9-embedded-network>h4{
+  font-size:clamp(19px,2.6vw,24px);
+  letter-spacing:-.03em;
+  line-height:1.25;
+  margin:0 0 13px;
+}
+.v9-embedded-network .v6-directory{
+  margin:0!important;padding:0!important;
+  border:0!important;background:transparent;
+}
+.v9-embedded-network .v6-directory-list{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(215px,1fr));
+  gap:10px;
+}
+.v9-embedded-network .v6-organization{
+  background:#FFFCF8;
+  border-radius:7px;
+  padding:15px;
+  min-height:0;
+}
+.v9-embedded-network .v6-organization p{
+  font-size:14px;
+  line-height:1.4;
+  margin:6px 0 9px;
+}
+.v9-embedded-network .v6-organization strong{font-size:16px}
+.v8-support .v6-demo-tools{
+  margin-top:14px;
+  border-top:1px solid #E2D2C4;
+  padding-top:8px;
+}
+.v8-support .v6-demo-tools>summary{font-size:13px;color:#665B50}
+.v9-demo-note{
+  margin:11px 0 0;
+  color:#625549;
+  font-size:12px;
+  line-height:1.55;
+}
+@media(max-width:560px){
+  .v9-embedded-network .v6-directory-list{grid-template-columns:1fr}
+}
+@media print{
+  .v9-embedded-network,.v9-demo-note{display:none!important}
+}
