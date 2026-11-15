@@ -1,0 +1,97 @@
+{
+  "source": "Zillow Research ZHVF Metro Forecast",
+  "sourceUrl": "https://files.zillowstatic.com/research/public_csvs/zhvf_growth/Metro_zhvf_growth_uc_sfrcondo_tier_0.33_0.67_sm_sa_month.csv",
+  "updatedAt": "2026-11-14",
+  "metros": [
+    {
+      "city": "Los Angeles",
+      "state": "CA",
+      "metroName": "Los Angeles, CA",
+      "geography": "metro",
+      "baseMonth": "2026-09",
+      "targetMonth": "2027-09",
+      "yearAheadPct": 1.9
+    },
+    {
+      "city": "San Francisco",
+      "state": "CA",
+      "metroName": "San Francisco, CA",
+      "geography": "metro",
+      "baseMonth": "2026-09",
+      "targetMonth": "2027-09",
+      "yearAheadPct": 1.9
+    },
+    {
+      "city": "San Diego",
+      "state": "CA",
+      "metroName": "San Diego, CA",
+      "geography": "metro",
+      "baseMonth": "2026-09",
+      "targetMonth": "2027-09",
+      "yearAheadPct": 0.9
+    },
+    {
+      "city": "New York",
+      "state": "NY",
+      "metroName": "New York, NY",
+      "geography": "metro",
+      "baseMonth": "2026-09",
+      "targetMonth": "2027-09",
+      "yearAheadPct": 2.8
+    },
+    {
+      "city": "Austin",
+      "state": "TX",
+      "metroName": "Austin, TX",
+      "geography": "metro",
+      "baseMonth": "2026-09",
+      "targetMonth": "2027-09",
+      "yearAheadPct": -2.4
+    },
+    {
+      "city": "Dallas",
+      "state": "TX",
+      "metroName": "Dallas, TX",
+      "geography": "metro",
+      "baseMonth": "2026-09",
+      "targetMonth": "2027-09",
+      "yearAheadPct": -0.9
+    },
+    {
+      "city": "Miami",
+      "state": "FL",
+      "metroName": "Miami, FL",
+      "geography": "metro",
+      "baseMonth": "2026-09",
+      "targetMonth": "2027-09",
+      "yearAheadPct": 0.7
+    },
+    {
+      "city": "Orlando",
+      "state": "FL",
+      "metroName": "Orlando, FL",
+      "geography": "metro",
+      "baseMonth": "2026-09",
+      "targetMonth": "2027-09",
+      "yearAheadPct": -0.8
+    },
+    {
+      "city": "Seattle",
+      "state": "WA",
+      "metroName": "Seattle, WA",
+      "geography": "metro",
+      "baseMonth": "2026-09",
+      "targetMonth": "2027-09",
+      "yearAheadPct": 0
+    },
+    {
+      "city": "Denver",
+      "state": "CO",
+      "metroName": "Denver, CO",
+      "geography": "metro",
+      "baseMonth": "2026-09",
+      "targetMonth": "2027-09",
+      "yearAheadPct": -0.2
+    }
+  ]
+}

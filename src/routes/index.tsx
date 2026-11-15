@@ -5,7 +5,9 @@ import { combineSignals, type CityData, type CombineResult, type Direction } fro
 import { SIGNAL_A, SIGNAL_B } from "@/lib/config";
 import { fetchSignal, type SignalResult } from "@/lib/signalClient";
 import { fetchCityMarketFn, type MarketResponse } from "@/lib/cityMarket.functions";
-import { assessCity, scoreLabel, type LocalAssessment } from "@/lib/localDecision";
+import { assessCity, type LocalAssessment } from "@/lib/localDecision";
+import metroForecastSnapshot from "@/data/metroForecast.snapshot.json";
+import { localTaxAuthority } from "@/lib/localTaxAuthorities";
 import { policiesFor } from "@/lib/policyIndicators";
 
 const cityList = cities as CityData[];
@@ -90,6 +92,8 @@ function App(){
   const r=analysis?.result;
   const local=analysis?.local;
   const policy=policiesFor(city.state);
+  const authority=localTaxAuthority(city.city,city.state);
+  const metroForecast=metroForecastSnapshot.metros.find(m=>m.city===city.city&&m.state===city.state);
   const market=analysis?.market;
   const historical=market?.status==="available"?market.history:null;
   const forecast=market?.status==="available"?market.forecast:null;
@@ -108,6 +112,34 @@ function App(){
   return <>
     <header>
       <div className="brand">MOVE<span>UP</span><sup>↗</sup></div>
+      <nav className="main-nav" aria-label="Main navigation">
+        <details className="about-menu">
+          <summary>About Us <span aria-hidden="true">⌄</span></summary>
+          <div className="about-popover">
+            <div className="about-heading">THE TEAM / MOVEUP</div>
+            <div className="about-people">
+              <article className="about-person">
+                <div className="about-avatar" aria-label="Photo not yet provided">LA</div>
+                <div className="about-person-info">
+                  <strong>Laila Archer</strong>
+                  <span>Third-year · Interdisciplinary Studies</span>
+                  <span>Cal Poly San Luis Obispo</span>
+                  <a href="https://www.linkedin.com/in/laila-archer-21a482448/" target="_blank" rel="noopener noreferrer">LinkedIn ↗</a>
+                </div>
+              </article>
+              <article className="about-person">
+                <div className="about-avatar" aria-label="Photo not yet provided">OC</div>
+                <div className="about-person-info">
+                  <strong>Olivia Cook</strong>
+                  <span>Third-year · Business Administration</span>
+                  <span>Cal Poly San Luis Obispo</span>
+                  <a href="https://www.linkedin.com/in/olivia-cook-863b51344/" target="_blank" rel="noopener noreferrer">LinkedIn ↗</a>
+                </div>
+              </article>
+            </div>
+          </div>
+        </details>
+      </nav>
     </header>
     <main className="shell">
       <h1>Buy a home <em>now or wait?</em></h1>
@@ -144,7 +176,7 @@ function App(){
             <div className="verdict-body">
               <div className="micro">02 / VERDICT</div>
               <div className="big">{loading?"…":local?local.verdict:"—"}</div>
-              {local&&!loading?<div className="desc">{local.available&&local.score!=null?<><b>{local.score} / 100 · {scoreLabel(local.score)}</b><br/>Experimental score. Not a forecast.</>:"No city data, so no verdict."}</div>:null}
+              {local&&!loading?<div className="desc">{local.available&&local.score!=null?<><b>{local.score} / 100 · {local.verdict==="BUY"?"Leaning buy":local.verdict==="WAIT"?"Leaning wait":"No clear edge"}</b><br/>Experimental score. Not a forecast.</>:"No city data, so no verdict."}</div>:null}
             </div>
           </section>
           <section className="local-insights" aria-labelledby="local-insights-title">
@@ -161,16 +193,26 @@ function App(){
               <strong>CITY FORECAST</strong>
               <span>{loading?"…":forecast?pct(forecast.yearAheadPct)+" by "+forecast.targetMonth:"Not available as verified city-level data"}</span>
             </div>
+            <div className="local-forecast metro-forecast">
+              <strong>METRO AREA FORECAST · REGIONAL CONTEXT ONLY</strong>
+              <span>{loading?"…":analysis&&metroForecast?pct(metroForecast.yearAheadPct)+" by "+metroForecast.targetMonth:"—"}</span>
+              {analysis&&metroForecast?<small>{metroForecast.metroName} metro · Zillow Research ZHVF · as of {metroForecast.baseMonth} · <a href={metroForecastSnapshot.sourceUrl} target="_blank" rel="noopener noreferrer">Source</a>. Metro geography differs from city. Not included in the score.</small>:null}
+            </div>
             <div className="policy">
               <h3>04 / {city.state} policy</h3>
+              {authority?<article className="policy-entry">
+                <strong>Local property-tax authority · {authority.jurisdiction}</strong>
+                <p>{authority.note}</p>
+                <a href={authority.officialUrl} target="_blank" rel="noopener noreferrer">Check official property tax records ↗</a>
+              </article>:null}
               {policy.map(p=><article key={p.id} className="policy-entry">
                 <strong>{p.title}</strong><p>{p.detail}</p>
                 <a href={p.officialUrl} target="_blank" rel="noopener noreferrer">Official source</a>
               </article>)}
-              <p className="local-note">Eligibility varies. Not applied to your costs.</p>
+              <p className="local-note">Eligibility varies. Not applied to your costs. Current tax estimates use illustrative city rates, not verified parcel levies.</p>
             </div>
             <div className="weights">
-              {([["City price trend","45%",local?.local],["Tax cost","35%",local?.policy],["National odds","20%",local?.national]] as const).map(([name,w,v])=>
+              {([["City price trend","45%",local?.local],["Illustrative tax cost","35%",local?.policy],["National odds","20%",local?.national]] as const).map(([name,w,v])=>
                 <div key={name} className="factor">
                   <span>{name} <em>{w}</em></span>
                   <b>{loading||v==null?"—":Math.round(v)+" / 100"}</b>

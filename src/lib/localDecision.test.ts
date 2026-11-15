@@ -26,6 +26,25 @@ describe("0–100 local-first score",()=>{
     expect(a.score).toBe(59); // 22.5 + 17.5 + 19.64, floored
     expect(a.verdict).toBe("MIXED");
   });
+  it("national odds alone cannot create BUY when local history is flat even with low tax proxy",()=>{
+    const veryLowTax={...neutralCity,property_tax_rate:0.005};
+    const r=assessCity({city:veryLowTax,market:mk(0,0),timeline:6,fedProbability:0,mortgageProbability:0});
+    expect(r.score).toBeGreaterThanOrEqual(60);
+    expect(r.verdict).toBe("MIXED");
+    expect(r.reason).toMatch(/near-neutral/);
+  });
+  it("does not produce BUY when the weighted score contradicts falling local prices",()=>{
+    const r=assessCity({city:{...neutralCity,property_tax_rate:0.005},
+      market:mk(-0.75,-2),timeline:6,fedProbability:0,mortgageProbability:0});
+    expect(r.local).toBe(30);
+    expect(r.score).toBeGreaterThanOrEqual(60);
+    expect(r.verdict).toBe("MIXED");
+  });
+  it("keeps directional verdicts when meaningful local evidence agrees",()=>{
+    const r=assessCity({city:cities.at(9),market:mk(2,5),timeline:6,
+      fedProbability:0,mortgageProbability:0});
+    expect(r.verdict).toBe("BUY");
+  });
   it("city trend: ±5% yearly (±1.5% for 3-month timelines) is the extreme",()=>{
     expect(localTrendRating(mk(0,5),6)).toBe(100);
     expect(localTrendRating(mk(0,-5),6)).toBe(0);

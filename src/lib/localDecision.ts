@@ -1,7 +1,7 @@
 // Experimental, uncalibrated prototype weighting — not a financial recommendation.
 // PM-approved 0–100 scale (2026-11-15): each factor is rated 0–100 (50 = neutral),
 // then weighted 45% city price trend, 35% tax cost, 20% national odds.
-// Score < 40 → WAIT, 40–59 → MIXED, ≥ 60 → BUY. National odds alone cannot reach BUY.
+// Scores: <40 WAIT, 40–59 MIXED, >=60 BUY, subject to local-evidence guardrails.
 // Policy statutes and exemptions displayed elsewhere are informational and are NOT
 // treated as automatically available personal benefits.
 import type { CityData, Verdict } from "./combineSignals";
@@ -79,7 +79,18 @@ export function assessCity(input: {
   }
   // Floor keeps the shown whole number consistent with the bands (59.6 shows 59, MIXED).
   const score = Math.floor(local * weights.local + policy * weights.policy + national * weights.national + 1e-9);
-  return { verdict: verdictFor(score), score, local, policy, national, weights,
-    reason: "Experimental 0–100 score from past city price trend, illustrative tax cost and national market odds; not a forecast.",
-    available: true };
+  const rawVerdict = verdictFor(score);
+  // Local-evidence guardrail: two national odds cannot create a directional result
+  // when the *city's own* price trend is neutral. Strong local evidence must not
+  // be contradicted by the combined score. The tax factor remains illustrative.
+  const localNeutral = local >= 40 && local <= 60;
+  const contradictsLocal = (local < 40 && rawVerdict === "BUY") ||
+    (local > 60 && rawVerdict === "WAIT");
+  const verdict: Verdict = localNeutral || contradictsLocal ? "MIXED" : rawVerdict;
+  const reason = localNeutral
+    ? "Local price history is near-neutral; national odds and illustrative tax estimates cannot independently determine BUY or WAIT."
+    : contradictsLocal
+      ? "The weighted score conflicts with strong local price history, so the result is MIXED."
+      : "Experimental 0–100 score from past city price trend, illustrative tax cost and national market odds; not a forecast.";
+  return { verdict, score, local, policy, national, weights, reason, available: true };
 }
