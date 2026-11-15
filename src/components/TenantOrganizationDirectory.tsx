@@ -14,9 +14,9 @@ export function TenantOrganizationDirectory({city}:{city:City}) {
   return <section className="v6-directory" aria-label={"Public tenant organizations serving "+city}>
     <div className="v6-directory-intro">
       <div>
-        <span className="v6-eyebrow">LOCAL RENTER COMMUNITY</span>
-        <h4>Find renter organizations in {city}</h4>
-        <p>Explore public groups that support tenant rights, counseling or organizing. You can connect directly, even if your increase is legal.</p>
+        <span className="v6-eyebrow">PUBLIC DIRECTORY</span>
+        <h4>Renter organizations in {city}</h4>
+        <p>Independent counseling and organizing groups you can contact directly. These are public listings, not current MoveUp partners.</p>
       </div>
       <div className="v6-directory-stat">
         <strong>{listed.length}</strong>
