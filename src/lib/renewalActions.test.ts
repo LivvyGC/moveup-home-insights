@@ -31,6 +31,12 @@ describe("Tenant action routing",()=>{
   expect(r.noticeDays).toBeLessThan(180);
   expect(r.action).toBe("review_notice");
  });
+ it("routes statewide-only California concerns to California tenant guidance",()=>{
+  const r=evaluateRenewal({...base,city:"San Diego",offeredRent:2400,stateCoverage:"unknown",localCoverage:"no"});
+  expect(r.action).toBe("check_rent_limits");
+  expect(r.actionUrl).toBe("https://oag.ca.gov/tenants");
+  expect(r.actionName).toMatch(/California Attorney General/);
+ });
  it("provides official jurisdiction routes",()=>{
   for(const entry of Object.values(officialActions)){
    expect(entry.url).toMatch(/^https:\/\//);
