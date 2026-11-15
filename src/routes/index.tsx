@@ -8,6 +8,7 @@ import { isStale } from "@/lib/renewalCalculator";
 import { buildTenantCase,coverageLabel,increaseLabel } from "@/lib/tenantCase";
 import { House } from "lucide-react";
 import { TenantIntakeDemo } from "@/components/TenantIntakeDemo";
+import { TenantOrganizationDirectory } from "@/components/TenantOrganizationDirectory";
 
 const CITIES: City[] = ["Los Angeles", "San Francisco", "San Diego", "Seattle"];
 type Bedroom = "1br" | "2br" | "other";
@@ -43,12 +44,11 @@ export function RenewalPage(){
   const [noticeReceived,setNoticeReceived] = useState("");
   const [period,setPeriod] = useState("12");
   const [showRequest,setShowRequest] = useState(false);
-  const [showProtections,setShowProtections] = useState(false);
   const output = useRef<HTMLDivElement|null>(null);
 
   const resetReview=()=>{
     setStateCoverage("unknown");setLocalCoverage("unknown");setPriorIncrease("unknown");
-    setNoticeReceived("");setPeriod("12");setShowRequest(false);setShowProtections(false);
+    setNoticeReceived("");setPeriod("12");setShowRequest(false);
   };
   const resetOnEdit=()=>{setSubmitted(null);setError("");setExample(false);resetReview();};
   const clear=()=>{
@@ -65,10 +65,11 @@ export function RenewalPage(){
     e.preventDefault();
     const base=parseMoney(current), asked=parseMoney(offer);
     const d=new Date(effective+"T00:00:00");
-    const today=new Date();today.setHours(0,0,0,0);
+    const isValidDate=/^\d{4}-\d{2}-\d{2}$/.test(effective) && Number.isFinite(d.getTime()) &&
+      `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`===effective;
     if(base===null||asked===null){setError("Enter your current rent and the offered rent.");setSubmitted(null);return;}
-    if(!/^\d{4}-\d{2}-\d{2}$/.test(effective)||!Number.isFinite(d.getTime())||d<today){
-      setError("Enter a valid future effective date.");setSubmitted(null);return;
+    if(!isValidDate){
+      setError("Enter a valid rent effective date. Past dates are allowed.");setSubmitted(null);return;
     }
     setError("");resetReview();
     setSubmitted({city,bedrooms,current:base,offer:asked,effective});
@@ -95,7 +96,6 @@ export function RenewalPage(){
   const statusLabel=assessment?.legalScreen==="possible_issue"?"Potential concern: check details":
     assessment?.legalScreen==="needs_information"?"Coverage not confirmed":"No specific concern from entered facts";
   const hasLocalRule=rules.some(check=>check.rule.type==="city");
-  const primaryRule=rules.find(check=>check.rule.type==="city")??rules[0];
   const supportAction=finding?.action==="check_rent_limits"||finding?.action==="review_notice";
   const caseRecord=submitted&&finding&&assessment?buildTenantCase({
     city:submitted.city,bedrooms:marketLabel,currentRent:submitted.current,offeredRent:submitted.offer,
@@ -121,16 +121,16 @@ export function RenewalPage(){
         <p className="v4-kicker">MOVEUP · RENEWAL CHECK</p>
         <h1>YOUR HOME.<br/>YOUR RENT.<br/>YOUR RIGHTS.</h1>
         <p>Understand your renewal, compare local rents, and prepare for tenant support.</p>
-        <a className="v4-scroll-link" href="#renewal-offer">Check my offer ↓</a>
       </div>
-      <div className="v4-toolbar">
-        <button type="button" onClick={loadExample}>Try sample</button>
-        <button type="button" className="v4-text-button" onClick={clear}>Clear</button>
-      </div>
-      {example?<span className="v4-sample-badge">Sample data · replace any value to use your own</span>:null}
       <section className="v4-card v4-intake" id="renewal-offer">
         <h2>Your offer</h2>
-        <form noValidate onSubmit={submit}>
+        <form noValidate onSubmit={submit} onKeyDown={e=>{
+          if(e.key==="Enter" && !e.shiftKey && !e.nativeEvent.isComposing &&
+            e.target instanceof HTMLInputElement && ["number","date"].includes(e.target.type)){
+            e.preventDefault();
+            e.currentTarget.querySelector<HTMLButtonElement>('button[type="submit"]')?.click();
+          }
+        }}>
           <div className="v4-fields">
             <label className="v4-field"><span>City</span><select aria-label="City" value={city} onChange={e=>{setCity(e.target.value as City);resetOnEdit();}}>
               {CITIES.map(c=><option key={c}>{c}</option>)}</select></label>
@@ -139,9 +139,14 @@ export function RenewalPage(){
             </select></label>
             <FormField label="Current rent / month" value={current} onChange={v=>{setCurrent(v);resetOnEdit();}}/>
             <FormField label="Offered rent / month" value={offer} onChange={v=>{setOffer(v);resetOnEdit();}}/>
-            <label className="v4-field"><span>New rent takes effect</span><input aria-label="New rent takes effect" type="date" value={effective} onChange={e=>{setEffective(e.target.value);resetOnEdit();}}/></label>
+            <label className="v4-field"><span>New rent takes effect</span><input aria-label="New rent takes effect" type="date" value={effective} onChange={e=>{setEffective(e.target.value);resetOnEdit();}}/><small className="v4-date-note">Past dates are okay too.</small></label>
           </div>
           <button type="submit" className="v4-launch">CHECK MY OFFER</button>
+          <div className="v4-form-tools">
+            <button type="button" className="v4-fill-example" onClick={loadExample}>Fill with example numbers</button>
+            <button type="button" className="v4-clear-form" onClick={clear}>Clear form</button>
+          </div>
+          {example?<p className="v4-sample-badge">Example: Los Angeles, 2-bedroom, $2,400 to $2,650. Change any field to use your own information.</p>:null}
           {error?<p className="v4-form-error" role="alert">{error}</p>:null}
         </form>
       </section>
@@ -187,7 +192,7 @@ export function RenewalPage(){
               <span>Prepare a message asking for better terms or an explanation.</span>
               <span className="v4-action-arrow" aria-hidden="true">→</span>
             </button>
-            <a href="#moveup-protections" onClick={()=>setShowProtections(true)}>
+            <a href="#moveup-protections">
               <span className="v4-action-number">02</span>
               <strong>Check my protections</strong>
               <span>Explore relevant laws without assuming your landlord broke one.</span>
@@ -203,14 +208,8 @@ export function RenewalPage(){
         </section>
         <section id="moveup-protections" className="v4-section v4-protections">
           <div className="v4-heading"><h2>Your protections</h2><span className="v4-legal-status">{statusLabel}</span></div>
-          <div className="v6-protections-preview">
-            <div>
-              <strong>{primaryRule?"Published standard: "+primaryRule.rule.cap_pct+"%": "Check current renter protections"}</strong>
-              <p>{primaryRule?"Rent rules may apply to your home in "+submitted.city+". The coverage questions help identify what to check.":"No dated rule is available in the saved records for this date."}</p>
-            </div>
-            <button type="button" aria-expanded={showProtections} onClick={()=>setShowProtections(v=>!v)}>{showProtections?"Hide questions":"Review protections"}</button>
-          </div>
-          {showProtections?<div className="v6-protection-expanded">
+          <p className="v4-section-intro">Explore published rent protections that may apply in {submitted.city}. Your building and rental history determine eligibility, so these are guides rather than a legal decision.</p>
+          <div className="v6-protection-expanded">
           <p className="v4-section-intro">The rules below depend on your home and rental history. Choose what you know.</p>
           <div className="v4-law-grid">
             {rules.length===0?<div className="v4-card">No dated rule in our stored records for this date. Check official guidance.</div>:
@@ -239,7 +238,7 @@ export function RenewalPage(){
                   </details>
                   <a href={check.rule.source_url} target="_blank" rel="noopener noreferrer">Read official law guidance</a>
                 </article>;
-                return isSecondary?<details className="v4-statewide-disclosure" key={check.rule.id}><summary>Statewide protections: {check.rule.cap_pct}%</summary>{card}</details>:card;
+                return card;
               })}
           </div>
           {submitted.city==="Seattle"&&amountChange>0?<div className="v4-card v4-notice-card">
@@ -256,7 +255,7 @@ export function RenewalPage(){
             <p>Earlier increases may affect which rent limits apply.</p>
           </div>:null}
           <p className="v4-muted">Coverage and exceptions must be checked before any legal conclusion.</p>
-          </div>:null}
+          </div>
         </section>
         {showRequest?<section id="moveup-negotiate" className="v4-section v4-negotiation"> 
           <div className="v4-heading"><h2>Negotiate your renewal</h2></div>
@@ -312,17 +311,25 @@ export function RenewalPage(){
           </div>
         </section>
       </div>:null}
-      <section className="v6-partner-story" aria-label="MoveUp for tenant organizations">
-        <div className="v6-partner-copy">
-          <span className="v6-eyebrow">FOR TENANT ORGANIZATIONS</span>
-          <h2>Reach renters before a crisis.</h2>
-          <p>Everyday rent questions can become opportunities for counseling, negotiation and collective action. MoveUp helps renters prepare those conversations instead of starting with a blank form.</p>
+      <section className="v6-network" id="moveup-network" aria-label="MoveUp renter support network">
+        <div className="v6-network-intro">
+          <span className="v6-eyebrow">RENTER SUPPORT AND COMMUNITY</span>
+          <h2>Find support. Build connections.</h2>
+          <p>Find independent organizations serving your city, then choose whether to contact them. MoveUp is building toward an opt-in network that can help renters connect with trusted support.</p>
         </div>
-        <div className="v6-partner-model">
-          <div><strong>Free for renters</strong><span>Offer comparison, renter protections and practical next steps.</span></div>
-          <div><strong>Designed for organizers</strong><span>Voluntary interest, structured case packets and future customizable intake.</span></div>
-          <p>12 researched public organization examples in 4 launch cities. This is a curated sample, not a full market count, partnership claim or paying customer total.</p>
-        </div>
+        <TenantOrganizationDirectory city={submitted?.city??city}/>
+        <section className="v6-partner-story" aria-label="MoveUp for tenant organizations">
+          <div className="v6-partner-copy">
+            <span className="v6-eyebrow">FOR TENANT ORGANIZATIONS</span>
+            <h2>Reach renters before a crisis.</h2>
+            <p>Everyday rent questions can become opportunities for counseling, negotiation and collective action. MoveUp helps renters prepare those conversations instead of starting with a blank form.</p>
+          </div>
+          <div className="v6-partner-model">
+            <div><strong>Free for renters</strong><span>Offer comparison, renter protections and practical next steps.</span></div>
+            <div><strong>Designed for organizers</strong><span>Voluntary interest, structured case packets and future customizable intake.</span></div>
+            <p>12 researched public organization examples in 4 launch cities. This is a curated sample, not a full market count, partnership claim or paying customer total.</p>
+          </div>
+        </section>
       </section>
     </main>
     <footer className="v4-container v4-footer">MOVEUP · EDUCATIONAL RENTAL AGREEMENT REVIEW</footer>
