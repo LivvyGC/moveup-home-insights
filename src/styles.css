@@ -229,3 +229,26 @@ footer{justify-content:center;}
 .weights .bar>i{display:block;height:100%;background:var(--signal);}
 .weights>.total b{font-size:22px;}
 .weights>p.scale{font-size:14px;margin:10px 0 0;color:var(--mu-19);}
+
+/* Verdict readability fix: do not compress MIXED letterforms or clip in narrow panels. */
+.verdict{min-width:0;}
+.verdict-body{min-width:0;width:100%;}
+.verdict .big{
+  font-family:Inter,Arial,sans-serif;
+  font-size:clamp(48px, min(6vw, 12cqw), 88px);
+  line-height:1.12;
+  letter-spacing:-.035em;
+  font-weight:900;
+  white-space:nowrap;
+  max-width:100%;
+  margin:10px 0 16px;
+}
+.verdict{container-type:inline-size;}
+@media(max-width:560px){
+  .verdict{padding:23px 20px;}
+  .verdict .big{
+    font-size:clamp(42px,14cqw,74px);
+    letter-spacing:-.02em;
+    line-height:1.15;
+  }
+}
