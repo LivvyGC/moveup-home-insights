@@ -176,16 +176,16 @@ export function RenewalPage(){
                 <div><span>Your offered monthly rent</span><strong>{money(submitted.offer)}</strong></div>
                 <div><span>City {marketLabel} new-lease estimate</span><strong>{money(benchmark)}</strong></div>
               </div>
-              <div className="v7-market-chart" role="img" aria-label={"Your offer "+money(submitted.offer)+"; "+marketLabel+" city benchmark "+money(benchmark)+"; difference "+signedMoney(assessment.difference??0)}>
-                <div className="v7-market-bar">
-                  <div className="v7-market-bar-label"><span>City new-lease benchmark</span><strong>{money(benchmark)}</strong></div>
-                  <div className="v7-market-bar-track"><div className="v7-market-bar-fill v7-market-bar-benchmark" style={{width:(100*benchmark/Math.max(benchmark,submitted.offer))+"%"}}/></div>
+              <div className="v7-market-meter-panel">
+                <div className={"v4-meter v4-meter-"+assessment.tone} role="img" aria-label={"Your offer "+money(submitted.offer)+"; "+marketLabel+" city benchmark "+money(benchmark)+"; difference "+signedMoney(assessment.difference??0)}>
+                  <div className="v4-track">
+                    <span className="v4-market-below" style={{width:(assessment.benchmarkPosition??0)+"%"}}/>
+                    <span className="v4-market-above" style={{left:(assessment.benchmarkPosition??0)+"%"}}/>
+                  </div>
+                  <div className="v4-market-line" style={{left:(assessment.benchmarkPosition??0)+"%"}}><span>MARKET</span></div>
+                  <div className="v4-offer-line" style={{left:(assessment.offerPosition??0)+"%"}}><span>YOUR OFFER</span></div>
                 </div>
-                <div className="v7-market-bar">
-                  <div className="v7-market-bar-label"><span>Your renewal offer</span><strong>{money(submitted.offer)}</strong></div>
-                  <div className="v7-market-bar-track"><div className="v7-market-bar-fill v7-market-bar-offer" style={{width:(100*submitted.offer/Math.max(benchmark,submitted.offer))+"%"}}/></div>
-                </div>
-                <span className="v7-chart-note">Bar lengths use the same dollar scale, from $0 to the higher of the two amounts.</span>
+                <p className="v7-meter-explainer">The markers show where your renewal offer sits relative to the city's new-lease benchmark.</p>
               </div>
               <div className="v7-market-takeaway">
                 <div><span>{assessment.marketPosition==="above"?"More than city benchmark each month":assessment.marketPosition==="below"?"Less than city benchmark each month":"Difference from city benchmark"}</span><strong>{signedMoney(assessment.difference??0)} / month</strong></div>
