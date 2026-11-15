@@ -1,5 +1,5 @@
 import {afterEach,describe,expect,it} from "vitest";
-import {cleanup,fireEvent,render,screen} from "@testing-library/react";
+import {cleanup,fireEvent,render,screen,waitFor} from "@testing-library/react";
 import {RenewalPage} from "../routes/index";
 afterEach(cleanup);
 function fill({offer="2200",bedrooms="1br"}={}) {
@@ -180,18 +180,35 @@ describe("V4 renter flow",()=>{
   expect(container.querySelectorAll(".v8-contact-fields input")).toHaveLength(3);
   expect(screen.getByText("Your prefilled renewal assessment")).toBeTruthy();
  });
- it("shows the organization directory only at the bottom next to the network story",()=>{
-  const {container}=render(<RenewalPage/>);fill();submit();
-  const directory=container.querySelector(".v6-directory");
-  const network=container.querySelector("#moveup-network");
-  const report=container.querySelector(".v4-report");
-  const intake=container.querySelector("#moveup-connect");
-  expect(container.querySelectorAll(".v6-directory").length).toBe(1);
-  expect(network?.contains(directory)).toBe(true);
-  expect(intake?.contains(directory)).toBe(false);
-  expect((report?.compareDocumentPosition(network!)??0)&Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+ it("explains the real demo destination before submission and hides future organizations behind details",()=>{
+  const {container}=render(<RenewalPage/>);
+  expect(screen.queryByText("Where your inquiry goes")).toBeNull();
+  fill();submit();
+  const route=container.querySelector("#moveup-network");
+  const form=container.querySelector("#moveup-connect");
+  const details=container.querySelector(".v9-routing-directory") as HTMLDetailsElement;
+  expect(route).toBeTruthy();
+  expect((form?.compareDocumentPosition(route!)??0)&Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  expect(screen.getByText("Where your inquiry goes")).toBeTruthy();
+  expect(screen.getByText("MoveUp demo intake")).toBeTruthy();
+  expect(screen.getByText(/save it in the browser-only demo database/)).toBeTruthy();
+  expect(screen.getByText("Participating renter organizations")).toBeTruthy();
+  expect(details.open).toBe(false);
+  fireEvent.click(screen.getByText("Explore potential local organizations in Los Angeles (not connected)"));
+  expect(details.open).toBe(true);
   expect(screen.getByText("Renter organizations in Los Angeles")).toBeTruthy();
-  expect(screen.queryByRole("link",{name:"Find renter organizations below"})).toBeNull();
+  expect(container.querySelectorAll(".v6-directory")).toHaveLength(1);
+ });
+ it("displays the saved local inquiry receipt without claiming union delivery",async()=>{
+  render(<RenewalPage/>);fill();submit();
+  fireEvent.change(screen.getByRole("textbox",{name:"Full name"}),{target:{value:"Test Renter"}});
+  fireEvent.change(screen.getByRole("textbox",{name:"Email address"}),{target:{value:"renter@example.com"}});
+  fireEvent.change(screen.getByRole("textbox",{name:"Phone number"}),{target:{value:"5551234567"}});
+  fireEvent.click(screen.getByRole("checkbox",{name:"Consent to record this demo inquiry"}));
+  fireEvent.click(screen.getByRole("button",{name:"Submit to database"}));
+  await waitFor(()=>expect(screen.getByText("Saved to your browser")).toBeTruthy());
+  expect(screen.getByText(/was saved on this device. No organization received it/)).toBeTruthy();
+  expect(screen.getByText(/Inquiry MU-/)).toBeTruthy();
  });
  it("the report only appears after a completed analysis",()=>{
   render(<RenewalPage/>);
