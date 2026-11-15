@@ -1,7 +1,7 @@
 name: MoveUp Review Checks
 on:
   push:
-    branches: [codex/city-insights-readability]
+    branches: [codex/city-insights-readability, codex/verified-policy-2026]
   pull_request:
 jobs:
   test-and-build:
