@@ -1,97 +1,138 @@
 {
   "source": "Zillow Research ZHVI (city, all homes, mid-tier, smoothed, seasonally adjusted)",
   "sourceUrl": "https://files.zillowstatic.com/research/public_csvs/zhvi/City_zhvi_uc_sfrcondo_tier_0.33_0.67_sm_sa_month.csv",
-  "updatedAt": "2026-11-15",
+  "updatedAt": "2026-11-14",
   "cities": [
     {
       "city": "Los Angeles",
       "state": "CA",
       "month": "2026-09",
-      "typicalHomeValue": 927891.15,
-      "yearOverYearPct": -0.52,
-      "lastThreeMonthsPct": -0.06,
-      "forecast": null
+      "typicalHomeValue": 927208.16,
+      "yearOverYearPct": -0.37,
+      "lastThreeMonthsPct": -0.45,
+      "forecast": null,
+      "oneMonthPct": 0.01,
+      "threeMonthPct": -0.45,
+      "sixMonthPct": -1.66,
+      "twelveMonthPct": -0.37
     },
     {
       "city": "San Francisco",
       "state": "CA",
       "month": "2026-09",
-      "typicalHomeValue": 1441021.2,
-      "yearOverYearPct": 15.53,
-      "lastThreeMonthsPct": 5.33,
-      "forecast": null
+      "typicalHomeValue": 1413174.67,
+      "yearOverYearPct": 13.65,
+      "lastThreeMonthsPct": 4.58,
+      "forecast": null,
+      "oneMonthPct": 1.74,
+      "threeMonthPct": 4.58,
+      "sixMonthPct": 7.53,
+      "twelveMonthPct": 13.65
     },
     {
       "city": "San Diego",
       "state": "CA",
       "month": "2026-09",
-      "typicalHomeValue": 980490.1,
-      "yearOverYearPct": 0.07,
-      "lastThreeMonthsPct": 0.18,
-      "forecast": null
+      "typicalHomeValue": 979787.16,
+      "yearOverYearPct": -0.36,
+      "lastThreeMonthsPct": -0.06,
+      "forecast": null,
+      "oneMonthPct": 0.1,
+      "threeMonthPct": -0.06,
+      "sixMonthPct": -0.25,
+      "twelveMonthPct": -0.36
     },
     {
       "city": "New York",
       "state": "NY",
       "month": "2026-09",
-      "typicalHomeValue": 825854.16,
-      "yearOverYearPct": 4.31,
-      "lastThreeMonthsPct": 0.96,
-      "forecast": null
+      "typicalHomeValue": 822976.22,
+      "yearOverYearPct": 4.21,
+      "lastThreeMonthsPct": 0.52,
+      "forecast": null,
+      "oneMonthPct": 0.38,
+      "threeMonthPct": 0.52,
+      "sixMonthPct": 1.51,
+      "twelveMonthPct": 4.21
     },
     {
       "city": "Austin",
       "state": "TX",
       "month": "2026-09",
-      "typicalHomeValue": 491959.83,
-      "yearOverYearPct": -3.21,
-      "lastThreeMonthsPct": 0.37,
-      "forecast": null
+      "typicalHomeValue": 490475.49,
+      "yearOverYearPct": -3.71,
+      "lastThreeMonthsPct": -0.4,
+      "forecast": null,
+      "oneMonthPct": 0.18,
+      "threeMonthPct": -0.4,
+      "sixMonthPct": -2.16,
+      "twelveMonthPct": -3.71
     },
     {
       "city": "Dallas",
       "state": "TX",
       "month": "2026-09",
-      "typicalHomeValue": 303442.35,
-      "yearOverYearPct": -1.35,
-      "lastThreeMonthsPct": 0.04,
-      "forecast": null
+      "typicalHomeValue": 303094.86,
+      "yearOverYearPct": -1.66,
+      "lastThreeMonthsPct": -0.47,
+      "forecast": null,
+      "oneMonthPct": 0.07,
+      "threeMonthPct": -0.47,
+      "sixMonthPct": -1.63,
+      "twelveMonthPct": -1.66
     },
     {
       "city": "Miami",
       "state": "FL",
       "month": "2026-09",
-      "typicalHomeValue": 583704.84,
-      "yearOverYearPct": 1.36,
-      "lastThreeMonthsPct": 0.98,
-      "forecast": null
+      "typicalHomeValue": 581415.96,
+      "yearOverYearPct": 0.76,
+      "lastThreeMonthsPct": 0.61,
+      "forecast": null,
+      "oneMonthPct": 0.36,
+      "threeMonthPct": 0.61,
+      "sixMonthPct": 0.52,
+      "twelveMonthPct": 0.76
     },
     {
       "city": "Orlando",
       "state": "FL",
       "month": "2026-09",
-      "typicalHomeValue": 372774.79,
-      "yearOverYearPct": -1.06,
-      "lastThreeMonthsPct": -0.21,
-      "forecast": null
+      "typicalHomeValue": 372779.34,
+      "yearOverYearPct": -1.42,
+      "lastThreeMonthsPct": -0.44,
+      "forecast": null,
+      "oneMonthPct": -0.08,
+      "threeMonthPct": -0.44,
+      "sixMonthPct": -0.86,
+      "twelveMonthPct": -1.42
     },
     {
       "city": "Seattle",
       "state": "WA",
       "month": "2026-09",
-      "typicalHomeValue": 822572.43,
-      "yearOverYearPct": -1.77,
-      "lastThreeMonthsPct": -0.53,
-      "forecast": null
+      "typicalHomeValue": 823947.95,
+      "yearOverYearPct": -1.59,
+      "lastThreeMonthsPct": -0.98,
+      "forecast": null,
+      "oneMonthPct": -0.09,
+      "threeMonthPct": -0.98,
+      "sixMonthPct": -3,
+      "twelveMonthPct": -1.59
     },
     {
       "city": "Denver",
       "state": "CO",
       "month": "2026-09",
-      "typicalHomeValue": 520946.9,
-      "yearOverYearPct": -1.88,
-      "lastThreeMonthsPct": 0.49,
-      "forecast": null
+      "typicalHomeValue": 520229.12,
+      "yearOverYearPct": -2.09,
+      "lastThreeMonthsPct": 0.1,
+      "forecast": null,
+      "oneMonthPct": 0.27,
+      "threeMonthPct": 0.1,
+      "sixMonthPct": -1.88,
+      "twelveMonthPct": -2.09
     }
-  ]
+  ],
+  "note": "Verified against Zillow Research city ZHVI CSV on 2026-11-14; index observations through September 2026. Zillow may revise historical index values."
 }
