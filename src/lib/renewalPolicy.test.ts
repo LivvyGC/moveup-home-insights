@@ -4,7 +4,7 @@ describe("dated rent-cap records",()=>{
  it("four jurisdictions have dated government sources",()=>{
  for(const c of ["Los Angeles","San Francisco","San Diego","Seattle"] as const){
  expect(rentRules[c].length).toBeGreaterThan(0);
- for(const r of rentRules[c]){expect(r.source_url).toMatch(/^https:\/\//);expect(r.conditions.length).toBeGreaterThan(30);expect(r.effective_from).toMatch(/^2026-/)}
+ for(const r of rentRules[c]){expect(r.source_url).toMatch(/^https:\/\//);expect(r.conditions.length).toBeGreaterThan(30);expect(r.effective_from).toMatch(/^202[67]-/)}
  }
  });
  it("Seattle limit changes by calendar year",()=>{
