@@ -89,13 +89,19 @@ describe("V4 renter flow",()=>{
   expect(screen.getAllByText(/No earlier increases reported/).length).toBeGreaterThan(0);
   expect(screen.getByText("RENTER INQUIRY PREVIEW")).toBeTruthy();
  });
- it("offers negotiation, protections and community options for renters regardless of legal concern",()=>{
-  render(<RenewalPage/>);fill({offer:"2010",bedrooms:"2br"});submit();
-  expect(screen.getByRole("button",{name:/Negotiate my renewal/})).toBeTruthy();
-  expect(screen.getByRole("link",{name:/Check my protections/})).toBeTruthy();
-  expect(screen.getByRole("link",{name:/Connect with tenant support/})).toBeTruthy();
-  fireEvent.click(screen.getByRole("button",{name:/Negotiate my renewal/}));
-  expect(screen.getByText("Negotiate your renewal")).toBeTruthy();
+ it("skips redundant action cards and keeps optional negotiation accessible",()=>{
+  const {container}=render(<RenewalPage/>);fill({offer:"2010",bedrooms:"2br"});submit();
+  expect(screen.queryByText("What would you like to do?")).toBeNull();
+  expect(container.querySelector(".v4-action-grid")).toBeNull();
+  expect(screen.getByText("Your protections")).toBeTruthy();
+  expect(screen.getByText("Connect with tenant support")).toBeTruthy();
+  const details=container.querySelector(".v4-negotiation-inline") as HTMLDetailsElement;
+  expect(details).toBeTruthy();
+  expect(details.open).toBe(false);
+  fireEvent.click(screen.getByText("Want to negotiate? Draft a message to your landlord"));
+  expect(details.open).toBe(true);
+  expect((screen.getByRole("textbox",{name:"Draft landlord request"}) as HTMLTextAreaElement).value).toContain("$2010.00");
+  expect(screen.getByRole("button",{name:"Copy message"})).toBeTruthy();
  });
  it("shows city and statewide protection cards together in source order",()=>{
   const {container}=render(<RenewalPage/>);fill({offer:"3000"});submit();
