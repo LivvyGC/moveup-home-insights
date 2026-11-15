@@ -151,7 +151,7 @@ export function TenantIntakeDemo({caseRecord}:{caseRecord:TenantCaseRecord}) {
       setRecords(result);
       setStatus("success");
       setStatusText(delivery==="local_demo"
-        ?"Inquiry "+record.id+" saved on this device for "+caseRecord.city+". No organizations were contacted."
+        ?"Success! Inquiry "+record.id+" submitted to the MoveUp demo database for "+caseRecord.city+". Saved on this device only; no organizations were contacted."
         :"MoveUp demo inbox accepted the inquiry. A local copy was saved. No tenant organizations were contacted.");
       setShowRegistry(false);
     }catch{
@@ -224,11 +224,11 @@ export function TenantIntakeDemo({caseRecord}:{caseRecord:TenantCaseRecord}) {
       <p className="v4-intake-disclaimer">Renter-prepared information. A tenant organization has not reviewed or received this packet.</p>
     </div>:null}
     <div className="v4-demo-delivery">
-      <h4>Keep a copy of your inquiry</h4>
-      <p>You choose whether to contact an organization using its public website. MoveUp does not automatically send this inquiry to any of the groups listed above.</p>
+      <h4>Submit your inquiry to MoveUp</h4>
+      <p>This demo shows how a future MoveUp network could collect renter inquiries and, with permission, connect them with participating support organizations.</p>
       {intakeEndpointConfigured?
         <p>The configured receiver is a MoveUp demo inbox, not a tenant union. Only a confirmed response can mark it received.</p>
-        :<p>For this hackathon demo, you can save the inquiry on this device. No renter information is sent to a tenant organization.</p>}
+        :<p><strong>Prototype database:</strong> submissions are saved in this browser only. The shared network and organization delivery are not live yet.</p>}
       <form onSubmit={submitInquiry}>
         {intakeEndpointConfigured?<label className="v4-field"><span>Contact email</span>
           <input aria-label="Contact email" type="email" required autoComplete="email" value={contactEmail}
@@ -238,10 +238,10 @@ export function TenantIntakeDemo({caseRecord}:{caseRecord:TenantCaseRecord}) {
           onChange={e=>setConsent(e.target.checked)}/>
           <span>{intakeEndpointConfigured
             ?"I consent to send my inquiry and email to MoveUp's demo inbox, not to any listed organization."
-            :"I consent to save this inquiry on my device for demonstration. I understand no organization will receive it."}</span>
+            :"I consent to save this inquiry in MoveUp's browser-only demo database. I understand no organization will receive it."}</span>
         </label>
         <button type="submit" disabled={!consent||purposes.length===0||status==="sending"||status==="success"}>
-          {status==="sending"?"Saving inquiry...":intakeEndpointConfigured?"Send to MoveUp demo inbox":"Save demo inquiry"}
+          {status==="sending"?"Submitting...":intakeEndpointConfigured?"Send to MoveUp demo inbox":"Submit to database"}
         </button>
       </form>
       {statusText?<p role="status" className={"v4-delivery-"+status}>{statusText}</p>:null}
