@@ -269,9 +269,9 @@ export function RenewalPage(){
           </div>
           <a className="v7-resource-link" href={LA_COMPLAINT_URL} target="_blank" rel="noopener noreferrer">Open official LA complaint page <span aria-hidden="true">↗</span></a>
         </aside>:null}
+        {caseRecord?<TenantIntakeDemo key={submitted.city+"-"+submitted.effective+"-"+submitted.offer} caseRecord={caseRecord}>
         <section id="moveup-summary" className="v4-section v4-report" aria-label="Tenant support summary">
-          <div className="v4-heading"><h2>Save your renewal summary</h2></div>
-          <p className="v4-section-intro">This is the renewal summary that will be included automatically if you submit a request for support below.</p>
+          <div className="v4-heading"><h2>Your prefilled renewal assessment</h2><span>Included with your inquiry</span></div>
           <div className="v4-card">
             <div className="v4-report-title"><strong>MOVEUP / CASE SUMMARY</strong><span>{submitted.city} · {marketLabel} · starts {submitted.effective}</span></div>
             <div className="v4-summary-groups">
@@ -295,10 +295,6 @@ export function RenewalPage(){
                   {submitted.city==="Seattle"&&amountChange>0?<div><dt>Notice received</dt><dd>{noticeReceived||"Not entered"}</dd></div>:null}
                 </dl>
               </div>
-              <div className="v4-summary-group">
-                <h3>Next step</h3>
-                <p>Review your protections or request tenant support below. A suspected violation is not required to ask for help.</p>
-              </div>
             </div>
             <details className="v4-report-details"><summary>Data, sources and legal qualifications</summary>
               <p>Apartment List · {benchmarkMonth} · city {marketLabel} new-lease benchmark: <a href={RESEARCH_URL} target="_blank" rel="noopener noreferrer">data source</a>. {stale?"Dataset is older than 45 days.":"Dataset is within 45 days."}</p>
@@ -309,27 +305,14 @@ export function RenewalPage(){
             <button type="button" className="v4-print-button" onClick={()=>{if(typeof window!=="undefined")window.print();}}>Print / Save as PDF</button>
           </div>
         </section>
-        {caseRecord?<TenantIntakeDemo key={submitted.city+"-"+submitted.effective+"-"+submitted.offer} caseRecord={caseRecord}/>:null}
+        </TenantIntakeDemo>:null}
       </div>:null}
       <section className="v6-network" id="moveup-network" aria-label="MoveUp renter support network">
-        <div className="v6-network-intro">
-          <span className="v6-eyebrow">RENTER SUPPORT AND COMMUNITY</span>
-          <h2>Find support. Build connections.</h2>
-          <p>Find independent organizations serving your city, then choose whether to contact them. MoveUp is building toward an opt-in network that can help renters connect with trusted support.</p>
-        </div>
         <TenantOrganizationDirectory city={submitted?.city??city}/>
-        <section className="v6-partner-story" aria-label="MoveUp for tenant organizations">
-          <div className="v6-partner-copy">
-            <span className="v6-eyebrow">FOR TENANT ORGANIZATIONS</span>
-            <h2>Reach renters before a crisis.</h2>
-            <p>Everyday rent questions can become opportunities for counseling, negotiation and collective action. MoveUp helps renters prepare those conversations instead of starting with a blank form.</p>
-          </div>
-          <div className="v6-partner-model">
-            <div><strong>Free for renters</strong><span>Offer comparison, renter protections and practical next steps.</span></div>
-            <div><strong>Designed for organizers</strong><span>Consent-based contact requests, ready-to-share renewal summaries and future customizable intake.</span></div>
-            <p>12 researched public organization examples in 4 launch cities. This is a curated sample, not a full market count, partnership claim or paying customer total.</p>
-          </div>
-        </section>
+        <aside className="v6-network-note" aria-label="For tenant organizations">
+          <strong>For tenant organizations</strong>
+          <p>MoveUp is building toward an opt-in network where participating groups could receive renter-approved, prefilled inquiries. Organization integrations and paid partnerships are not live yet.</p>
+        </aside>
       </section>
     </main>
     <footer className="v4-container v4-footer">MOVEUP · EDUCATIONAL RENTAL AGREEMENT REVIEW</footer>
