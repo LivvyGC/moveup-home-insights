@@ -309,3 +309,80 @@ html{scroll-behavior:smooth}
   .v4-intake-demo{padding:8px 0;margin:8px 0;border:0}
   .v4-intake-demo .v4-interest-choices,.v4-intake-buttons,.v4-demo-delivery,.v4-registry{display:none!important}
 }
+
+
+/* Final public experience. Large readable choices and restrained detail text. */
+.v6-eyebrow{font-size:13px;letter-spacing:.04em;font-weight:850;color:#5E5B55}
+.v6-directory{margin:22px 0 9px;padding:23px 0;border-top:1px solid var(--line)}
+.v6-directory-intro{display:grid;grid-template-columns:minmax(0,1fr) 116px;gap:20px;align-items:start}
+.v6-directory-intro h4{font-size:clamp(23px,3vw,30px);letter-spacing:-.045em;line-height:1.1;margin:6px 0 12px}
+.v6-directory-intro p{font-size:16px;line-height:1.55;margin:0;max-width:640px}
+.v6-directory-stat{border-left:1px solid var(--line);padding-left:17px}
+.v6-directory-stat strong{font-size:39px;line-height:1;font-weight:900;display:block;letter-spacing:-.06em}
+.v6-directory-stat span{display:block;color:var(--grey);font-size:14px;line-height:1.35;margin-top:7px}
+.v6-directory-filters{display:flex;flex-wrap:wrap;gap:9px;margin:21px 0 14px}
+.v6-directory-filters button{font-size:15px;min-height:41px;padding:8px 15px;border:1px solid var(--line);background:#FFFDF9;color:var(--ink);font-weight:750}
+.v6-directory-filters button.active{background:var(--ink);color:#FFFDF9;border-color:var(--ink)}
+.v6-directory-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.v6-organization{padding:17px;border:1px solid var(--line);background:#FFFDF9;min-width:0}
+.v6-org-kind{display:inline-block;margin-bottom:7px;color:#636057;font-size:13px;font-weight:850;letter-spacing:.01em}
+.v6-organization strong{display:block;font-size:17px;line-height:1.3;letter-spacing:-.015em}
+.v6-organization p{font-size:15px;line-height:1.55;margin:10px 0;min-height:3.1em}
+.v6-organization a{display:inline-block;font-weight:850;font-size:15px;line-height:1.5}
+.v6-directory-disclaimer{color:var(--grey);font-size:14px;line-height:1.55;margin:15px 0 0}
+.v6-demo-tools{border-top:1px solid var(--line);margin-top:20px;padding-top:14px}
+.v6-demo-tools>summary{font-size:14px;color:var(--grey);font-weight:750}
+.v6-demo-tools[open]>summary{margin-bottom:11px}
+.v6-partner-story{margin:45px auto 25px;display:grid;grid-template-columns:minmax(0,1.06fr) minmax(0,.94fr);gap:26px;border:1px solid var(--ink);padding:29px;background:#E8E7DB}
+.v6-partner-copy h2{font-size:clamp(29px,4vw,49px);line-height:1.08;letter-spacing:-.055em;margin:12px 0}
+.v6-partner-copy p{font-size:17px;line-height:1.5;max-width:490px;margin:0}
+.v6-partner-model{border-left:1px solid #A5A398;padding-left:23px;display:grid;gap:16px}
+.v6-partner-model>div>strong{display:block;font-size:19px;letter-spacing:-.02em}
+.v6-partner-model>div>span{display:block;font-size:15px;line-height:1.55;margin-top:4px}
+.v6-partner-model>p{font-size:13px;line-height:1.5;color:#5E5B55;margin:0}
+
+/* Strong typography and quiet metadata: do not force visitors to read audit jargon. */
+.v4-section-intro{font-size:16px;line-height:1.55;max-width:760px;color:#45433F}
+.v4-law-card h3{font-size:clamp(20px,2.7vw,26px);line-height:1.18}
+.v4-law-card>p{font-size:16px;line-height:1.5;max-width:720px}
+.v4-law-top{font-size:14px}
+.v4-law-value span{font-size:15px}
+.v4-law-report{font-size:14px}
+.v4-law-details summary,.v4-law-details p{font-size:15px}
+.v4-law-card>a,.v4-notice-card>a{font-size:15px}
+.v4-statewide-disclosure>summary{font-size:16px}
+.v4-history-row p{font-size:15px}
+.v4-field{font-size:16px}
+.v4-result-eyebrow{font-size:14px}
+.v4-legal-status{font-size:14px}
+.v4-source,.v4-stale,.v4-muted,.v4-report-details p{font-size:14px}
+.v4-summary-list dt,.v4-summary-list dd{font-size:15px}
+.v4-intake-header>span{font-size:14px}
+.v4-intake-header p{font-size:16px}
+.v4-intake-demo .v4-intake-checklist label{font-size:15px}
+.v4-demo-delivery p,.v4-demo-delivery .v4-consent{font-size:15px}
+
+/* The official legal route remains secondary to a renter's first action. */
+.v4-law-shield{display:none}
+.v4-law-details{margin-top:12px}
+.v4-law-card h3{max-width:720px}
+.v4-law-value{margin-top:10px}
+.v4-action-grid strong{font-size:21px}
+.v4-action-grid>a>span:nth-of-type(2),
+.v4-action-grid>button>span:nth-of-type(2){font-size:15px}
+@media(max-width:780px){
+ .v6-directory-list{grid-template-columns:1fr}
+ .v6-partner-story{grid-template-columns:1fr;padding:20px}
+ .v6-partner-model{border-left:0;border-top:1px solid #A5A398;padding:16px 0 0}
+}
+@media(max-width:540px){
+ .v6-directory-intro{grid-template-columns:1fr;gap:8px}
+ .v6-directory-stat{border-left:0;border-top:1px solid var(--line);padding:10px 0 0;display:flex;align-items:center;gap:10px}
+ .v6-directory-stat strong{font-size:33px}
+ .v6-directory-stat span{margin:0}
+ .v6-directory-filters button{flex:1}
+ .v6-partner-story{margin:25px auto}
+}
+@media print{
+ .v6-directory,.v6-partner-story,.v6-demo-tools{display:none!important}
+}
