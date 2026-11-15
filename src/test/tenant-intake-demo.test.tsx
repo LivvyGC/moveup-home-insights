@@ -37,7 +37,7 @@ describe("renter-to-organizer inquiry",()=>{
   });
   it("does not store or claim union delivery before consent",()=>{
     render(<TenantIntakeDemo caseRecord={sample}/>);
-    expect((screen.getByRole("button",{name:"Save demo inquiry"}) as HTMLButtonElement).disabled).toBe(true);
+    expect((screen.getByRole("button",{name:"Submit to database"}) as HTMLButtonElement).disabled).toBe(true);
     expect(readDemoRegistry(window.localStorage)).toHaveLength(0);
     expect(screen.getByText(/No renter information is sent to a tenant organization/).parentElement).toBeTruthy();
     expect(CITY_ROUTING["Los Angeles"].connectedUnions).toBe(0);
@@ -46,9 +46,11 @@ describe("renter-to-organizer inquiry",()=>{
     render(<TenantIntakeDemo caseRecord={sample}/>);
     fireEvent.click(screen.getByRole("checkbox",{name:"I am interested in tenant organizing"}));
     fireEvent.click(screen.getByRole("checkbox",{name:"Consent to record this demo inquiry"}));
-    fireEvent.click(screen.getByRole("button",{name:"Save demo inquiry"}));
-    await waitFor(()=>expect(screen.getByRole("status").textContent).toContain("saved on this device"));
-    expect(screen.getByRole("status").textContent).toContain("No organizations were contacted");
+    fireEvent.click(screen.getByRole("button",{name:"Submit to database"}));
+    await waitFor(()=>expect(screen.getByRole("status").textContent).toContain("submitted to the MoveUp demo database"));
+    expect(screen.getByRole("status").textContent).toContain("Success!");
+    expect(screen.getByRole("status").textContent).toContain("Saved on this device only");
+    expect(screen.getByRole("status").textContent).toContain("no organizations were contacted");
     const saved=readDemoRegistry(window.localStorage);
     expect(saved).toHaveLength(1);
     expect(saved[0].city).toBe("Los Angeles");
@@ -66,7 +68,7 @@ describe("renter-to-organizer inquiry",()=>{
     expect(screen.getByText("RENTER INQUIRY PREVIEW")).toBeTruthy();
     expect(screen.getAllByText(/Reported covered: not independently verified/).length).toBeGreaterThan(0);
     fireEvent.click(screen.getByRole("checkbox",{name:"Consent to record this demo inquiry"}));
-    fireEvent.click(screen.getByRole("button",{name:"Save demo inquiry"}));
+    fireEvent.click(screen.getByRole("button",{name:"Submit to database"}));
     await waitFor(()=>expect(readDemoRegistry(window.localStorage)).toHaveLength(1));
     expect(readDemoRegistry(window.localStorage)[0].purposes).toEqual(["assistance","organizing"]);
     fireEvent.click(screen.getByText(/Hackathon demo tools: local inquiry records/));
@@ -84,7 +86,7 @@ describe("renter-to-organizer inquiry",()=>{
   it("keeps remote submission disabled with no endpoint configured",()=>{
     expect(intakeEndpointConfigured).toBe(false);
     render(<TenantIntakeDemo caseRecord={sample}/>);
-    expect(screen.getByText(/For this hackathon demo, you can save the inquiry on this device/i)).toBeTruthy();
+    expect(screen.getByText(/Prototype database:/i)).toBeTruthy();
     expect(screen.queryByLabelText("Contact email")).toBeNull();
   });
 });
