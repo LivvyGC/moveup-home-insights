@@ -52,11 +52,15 @@ a{text-underline-offset:3px;color:inherit}
 .v4-market-stats strong{font-size:clamp(28px,3.6vw,44px);letter-spacing:-.05em;display:block}
 .v4-meter{position:relative;height:92px;margin:25px 12px 8px}
 .v4-track{position:absolute;left:0;right:0;top:34px;height:15px;background:#DAD6CC}
+.v4-market-below{position:absolute;left:0;top:0;bottom:0;background:var(--green)}
+.v4-market-above{position:absolute;top:0;bottom:0;right:0;background:var(--yellow)}
 .v4-market-line,.v4-offer-line{position:absolute;top:20px;height:44px;border-left:3px solid var(--ink);transform:translateX(-50%)}
-.v4-market-line>span,.v4-offer-line>span{position:absolute;white-space:nowrap;font-size:12px;font-weight:850;letter-spacing:.01em}
+.v4-market-line>span,.v4-offer-line>span{position:absolute;white-space:nowrap;font-size:14px;font-weight:850;letter-spacing:.01em}
 .v4-market-line>span{bottom:48px;transform:translateX(-50%)}
 .v4-offer-line>span{top:50px;transform:translateX(-50%)}
-.v4-offer-line{border-left:4px solid var(--orange)}
+.v4-offer-line{border-left:4px solid var(--ink)}
+.v4-meter-orange .v4-offer-line{border-left-color:#C83513}
+.v4-meter-neutral .v4-offer-line{border-left-color:#6B6B66}
 .v4-comparison{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
 .v4-comparison strong{font-size:29px;letter-spacing:-.04em}
 .v4-comparison span{font-size:15px;font-weight:750}
@@ -98,7 +102,7 @@ a{text-underline-offset:3px;color:inherit}
  .v4-card,.v4-result{padding:18px}
  .v4-fields,.v4-market-stats,.v4-followups,.v4-report-grid{grid-template-columns:1fr}
  .v4-meter{margin-left:22px;margin-right:28px}
- .v4-market-line>span,.v4-offer-line>span{font-size:11px}
+ .v4-market-line>span,.v4-offer-line>span{font-size:14px}
  .v4-result-main{font-size:clamp(34px,10vw,54px)}
  .v4-heading{align-items:start}
 }
