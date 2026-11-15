@@ -1115,3 +1115,130 @@ html{scroll-behavior:smooth}
 @media print{
   .v9-embedded-network,.v9-demo-note{display:none!important}
 }
+
+
+/* Tenant organization database: clear continuation of the submitted inquiry. */
+.v8-support .v9-embedded-network{
+  margin-top:26px;
+  padding-top:24px;
+  border-top:2px solid #B56E49;
+}
+.v9-network-heading{
+  display:flex;
+  align-items:end;
+  justify-content:space-between;
+  gap:18px;
+  margin-bottom:19px;
+}
+.v9-network-heading .v9-network-kicker{
+  display:block;
+  margin-bottom:5px;
+  color:#99512F;
+  font-size:11px;
+  font-weight:850;
+  letter-spacing:.11em;
+}
+.v9-network-heading h4{
+  margin:0;
+  color:#171512;
+  font-size:clamp(23px,2.9vw,33px);
+  line-height:1.13;
+  font-weight:850;
+  letter-spacing:-.05em;
+}
+.v9-network-heading p{
+  margin:7px 0 0;
+  color:#62574D;
+  font-size:14px;
+}
+.v9-network-count{
+  flex-shrink:0;
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+  gap:1px;
+  color:#9A5635;
+  font-size:34px;
+  font-weight:850;
+  letter-spacing:-.065em;
+  line-height:1;
+}
+.v9-network-count small{
+  color:#75695F;
+  font-size:10px;
+  font-weight:750;
+  letter-spacing:.045em;
+  text-transform:uppercase;
+}
+.v9-embedded-network .v6-directory-list{
+  gap:13px;
+}
+.v9-embedded-network .v6-organization{
+  position:relative;
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  gap:0;
+  min-height:205px;
+  padding:21px 20px 19px;
+  background:#FFFDF9;
+  border:1px solid #D5BBA6;
+  border-top:3px solid #C77E54;
+  border-radius:9px;
+  box-shadow:0 4px 0 rgba(132,79,45,.06);
+  transition:border-color .16s ease,box-shadow .16s ease,transform .16s ease;
+}
+.v9-embedded-network .v6-organization:nth-child(2){
+  border-top-color:#A66B50;
+}
+.v9-embedded-network .v6-organization:nth-child(3){
+  border-top-color:#A99576;
+}
+.v9-embedded-network .v6-organization:hover{
+  transform:translateY(-2px);
+  border-color:#A96E4B;
+  box-shadow:0 8px 18px rgba(88,52,30,.09);
+}
+.v9-embedded-network .v6-org-kind{
+  color:#855A44;
+  font-size:11px;
+  font-weight:800;
+  letter-spacing:.075em;
+  text-transform:uppercase;
+}
+.v9-embedded-network .v6-organization strong{
+  margin-top:11px;
+  font-size:19px;
+  line-height:1.18;
+  letter-spacing:-.035em;
+}
+.v9-embedded-network .v6-organization p{
+  margin:10px 0 18px;
+  color:#5E554E;
+  font-size:14px;
+  line-height:1.48;
+}
+.v9-embedded-network .v6-organization a{
+  margin-top:auto;
+  padding-top:11px;
+  border-top:1px solid #E6D8CD;
+  width:100%;
+  color:#6C3C27;
+  font-size:13px;
+  font-weight:850;
+  text-decoration:none;
+}
+.v9-embedded-network .v6-organization a:hover{
+  color:#A45531;
+  text-decoration:underline;
+  text-underline-offset:3px;
+}
+@media(max-width:600px){
+  .v9-network-heading{align-items:start}
+  .v9-network-count{font-size:27px}
+  .v9-network-heading h4{font-size:24px}
+  .v9-embedded-network .v6-organization{min-height:0}
+}
+@media(prefers-reduced-motion:reduce){
+  .v9-embedded-network .v6-organization{transition:none}
+}
