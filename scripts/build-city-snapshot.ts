@@ -18,7 +18,8 @@ const snapshot: CityMarketSnapshot = {
     if (!h) throw new Error(`No ZHVI row for ${city}, ${state}`);
     // City-level ZHVF forecast is unavailable (HTTP 404); never substituted.
     return { city, state, month: h.month, typicalHomeValue: h.typicalHomeValue,
-      yearOverYearPct: h.yearOverYearPct, lastThreeMonthsPct: h.lastThreeMonthsPct, forecast: null };
+      yearOverYearPct: h.yearOverYearPct, lastThreeMonthsPct: h.lastThreeMonthsPct,
+      oneMonthPct: h.oneMonthPct,threeMonthPct:h.lastThreeMonthsPct,sixMonthPct:h.sixMonthPct,twelveMonthPct:h.yearOverYearPct,forecast: null };
   }),
 };
 writeFileSync(new URL("../src/data/cityMarket.snapshot.json", import.meta.url), JSON.stringify(snapshot, null, 2) + "\n");
