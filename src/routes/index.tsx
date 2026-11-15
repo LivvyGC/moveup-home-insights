@@ -304,6 +304,18 @@ export function RenewalPage(){
           {caseRecord?<TenantIntakeDemo key={submitted.city+"-"+submitted.effective+"-"+submitted.offer} caseRecord={caseRecord}/>:null}
         </section>
       </div>:null}
+      <section className="v6-partner-story" aria-label="MoveUp for tenant organizations">
+        <div className="v6-partner-copy">
+          <span className="v6-eyebrow">FOR TENANT ORGANIZATIONS</span>
+          <h2>Reach renters before a crisis.</h2>
+          <p>Everyday rent questions can become opportunities for counseling, negotiation and collective action. MoveUp helps renters prepare those conversations instead of starting with a blank form.</p>
+        </div>
+        <div className="v6-partner-model">
+          <div><strong>Free for renters</strong><span>Offer comparison, renter protections and practical next steps.</span></div>
+          <div><strong>Designed for organizers</strong><span>Voluntary interest, structured case packets and future customizable intake.</span></div>
+          <p>12 researched public organization examples in 4 launch cities. This is a curated sample, not a full market count, partnership claim or paying customer total.</p>
+        </div>
+      </section>
     </main>
     <footer className="v4-container v4-footer">MOVEUP · EDUCATIONAL RENTAL AGREEMENT REVIEW</footer>
   </div>;
