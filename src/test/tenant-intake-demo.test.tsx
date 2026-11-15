@@ -111,7 +111,7 @@ describe("simplified renter support handoff",()=>{
     render(<TenantIntakeDemo caseRecord={sample}/>);
     expect(screen.getByText(/Hackathon demo: submissions are saved in this browser only/)).toBeTruthy();
     expect(screen.queryByText(/demo inbox accepted/)).toBeNull();
-    expect(screen.getByRole("heading",{name:"Tenant organizations in Los Angeles"})).toBeTruthy();
+    expect(screen.getByRole("heading",{name:"Database of tenant organizations below"})).toBeTruthy();
     expect(screen.getAllByRole("link",{name:/Visit .* website/})).toHaveLength(3);
   });
 });
