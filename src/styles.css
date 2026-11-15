@@ -777,3 +777,77 @@ html{scroll-behavior:smooth}
   .v8-limits{padding:19px 18px}
 }
 @media print{.v8-nav,.v8-end-cta{display:none!important}}
+
+
+/* Streamlined support handoff: completed summary + three contact fields. */
+.v8-support{
+  border:1px solid #D7BEA7;
+  border-radius:12px;
+  background:#FFFCF8;
+  padding:clamp(20px,3.4vw,34px);
+  margin:30px 0;
+}
+.v8-support .v4-intake-header>span{
+  color:#865337;font-size:14px;letter-spacing:.045em;font-weight:850;
+}
+.v8-support .v4-intake-header h3{
+  max-width:910px;
+  font-size:clamp(27px,3.5vw,40px);
+  line-height:1.16;letter-spacing:-.05em;
+  margin:9px 0 13px;
+}
+.v8-support .v4-intake-header p{
+  max-width:760px;color:#50453A;line-height:1.55;
+  font-size:16px;margin:0 0 20px;
+}
+.v8-attached-summary{
+  border:1px solid #DDC3AA;
+  border-left:4px solid #D78B59;
+  border-radius:9px;
+  background:linear-gradient(115deg,#FFF8F0,#F8EBDC);
+  padding:16px 18px;
+  margin:0 0 18px;
+}
+.v8-attached-summary>span{
+  display:block;color:#785139;font-size:12px;
+  letter-spacing:.045em;font-weight:850;
+}
+.v8-attached-summary strong{
+  display:block;font-size:19px;letter-spacing:-.02em;
+  font-weight:850;margin:3px 0;
+}
+.v8-attached-summary p{font-size:15px;line-height:1.5;margin:2px 0 6px;color:#403830}
+.v8-attached-summary a{font-weight:800;color:#75432A;font-size:14px}
+.v8-support .v4-demo-delivery{
+  border:1px solid #DED0C1;border-radius:9px;
+  background:#F7F1E9;padding:20px 23px;margin-top:0;
+}
+.v8-support .v4-demo-delivery h4{font-size:21px;margin:0 0 6px}
+.v8-support .v4-demo-delivery>p{font-size:15px;line-height:1.5;color:#4D453D;margin:6px 0 10px}
+.v8-support .v4-demo-delivery form{max-width:none;gap:15px}
+.v8-contact-fields{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px}
+.v8-contact-fields .v4-field{font-size:15px;min-width:0}
+.v8-contact-fields .v4-field input{
+  background:#FFFDF9;border-radius:5px;border:1px solid #968576;
+  min-height:47px;font-weight:500;
+}
+.v8-support .v4-consent{
+  max-width:900px;
+  line-height:1.5;color:#463F38;font-size:14px;
+}
+.v8-support .v4-demo-delivery form>button{
+  border-radius:5px;
+  padding:12px 22px;
+  min-height:49px;
+}
+.v8-support .v4-demo-delivery form>button:disabled{opacity:.55}
+.v8-network-link{font-size:14px;color:#514237;margin:17px 0 0}
+.v8-network-link a{font-weight:800;color:#79452A}
+@media(max-width:760px){
+  .v8-contact-fields{grid-template-columns:1fr}
+  .v8-support .v4-demo-delivery{padding:17px}
+  .v8-support .v4-demo-delivery form>button{width:100%;justify-self:stretch}
+}
+@media print{
+  .v8-support{display:none!important}
+}
