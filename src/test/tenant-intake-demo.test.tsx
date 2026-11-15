@@ -75,12 +75,12 @@ describe("renter-to-organizer inquiry",()=>{
     fireEvent.click(screen.getByRole("button",{name:"Clear saved demo inquiries"}));
     expect(readDemoRegistry(window.localStorage)).toHaveLength(0);
   });
-  it("shows three sourced Los Angeles organizations as optional discovery",()=>{
+  it("links to the bottom organization directory instead of duplicating it in the form",()=>{
     render(<TenantIntakeDemo caseRecord={sample}/>);
-    expect(screen.getByText(/Explore 3 local renter organizations/)).toBeTruthy();
-    fireEvent.click(screen.getByText(/Explore 3 local renter organizations/));
-    expect(screen.getByRole("link",{name:/Visit Los Angeles Tenants Union website/})).toBeTruthy();
-    expect(screen.getByText(/Independent listings, not MoveUp partners/)).toBeTruthy();
+    expect(screen.queryByText(/Explore 3 local renter organizations/)).toBeNull();
+    const link=screen.getByRole("link",{name:/Explore renter organizations below/});
+    expect(link.getAttribute("href")).toBe("#moveup-network");
+    expect(screen.queryByRole("link",{name:/Visit Los Angeles Tenants Union website/})).toBeNull();
     expect(screen.queryByText(/Connected tenant unions: 0/)).toBeNull();
   });
   it("keeps remote submission disabled with no endpoint configured",()=>{
