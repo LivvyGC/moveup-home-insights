@@ -227,9 +227,12 @@ export function RenewalPage(){
                   <div className="v4-law-top"><span>{check.rule.type==="city"?"CITY PROTECTION":"STATE PROTECTION"}</span><span className="v4-law-shield" aria-hidden="true">✦</span></div>
                   <h3>{check.rule.id==="la-rso"?"Los Angeles rent stabilization":check.rule.id==="sf-rso"?"San Francisco rent control":check.rule.title}</h3>
                   <div className="v4-law-value"><strong>{check.rule.cap_pct}%</strong><span>published {check.rule.type==="city"?"standard adjustment":"rent limit"}</span></div>
-                  <p>{check.abovePublishedStandard
-                    ?"Your "+change.toFixed(2)+"% proposed increase exceeds this published standard if the rule applies."
-                    :"Your "+change.toFixed(2)+"% proposed change is compared with this published standard; coverage and exceptions still matter."}</p>
+                  <p className="v7-protection-comparison">
+                    Your <strong className="v7-proposed-increase">{change.toFixed(2)}%</strong>
+                    {check.abovePublishedStandard
+                      ?" proposed increase exceeds this published standard if the rule applies."
+                      :" proposed change is compared with this published standard; coverage and exceptions still matter."}
+                  </p>
                   <label className="v4-field"><span>{check.rule.type==="city"?"Does local rent control cover your home?":"Do state rent limits cover your home?"}</span>
                     <select aria-label={check.rule.type==="city"?"Local rent control coverage":"State rent protection coverage"} value={selected} onChange={e=>
                       check.rule.type==="city"?setLocalCoverage(e.target.value as Coverage):setStateCoverage(e.target.value as Coverage)}>
