@@ -46,8 +46,8 @@ describe("V4 renter flow",()=>{
  });
  it("a possible LA standard concern takes precedence over market price",()=>{
   render(<RenewalPage/>);fill({offer:"3000"});submit();
-  expect(screen.getByText("This offer may need a legal review")).toBeTruthy();
-  expect(screen.getByText(/A potential rule concern needs verification/i)).toBeTruthy();
+  expect(screen.getByText("Your offer is above the city benchmark")).toBeTruthy();
+  expect(screen.getByText(/A published protection may need review/i)).toBeTruthy();
  });
  it("changing core input removes stale result",()=>{
   render(<RenewalPage/>);fill();submit();
@@ -60,11 +60,24 @@ describe("V4 renter flow",()=>{
   fireEvent.change(screen.getByLabelText("State rent protection coverage"),{target:{value:"yes"}});
   fireEvent.change(screen.getByLabelText("Local rent control coverage"),{target:{value:"no"}});
   fireEvent.change(screen.getByLabelText("Other increases in the last 12 months?"),{target:{value:"none"}});
-  expect(screen.getAllByText(/Reported covered — not independently verified/).length).toBeGreaterThan(0);
-  expect(screen.getAllByText(/Reported exempt — not independently verified/).length).toBeGreaterThan(0);
-  fireEvent.click(screen.getByRole("button",{name:"Preview case packet"}));
+  expect(screen.getAllByText(/Reported covered: not independently verified/).length).toBeGreaterThan(0);
+  expect(screen.getAllByText(/Reported exempt: not independently verified/).length).toBeGreaterThan(0);
+  fireEvent.click(screen.getByRole("button",{name:"Preview renter inquiry"}));
   expect(screen.getAllByText(/No earlier increases reported/).length).toBeGreaterThan(0);
-  expect(screen.getByText("ORGANIZER REVIEW COPY")).toBeTruthy();
+  expect(screen.getByText("RENTER INQUIRY PREVIEW")).toBeTruthy();
+ });
+ it("offers negotiation, protections and community options for renters regardless of legal concern",()=>{
+  render(<RenewalPage/>);fill({offer:"2010",bedrooms:"2br"});submit();
+  expect(screen.getByRole("button",{name:/Negotiate my renewal/})).toBeTruthy();
+  expect(screen.getByRole("link",{name:/Check my protections/})).toBeTruthy();
+  expect(screen.getByRole("link",{name:/Connect with tenant support/})).toBeTruthy();
+  fireEvent.click(screen.getByRole("button",{name:/Negotiate my renewal/}));
+  expect(screen.getByText("Negotiate your renewal")).toBeTruthy();
+ });
+ it("puts city rent protection first and statewide protection in an expandable section",()=>{
+  render(<RenewalPage/>);fill({offer:"3000"});submit();
+  expect(screen.getByText(/Also check statewide protections:/)).toBeTruthy();
+  expect(screen.getByText("Your protections")).toBeTruthy();
  });
  it("the report only appears after a completed analysis",()=>{
   render(<RenewalPage/>);
