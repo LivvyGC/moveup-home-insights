@@ -44,8 +44,8 @@ describe("simplified renter support handoff",()=>{
   });
   it("shows renter support after RSO using a short contact-only form",()=>{
     const {container}=render(<TenantIntakeDemo caseRecord={sample}/>);
-    expect(screen.getByText(/Filed an RSO complaint\? Still unhappy with your rent adjustment\?/)).toBeTruthy();
-    expect(screen.getByText(/rent figures, market comparison and protection screening are already filled in/)).toBeTruthy();
+    expect(screen.getByRole("heading",{name:"Connect with tenant support"})).toBeTruthy();
+    expect(screen.getByText(/Your assessment is ready. Add your contact details/)).toBeTruthy();
     expect(screen.queryByRole("link",{name:"View your summary"})).toBeNull();
     expect(screen.getByRole("textbox",{name:"Full name"})).toBeTruthy();
     expect(screen.getByRole("textbox",{name:"Email address"})).toBeTruthy();
@@ -58,7 +58,7 @@ describe("simplified renter support handoff",()=>{
   });
   it("uses city-neutral support language outside of LA",()=>{
     render(<TenantIntakeDemo caseRecord={{...sample,city:"Seattle",rules:[]}}/>);
-    expect(screen.getByText("Still unhappy with your rent adjustment? Find help now.")).toBeTruthy();
+    expect(screen.getByRole("heading",{name:"Connect with tenant support"})).toBeTruthy();
     expect(screen.queryByText(/Filed an RSO complaint/)).toBeNull();
   });
   it("requires contact details and consent before local storage or demo inbox delivery",()=>{
@@ -66,7 +66,7 @@ describe("simplified renter support handoff",()=>{
     const button=screen.getByRole("button",{name:"Submit to database"}) as HTMLButtonElement;
     expect(button.disabled).toBe(true);
     expect(readDemoRegistry(window.localStorage)).toHaveLength(0);
-    expect(screen.getByText(/No tenant organizations receive them/)).toBeTruthy();
+    expect(screen.getByText(/not connected recipients/)).toBeTruthy();
     expect(CITY_ROUTING["Los Angeles"].connectedUnions).toBe(0);
     fireEvent.click(screen.getByRole("checkbox",{name:"Consent to record this demo inquiry"}));
     fireEvent.submit(container.querySelector(".v4-demo-delivery form")!);
@@ -79,8 +79,8 @@ describe("simplified renter support handoff",()=>{
     fireEvent.click(screen.getByRole("checkbox",{name:"Consent to record this demo inquiry"}));
     fireEvent.click(screen.getByRole("button",{name:"Submit to database"}));
     await waitFor(()=>expect(screen.getByRole("status").textContent).toContain("Success!"));
-    expect(screen.getByRole("status").textContent).toContain("browser-only demo database");
-    expect(screen.getByRole("status").textContent).toContain("no organizations were contacted");
+    expect(screen.getByRole("status").textContent).toContain("saved to the MoveUp demo database on this device");
+    expect(screen.getByText(/not connected recipients/)).toBeTruthy();
     const records=readDemoRegistry(window.localStorage);
     expect(records).toHaveLength(1);
     expect(records[0].city).toBe("Los Angeles");
@@ -99,7 +99,7 @@ describe("simplified renter support handoff",()=>{
     fireEvent.click(screen.getByRole("checkbox",{name:"Consent to record this demo inquiry"}));
     fireEvent.click(screen.getByRole("button",{name:"Submit to database"}));
     await waitFor(()=>expect(readDemoRegistry(window.localStorage)).toHaveLength(1));
-    fireEvent.click(screen.getByText(/Hackathon demo tools: local inquiry records/));
+    fireEvent.click(screen.getByText("View demo records"));
     fireEvent.click(screen.getByRole("button",{name:"View saved demo inquiries (1)"}));
     expect(screen.getByText(/Los Angeles: Renter support inquiry/)).toBeTruthy();
     fireEvent.click(screen.getByRole("button",{name:"Clear saved demo inquiries"}));
@@ -109,7 +109,9 @@ describe("simplified renter support handoff",()=>{
   it("does not pretend a remote provider is connected in the test environment",()=>{
     expect(intakeEndpointConfigured).toBe(false);
     render(<TenantIntakeDemo caseRecord={sample}/>);
-    expect(screen.getByText(/Prototype database:/)).toBeTruthy();
+    expect(screen.getByText(/Hackathon demo: submissions are saved in this browser only/)).toBeTruthy();
     expect(screen.queryByText(/demo inbox accepted/)).toBeNull();
+    expect(screen.getByRole("heading",{name:"Tenant organizations in Los Angeles"})).toBeTruthy();
+    expect(screen.getAllByRole("link",{name:/Visit .* website/})).toHaveLength(3);
   });
 });
