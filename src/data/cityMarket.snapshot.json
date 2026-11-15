@@ -1,0 +1,97 @@
+{
+  "source": "Zillow Research ZHVI (city, all homes, mid-tier, smoothed, seasonally adjusted)",
+  "sourceUrl": "https://files.zillowstatic.com/research/public_csvs/zhvi/City_zhvi_uc_sfrcondo_tier_0.33_0.67_sm_sa_month.csv",
+  "updatedAt": "2026-11-15",
+  "cities": [
+    {
+      "city": "Los Angeles",
+      "state": "CA",
+      "month": "2026-09",
+      "typicalHomeValue": 927891.15,
+      "yearOverYearPct": -0.52,
+      "lastThreeMonthsPct": -0.06,
+      "forecast": null
+    },
+    {
+      "city": "San Francisco",
+      "state": "CA",
+      "month": "2026-09",
+      "typicalHomeValue": 1441021.2,
+      "yearOverYearPct": 15.53,
+      "lastThreeMonthsPct": 5.33,
+      "forecast": null
+    },
+    {
+      "city": "San Diego",
+      "state": "CA",
+      "month": "2026-09",
+      "typicalHomeValue": 980490.1,
+      "yearOverYearPct": 0.07,
+      "lastThreeMonthsPct": 0.18,
+      "forecast": null
+    },
+    {
+      "city": "New York",
+      "state": "NY",
+      "month": "2026-09",
+      "typicalHomeValue": 825854.16,
+      "yearOverYearPct": 4.31,
+      "lastThreeMonthsPct": 0.96,
+      "forecast": null
+    },
+    {
+      "city": "Austin",
+      "state": "TX",
+      "month": "2026-09",
+      "typicalHomeValue": 491959.83,
+      "yearOverYearPct": -3.21,
+      "lastThreeMonthsPct": 0.37,
+      "forecast": null
+    },
+    {
+      "city": "Dallas",
+      "state": "TX",
+      "month": "2026-09",
+      "typicalHomeValue": 303442.35,
+      "yearOverYearPct": -1.35,
+      "lastThreeMonthsPct": 0.04,
+      "forecast": null
+    },
+    {
+      "city": "Miami",
+      "state": "FL",
+      "month": "2026-09",
+      "typicalHomeValue": 583704.84,
+      "yearOverYearPct": 1.36,
+      "lastThreeMonthsPct": 0.98,
+      "forecast": null
+    },
+    {
+      "city": "Orlando",
+      "state": "FL",
+      "month": "2026-09",
+      "typicalHomeValue": 372774.79,
+      "yearOverYearPct": -1.06,
+      "lastThreeMonthsPct": -0.21,
+      "forecast": null
+    },
+    {
+      "city": "Seattle",
+      "state": "WA",
+      "month": "2026-09",
+      "typicalHomeValue": 822572.43,
+      "yearOverYearPct": -1.77,
+      "lastThreeMonthsPct": -0.53,
+      "forecast": null
+    },
+    {
+      "city": "Denver",
+      "state": "CO",
+      "month": "2026-09",
+      "typicalHomeValue": 520946.9,
+      "yearOverYearPct": -1.88,
+      "lastThreeMonthsPct": 0.49,
+      "forecast": null
+    }
+  ]
+}

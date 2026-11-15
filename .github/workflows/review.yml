@@ -1,0 +1,19 @@
+name: MoveUp Review Checks
+on:
+  push:
+    branches: [codex/city-insights-readability]
+  pull_request:
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: bun install --frozen-lockfile
+      - run: bun run test
+      - run: bun run build
+      - name: Inspect official city research feed availability (informational)
+        run: node scripts/verify-city-feed.mjs
