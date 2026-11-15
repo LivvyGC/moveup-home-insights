@@ -180,7 +180,7 @@ export function RenewalPage(){
             {rules.length===0?<div className="v4-card">No effective rule is in our stored records for this date. Review official guidance before drawing conclusions.</div>:
               rules.map(check=>{
                 const selected=check.rule.type==="city"?localCoverage:stateCoverage;
-                const change=evaluateRenewal?finding.increasePercent:0;
+                const change=finding.increasePercent;
                 return <article className="v4-law-card" key={check.rule.id}>
                   <div className="v4-law-top"><span>{check.rule.type==="city"?"CITY PROTECTION":"STATE PROTECTION"}</span><span className="v4-law-shield" aria-hidden="true">✦</span></div>
                   <h3>{check.rule.title}</h3>
