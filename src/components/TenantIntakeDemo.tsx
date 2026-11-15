@@ -1,109 +1,174 @@
-import { useState } from "react";
+import { useEffect, useState, type FormEvent } from "react";
+import {
+  type TenantCaseRecord, coverageLabel, increaseLabel,
+  currency, signedCurrency,
+} from "../lib/tenantCase";
 
 type Evidence = "renewal" | "lease" | "prior";
 type Concern = "increase" | "notice" | "clarification";
+type DeliveryState = "idle" | "sending" | "success" | "error";
 
-export type IntakePacketProps = {
-  city:string;
-  bedrooms:string;
-  currentRent:number;
-  offeredRent:number;
-  effectiveDate:string;
-  benchmark:number|null;
-  benchmarkMonth:string;
-  legalStatus:string;
-  policyNotes:string[];
-  nextAction:string;
-};
-
-const evidenceNames:Record<Evidence,string> = {
+const evidenceNames: Record<Evidence,string> = {
   renewal:"Written renewal offer / increase notice",
   lease:"Current lease or rental agreement",
   prior:"Previous rent increase notices (if any)",
 };
-const concernNames:Record<Concern,string> = {
+const concernNames: Record<Concern,string> = {
   increase:"Review a proposed rent increase",
-  notice:"Question about the notice or deadline",
-  clarification:"Request clarification before renewing",
+  notice:"Question about a notice or deadline",
+  clarification:"Ask for help understanding the offer",
 };
-const money=(n:number)=>new Intl.NumberFormat("en-US",{style:"currency",currency:"USD",maximumFractionDigits:2}).format(n);
+const FORM_ENDPOINT = (import.meta.env.VITE_MOVEUP_INTAKE_ENDPOINT ?? "").trim();
+export const intakeEndpointConfigured = /^https:\/\/formspree\.io\/f\/[a-zA-Z0-9]+$/.test(FORM_ENDPOINT);
 
-export function composeTenantPacket(input:IntakePacketProps,concern:Concern,available:Evidence[],details:string):string {
-  const diff=input.offeredRent-input.currentRent;
-  const missing=(Object.keys(evidenceNames) as Evidence[]).filter(key=>!available.includes(key));
-  const lines=[
-    "MOVEUP — TENANT SUPPORT INTAKE (RENTER-PREPARED)",
-    "Draft for human review; not filed or sent to any organization.",
+export function composeTenantPacket(
+  input:TenantCaseRecord, concern:Concern, available:Evidence[], details:string,
+):string {
+  const missing=(Object.keys(evidenceNames) as Evidence[]).filter(k=>!available.includes(k));
+  return [
+    "MOVEUP — RENTER-PREPARED TENANT INTAKE",
+    "Not a legal finding; not a formal complaint.",
     "",
-    "Issue: "+concernNames[concern],
+    "Reason for support: "+concernNames[concern],
     "City: "+input.city+" | Unit: "+input.bedrooms,
-    "New rent effective: "+input.effectiveDate,
-    "Current rent: "+money(input.currentRent),
-    "Offered rent: "+money(input.offeredRent),
-    "Proposed monthly change: "+(diff>0?"+":"")+money(diff),
-    "Market comparison: "+(input.benchmark===null?"Unavailable for selected bedroom size":money(input.benchmark)+" (Apartment List, "+input.benchmarkMonth+", city new-lease estimate)"),
-    "Legal screening: "+input.legalStatus+" (not a legal determination)",
-    "Published rule references: "+(input.policyNotes.length?input.policyNotes.join("; "):"No dated rules available"),
-    "Documents renter reports having: "+(available.length?available.map(k=>evidenceNames[k]).join("; "):"None confirmed"),
-    "Still to gather/verify: "+(missing.length?missing.map(k=>evidenceNames[k]).join("; "):"No checklist items outstanding"),
-    "Renter's notes: "+(details.trim()||"Not provided"),
+    "Renewal effective: "+input.effectiveDate,
+    "Current monthly rent: "+currency(input.currentRent),
+    "Offered monthly rent: "+currency(input.offeredRent),
+    "Monthly change: "+signedCurrency(input.offeredRent-input.currentRent),
+    String(input.periodMonths)+"-month change (fixed-rent comparison): "+signedCurrency((input.offeredRent-input.currentRent)*input.periodMonths),
+    "Apartment List city benchmark: "+(input.benchmark===null?"Unavailable for this unit size":currency(input.benchmark)+" ("+input.benchmarkMonth+")"),
+    "Offer vs benchmark: "+(input.marketDifference===null?"Unavailable":signedCurrency(input.marketDifference)+" ("+String(input.marketDifferencePct)+"%)"),
+    "Rent protection screen: "+input.legalStatus+" — unverified and conditional",
+    "State coverage: "+coverageLabel(input.stateCoverage),
+    "Local coverage: "+coverageLabel(input.localCoverage),
+    "Prior increases: "+increaseLabel(input.priorIncrease),
+    "Written notice received: "+(input.noticeReceived||"Not entered"),
+    "Published protection references:",
+    ...(input.rules.length?input.rules.map(r=>"  - "+r.title+": "+r.rate+"% ("+r.from+" to "+r.to+"); "+coverageLabel(r.coverage)+"; "+r.url):["  - No dated rule in stored records"]),
+    "Documents reported available: "+(available.length?available.map(k=>evidenceNames[k]).join("; "):"None confirmed"),
+    "Documents not yet confirmed: "+(missing.length?missing.map(k=>evidenceNames[k]).join("; "):"None"),
+    "Renter's notes: "+(details.trim()||"None"),
     "Suggested next step: "+input.nextAction,
+    "Government guidance: "+input.nextActionUrl,
+    "Market source: "+input.sourceUrl,
     "",
-    "A reviewer should verify property jurisdiction, rent-control coverage, prior increases, and the actual notices.",
-    "Source: https://www.apartmentlist.com/research/category/data-rent-estimates",
-    "Prepared locally. The demo does not store, send or file cases.",
-  ];
-  return lines.join("\n");
+    "An organizer must independently verify property jurisdiction, coverage, exemptions, notices and past adjustments.",
+    "Prepared locally. Downloading this text does not send it to an organization.",
+  ].join("\n");
 }
-
-export function TenantIntakeDemo(input:IntakePacketProps) {
+export function downloadTenantPacket(text:string):void {
+  const blob=new Blob([text],{type:"text/plain;charset=utf-8"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url;
+  a.download="moveup-tenant-support-packet.txt";
+  a.click();
+  URL.revokeObjectURL(url);
+}
+export function TenantIntakeDemo({caseRecord}: {caseRecord:TenantCaseRecord}) {
   const [concern,setConcern]=useState<Concern>("increase");
   const [available,setAvailable]=useState<Evidence[]>([]);
   const [details,setDetails]=useState("");
   const [preview,setPreview]=useState(false);
-  const [copied,setCopied]=useState(false);
-  const packet=composeTenantPacket(input,concern,available,details);
+  const [contactEmail,setContactEmail]=useState("");
+  const [consent,setConsent]=useState(false);
+  const [status,setStatus]=useState<DeliveryState>("idle");
+  const [statusText,setStatusText]=useState("");
+  const caseFingerprint=JSON.stringify(caseRecord);
+  useEffect(()=>{setStatus("idle");setStatusText("");setConsent(false);},[caseFingerprint]);
+  const packet=composeTenantPacket(caseRecord,concern,available,details);
   const missing=(Object.keys(evidenceNames) as Evidence[]).filter(k=>!available.includes(k));
-  const toggle=(k:Evidence)=>{
-    setAvailable(prev=>prev.includes(k)?prev.filter(i=>i!==k):[...prev,k]);
-    setCopied(false);
+  const resetDelivery=()=>{setStatus("idle");setStatusText("");setConsent(false);};
+  const toggle=(key:Evidence)=>{
+    setAvailable(prev=>prev.includes(key)?prev.filter(k=>k!==key):[...prev,key]);
+    resetDelivery();
   };
-  return <div className="v4-intake-demo">
-    <div className="v4-intake-header"><span>DEMO · ORGANIZER-READY HANDOFF</span><h3>Prepare for tenant support</h3><p>Use the renewal information already entered. Add only the details an organizer needs for an initial review.</p></div>
+  async function submitToDemo(event:FormEvent<HTMLFormElement>){
+    event.preventDefault();
+    if(!intakeEndpointConfigured||!consent||!contactEmail.trim()||status==="sending"){
+      setStatus("error");setStatusText("Enter a contact email and consent to send to the configured MoveUp demo inbox.");return;
+    }
+    setStatus("sending");setStatusText("");
+    try{
+      const response=await fetch(FORM_ENDPOINT,{
+        method:"POST",headers:{"Content-Type":"application/json","Accept":"application/json"},
+        body:JSON.stringify({
+          email:contactEmail.trim(),
+          subject:"MoveUp demo intake — "+caseRecord.city,
+          renter_case_packet:packet,
+          recipient_type:"MoveUp demo intake — no tenant union connected",
+        }),
+      });
+      if(!response.ok) throw new Error("Receiver did not accept the submission.");
+      setStatus("success");setStatusText("Received by the configured MoveUp demo inbox. This is not a tenant-union or government filing.");
+    }catch{
+      setStatus("error");setStatusText("Submission was not confirmed. Nothing is marked received. Download the packet instead.");
+    }
+  }
+  return <section className="v4-intake-demo" aria-label="Prepare for tenant support">
+    <div className="v4-intake-header">
+      <span>RENTER → ORGANIZER</span>
+      <h3>Prepare for tenant support</h3>
+      <p>Turn your renewal details into an organized packet. Nothing is sent without your consent.</p>
+    </div>
     <div className="v4-intake-controls">
-      <label className="v4-field"><span>What help are you seeking?</span>
-        <select aria-label="Reason for tenant support" value={concern} onChange={e=>{setConcern(e.target.value as Concern);setCopied(false);}}>
-          {Object.entries(concernNames).map(([k,label])=><option key={k} value={k}>{label}</option>)}
+      <label className="v4-field"><span>What do you need help with?</span>
+        <select aria-label="Reason for tenant support" value={concern} onChange={e=>{setConcern(e.target.value as Concern);resetDelivery();}}>
+          {Object.entries(concernNames).map(([key,label])=><option key={key} value={key}>{label}</option>)}
         </select>
       </label>
-      <fieldset className="v4-intake-checklist"><legend>What documents do you already have?</legend>
-        {(Object.keys(evidenceNames) as Evidence[]).map(key=><label key={key}><input type="checkbox" checked={available.includes(key)} onChange={()=>toggle(key)}/><span>{evidenceNames[key]}</span></label>)}
+      <fieldset className="v4-intake-checklist"><legend>Documents you have</legend>
+        {(Object.keys(evidenceNames) as Evidence[]).map(key=><label key={key}>
+          <input type="checkbox" checked={available.includes(key)} onChange={()=>toggle(key)}/>
+          <span>{evidenceNames[key]}</span>
+        </label>)}
       </fieldset>
-      <label className="v4-intake-notes"><span>Anything else the reviewer should know? (optional)</span><textarea aria-label="Notes for tenant support" maxLength={500} rows={3} value={details} onChange={e=>{setDetails(e.target.value);setCopied(false);}} placeholder="For example: when the increase notice arrived or what you have already asked your landlord."/></label>
-      <button type="button" className="v4-intake-preview-button" aria-expanded={preview} onClick={()=>setPreview(p=>!p)}>{preview?"Hide organizer packet":"Preview organizer packet"}</button>
-    </div>
-    <div className="v4-intake-organizer" data-open={preview}>
-      <div className="v4-intake-organizer-head"><strong>ORGANIZER REVIEW COPY</strong><span>NOT SENT · NO ACCOUNT</span></div>
-      <p><strong>Issue:</strong> {concernNames[concern]}</p>
-      <p><strong>Renewal:</strong> {input.city}, {input.bedrooms} · {money(input.currentRent)} → {money(input.offeredRent)} · starts {input.effectiveDate}</p>
-      <p><strong>Review status:</strong> {input.legalStatus}. An organizer must verify eligibility and notices.</p>
-      <p><strong>Evidence outstanding:</strong> {missing.length?missing.map(k=>evidenceNames[k]).join("; "):"None from the checklist"}</p>
-      {details.trim()?<p><strong>Renter note:</strong> {details.trim()}</p>:null}
-      <div className="v4-intake-organizer-actions">
-        <button type="button" onClick={()=>{
-          if(typeof navigator!=="undefined"&&navigator.clipboard?.writeText){
-            void navigator.clipboard.writeText(packet).then(()=>setCopied(true)).catch(()=>setCopied(false));
-          }
-        }}>Copy case packet</button>
-        {copied?<span role="status">Copied locally — share only with an intended recipient.</span>:null}
+      <label className="v4-intake-notes">
+        <span>Additional context (optional)</span>
+        <textarea aria-label="Notes for tenant support" maxLength={500} rows={3}
+          value={details} onChange={e=>{setDetails(e.target.value);resetDelivery();}}
+          placeholder="For example, when you received the notice."/>
+      </label>
+      <div className="v4-intake-buttons">
+        <button type="button" className="v4-intake-preview-button" aria-expanded={preview} onClick={()=>setPreview(v=>!v)}>
+          {preview?"Hide case preview":"Preview case packet"}
+        </button>
+        <button type="button" onClick={()=>downloadTenantPacket(packet)}>Download case packet</button>
       </div>
-      <p className="v4-intake-disclaimer">No organization is connected. This preview is a reusable intake format, not a legal referral, case submission or automated decision.</p>
+    </div>
+    {preview?<div className="v4-intake-organizer">
+      <div className="v4-intake-organizer-head"><strong>ORGANIZER REVIEW COPY</strong><span>UNSENT</span></div>
+      <p><strong>Concern:</strong> {concernNames[concern]}</p>
+      <p><strong>Renewal:</strong> {caseRecord.city}, {caseRecord.bedrooms} · {currency(caseRecord.currentRent)} → {currency(caseRecord.offeredRent)}</p>
+      <p><strong>Legal screening:</strong> {caseRecord.legalStatus}</p>
+      <p><strong>State protection:</strong> {coverageLabel(caseRecord.stateCoverage)}</p>
+      <p><strong>Local protection:</strong> {coverageLabel(caseRecord.localCoverage)}</p>
+      <p><strong>Prior increases:</strong> {increaseLabel(caseRecord.priorIncrease)}</p>
+      <p><strong>Notice received:</strong> {caseRecord.noticeReceived||"Not supplied"}</p>
+      <p><strong>Documents to confirm:</strong> {missing.length?missing.map(k=>evidenceNames[k]).join("; "):"Checklist complete"}</p>
+      {details.trim()?<p><strong>Renter's note:</strong> {details.trim()}</p>:null}
+      <p className="v4-intake-disclaimer">This is a renter-prepared summary, not a verified legal assessment.</p>
+    </div>:null}
+    <div className="v4-demo-delivery">
+      <h4>Send to MoveUp demo intake</h4>
+      {intakeEndpointConfigured?
+        <form onSubmit={submitToDemo}>
+          <p>This sends the displayed case packet and your email to the configured MoveUp demo inbox, not a tenant union or government office.</p>
+          <label className="v4-field"><span>Contact email</span><input aria-label="Contact email" type="email" autoComplete="email" required value={contactEmail} onChange={e=>{setContactEmail(e.target.value);resetDelivery();}} placeholder="you@example.com"/></label>
+          <label className="v4-consent"><input type="checkbox" checked={consent} onChange={e=>setConsent(e.target.checked)}/><span>I understand this is a demonstration, and I consent to sending this case packet and email to the MoveUp demo inbox.</span></label>
+          <button type="submit" disabled={!consent||!contactEmail.trim()||status==="sending"}>{status==="sending"?"Sending…":"Submit demo case"}</button>
+        </form>
+        :<p className="v4-demo-unavailable">Live demo intake has not been connected. Download the packet to share it yourself. No submission has occurred.</p>}
+      {statusText?<p role="status" className={"v4-delivery-"+status}>{statusText}</p>:null}
     </div>
     <div className="v4-intake-print">
-      <strong>TENANT INTAKE · {concernNames[concern]}</strong>
-      <p>Documents reported: {available.length?available.map(k=>evidenceNames[k]).join("; "):"None confirmed"}. Missing/unchecked: {missing.length?missing.map(k=>evidenceNames[k]).join("; "):"None"}.</p>
-      {details.trim()?<p>Renter note: {details.trim()}</p>:null}
-      <p>Prepared by renter for optional human review. Not sent or filed.</p>
+      <strong>TENANT SUPPORT REQUEST · {concernNames[concern]}</strong>
+      <p>State coverage: {coverageLabel(caseRecord.stateCoverage)}. Local coverage: {coverageLabel(caseRecord.localCoverage)}.</p>
+      <p>Prior increases: {increaseLabel(caseRecord.priorIncrease)}. Notice received: {caseRecord.noticeReceived||"Not supplied"}.</p>
+      <p>Documents available: {available.length?available.map(k=>evidenceNames[k]).join("; "):"None confirmed"}.</p>
+      <p>Documents still to confirm: {missing.length?missing.map(k=>evidenceNames[k]).join("; "):"None"}.</p>
+      {details.trim()?<p>Renter notes: {details.trim()}</p>:null}
+      <p>Renter-prepared for review; not submitted to a tenant organization.</p>
     </div>
-  </div>;
+  </section>;
 }
