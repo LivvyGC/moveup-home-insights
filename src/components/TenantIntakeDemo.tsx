@@ -2,7 +2,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { TenantOrganizationDirectory } from "./TenantOrganizationDirectory";
 import { type TenantCaseRecord, coverageLabel, increaseLabel, currency, signedCurrency } from "../lib/tenantCase";
 import {
-  CITY_ROUTING, createDemoRecord, readDemoRegistry, saveDemoRecord,
+  createDemoRecord, readDemoRegistry, saveDemoRecord,
   clearDemoRegistry,
   type DemoRegistryRecord, type SupportPurpose,
 } from "../lib/demoRegistry";
@@ -101,7 +101,6 @@ export function TenantIntakeDemo({caseRecord}:{caseRecord:TenantCaseRecord}) {
   ];
   const packet=composeTenantPacket(caseRecord,concern,available,details,purposes);
   const missing=(Object.keys(evidenceNames) as Evidence[]).filter(k=>!available.includes(k));
-  const routing=CITY_ROUTING[caseRecord.city];
   const resetDelivery=()=>{setStatus("idle");setStatusText("");setConsent(false);};
   const toggle=(key:Evidence)=>{
     setAvailable(prev=>prev.includes(key)?prev.filter(k=>k!==key):[...prev,key]);
@@ -151,7 +150,7 @@ export function TenantIntakeDemo({caseRecord}:{caseRecord:TenantCaseRecord}) {
       setRecords(result);
       setStatus("success");
       setStatusText(delivery==="local_demo"
-        ?"Inquiry saved on this device for "+caseRecord.city+". No organizations were contacted."
+        ?"Inquiry "+record.id+" saved on this device for "+caseRecord.city+". No organizations were contacted."
         :"MoveUp demo inbox accepted the inquiry. A local copy was saved. No tenant organizations were contacted.");
       setShowRegistry(false);
     }catch{
@@ -211,7 +210,7 @@ export function TenantIntakeDemo({caseRecord}:{caseRecord:TenantCaseRecord}) {
       <button type="button" onClick={()=>downloadTenantPacket(packet)}>Download case packet</button>
     </div>
     {preview?<div className="v4-intake-organizer">
-      <div className="v4-intake-organizer-head"><strong>RENTER INQUIRY PREVIEW</strong><span>NOT SENT</span></div>
+      <div className="v4-intake-organizer-head"><strong>RENTER INQUIRY PREVIEW</strong><span>NOT SHARED WITH ANY ORGANIZATION</span></div>
       <p><strong>Interest:</strong> {purposes.length?purposes.map(k=>PURPOSE_NAMES[k]).join("; "):"None selected"}</p>
       <p><strong>Renewal:</strong> {caseRecord.city}, {caseRecord.bedrooms}. {currency(caseRecord.currentRent)} to {currency(caseRecord.offeredRent)}</p>
       <p><strong>Market:</strong> {caseRecord.marketDifference===null?"Benchmark unavailable":signedCurrency(caseRecord.marketDifference)+" versus the city benchmark"}</p>
