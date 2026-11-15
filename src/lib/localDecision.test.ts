@@ -33,11 +33,11 @@ describe("0–100 local-first score",()=>{
     expect(r.verdict).toBe("MIXED");
     expect(r.reason).toMatch(/near-neutral/);
   });
-  it("does not produce WAIT from national odds against strong local BUY history",()=>{
-    const r=assessCity({city:{...neutralCity,property_tax_rate:0.02},
-      market:mk(1.5,5),timeline:6,fedProbability:100,mortgageProbability:100});
-    expect(r.local).toBe(100);
-    expect(r.score).toBeLessThan(40); // score conflict
+  it("does not produce BUY when the weighted score contradicts falling local prices",()=>{
+    const r=assessCity({city:{...neutralCity,property_tax_rate:0.005},
+      market:mk(-0.75,-2),timeline:6,fedProbability:0,mortgageProbability:0});
+    expect(r.local).toBe(30);
+    expect(r.score).toBeGreaterThanOrEqual(60);
     expect(r.verdict).toBe("MIXED");
   });
   it("keeps directional verdicts when meaningful local evidence agrees",()=>{
