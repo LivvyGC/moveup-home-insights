@@ -14,8 +14,8 @@ const usd = new Intl.NumberFormat("en-US", {style:"currency",currency:"USD"});
 function Tag({ direction }: {direction:Direction}) {
   return <span className={"pill direction " + direction.toLowerCase()}>{direction}</span>;
 }
-function SignalCard({label,signal,direction,loading,index}:{
-  label:string;signal?:SignalResult|undefined;direction?:Direction|undefined;loading:boolean;index:string;
+function SignalCard({label,signal,direction,loading}:{
+  label:string;signal?:SignalResult|undefined;direction?:Direction|undefined;loading:boolean;
 }) {
   return <div className="signal">
     <div className="signal-label">{label}</div>
@@ -137,8 +137,8 @@ function App(){
         <div className="results">
           {anyEstimate?<div className="notice"><strong>ESTIMATE</strong> — No live market matched. Shown as 50%, not real odds.</div>:null}
           <div className="signalgrid">
-            <SignalCard label={SIGNAL_A.name} signal={analysis?.a} direction={r?.signal_a_direction} loading={loading} index="A"/>
-            <SignalCard label={SIGNAL_B.name} signal={analysis?.b} direction={r?.signal_b_direction} loading={loading} index="B"/>
+            <SignalCard label={SIGNAL_A.name} signal={analysis?.a} direction={r?.signal_a_direction} loading={loading}/>
+            <SignalCard label={SIGNAL_B.name} signal={analysis?.b} direction={r?.signal_b_direction} loading={loading}/>
           </div>
           <section className="verdict" aria-live="polite">
             <div className="verdict-body">
