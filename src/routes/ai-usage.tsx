@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import type { ReactNode } from "react";
 import { House } from "lucide-react";
 import market from "@/data/rentMarket.snapshot.json";
 import { officialActions } from "@/lib/renewalActions";
@@ -54,7 +55,7 @@ const officialSources = [
 
 const cities: City[] = ["Los Angeles", "San Francisco", "San Diego", "Seattle"];
 
-function ExternalLink({href,children}:{href:string;children:React.ReactNode}){
+function ExternalLink({href,children}:{href:string;children:ReactNode}){
   return <a href={href} target="_blank" rel="noopener noreferrer" className="v8-source-link">
     {children} <span aria-hidden="true">↗</span>
   </a>;
@@ -65,7 +66,6 @@ export function AiUsagePage(){
     <header className="v4-header">
       <div className="v4-container v4-nav">
         <a className="v4-logo v8-logo-link" href="/"><House size={28} strokeWidth={2.5} aria-hidden="true"/> MOVEUP</a>
-        <span>RENEWAL CHECK</span>
         <nav className="v8-nav" aria-label="Main navigation">
           <a className="v8-nav-link" href="/">RENEWAL CHECK</a>
           <a className="v8-nav-link" href="/ai-usage" aria-current="page">AI USAGE</a>
