@@ -1,7 +1,7 @@
 import {describe,it,expect} from "vitest";
 import {readFileSync} from "node:fs";
 import market from "../data/rentMarket.snapshot.json";
-const ui=readFileSync(new URL("../routes/index.tsx",import.meta.url),"utf8");
+const ui=readFileSync("src/routes/index.tsx","utf8");
 describe("Renewal Check content guardrails",()=>{
  it("excludes old model and invented probability indicators",()=>{
  expect(ui).not.toMatch(/BUY\/WAIT\/MIXED|45\/35\/20|fetchSignal|localDecision|combineSignals|probability|confidence|\bscore\b/i);
