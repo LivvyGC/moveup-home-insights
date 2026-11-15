@@ -168,7 +168,9 @@ export function TenantIntakeDemo({caseRecord,children,onReceiptChange}:{caseReco
         </div>
         <label className="v4-consent"><input aria-label="Consent to record this demo inquiry" type="checkbox" checked={consent}
           onChange={e=>{setConsent(e.target.checked);resetDelivery();}}/>
-          <span>I consent to include my contact details and renewal assessment in this MoveUp demo inquiry.</span>
+          <span>{intakeEndpointConfigured
+            ?"I consent to send my contact details and assessment to the MoveUp demo inbox."
+            :"I consent to save my contact details and assessment in this browser for the demo."}</span>
         </label>
         <button type="submit" disabled={!consent||status==="sending"||status==="success"}>
           {status==="sending"?"Submitting...":intakeEndpointConfigured?"Send to MoveUp demo inbox":"Submit to database"}
