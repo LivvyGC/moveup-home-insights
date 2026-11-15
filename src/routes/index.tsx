@@ -10,7 +10,7 @@ import { House } from "lucide-react";
 import { TenantIntakeDemo } from "@/components/TenantIntakeDemo";
 
 const CITIES: City[] = ["Los Angeles", "San Francisco", "San Diego", "Seattle"];
-type Bedroom = "1br" | "2br" | "other";
+type Bedroom = "1br" | "2br";
 const MONEY = new Intl.NumberFormat("en-US", { style:"currency", currency:"USD", maximumFractionDigits:2 });
 const money = (v:number) => MONEY.format(v);
 const signedMoney = (v:number) => (v>0?"+":"") + money(v);
@@ -78,7 +78,7 @@ export function RenewalPage(){
   }
 
   const row=market.cities[submitted?.city??city];
-  const benchmark=submitted&&submitted.bedrooms!=="other"?row.apartmentListBedrooms[submitted.bedrooms].typicalRent:null;
+  const benchmark=submitted?row.apartmentListBedrooms[submitted.bedrooms].typicalRent:null;
   const finding=submitted?evaluateRenewal({
     city:submitted.city,currentRent:submitted.current,offeredRent:submitted.offer,
     effectiveDate:submitted.effective,stateCoverage,localCoverage,priorIncrease,noticeDate:noticeReceived,
@@ -89,7 +89,7 @@ export function RenewalPage(){
   const rules=finding?.checks??[];
   const amountChange=submitted?submitted.offer-submitted.current:0;
   const months=Number(period);
-  const marketLabel=submitted?.bedrooms==="1br"?"1-bedroom":submitted?.bedrooms==="2br"?"2-bedroom":"unsupported size";
+  const marketLabel=submitted?.bedrooms==="1br"?"1-bedroom":"2-bedroom";
   const benchmarkMonth=row.apartmentList.month;
   const stale=isStale(row.apartmentList.observationDate,new Date());
   const statusLabel=assessment?.legalScreen==="possible_issue"?"Potential concern: check details":
@@ -139,7 +139,7 @@ export function RenewalPage(){
             <label className="v4-field"><span>City</span><select aria-label="City" value={city} onChange={e=>{setCity(e.target.value as City);resetOnEdit();}}>
               {CITIES.map(c=><option key={c}>{c}</option>)}</select></label>
             <label className="v4-field"><span>Bedrooms</span><select aria-label="Bedrooms" value={bedrooms} onChange={e=>{setBedrooms(e.target.value as Bedroom);resetOnEdit();}}>
-              <option value="1br">1 bedroom</option><option value="2br">2 bedrooms</option><option value="other">Other / studio / 3+ bedrooms</option>
+              <option value="1br">1 bedroom</option><option value="2br">2 bedrooms</option>
             </select></label>
             <FormField label="Current rent / month" value={current} onChange={v=>{setCurrent(v);resetOnEdit();}}/>
             <FormField label="Offered rent / month" value={offer} onChange={v=>{setOffer(v);resetOnEdit();}}/>
