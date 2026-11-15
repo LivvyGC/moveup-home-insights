@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import {
   type TenantCaseRecord, coverageLabel, increaseLabel,
   currency, signedCurrency,
@@ -74,6 +74,8 @@ export function TenantIntakeDemo({caseRecord}: {caseRecord:TenantCaseRecord}) {
   const [consent,setConsent]=useState(false);
   const [status,setStatus]=useState<DeliveryState>("idle");
   const [statusText,setStatusText]=useState("");
+  const caseFingerprint=JSON.stringify(caseRecord);
+  useEffect(()=>{setStatus("idle");setStatusText("");setConsent(false);},[caseFingerprint]);
   const packet=composeTenantPacket(caseRecord,concern,available,details);
   const missing=(Object.keys(evidenceNames) as Evidence[]).filter(k=>!available.includes(k));
   const resetDelivery=()=>{setStatus("idle");setStatusText("");setConsent(false);};
