@@ -91,7 +91,8 @@ export function TenantIntakeDemo({caseRecord}:{caseRecord:TenantCaseRecord}) {
     setStatus("idle");setStatusText("");setConsent(false);
   },[caseFingerprint]);
   useEffect(()=>{
-    if(typeof window!=="undefined")setRecords(readDemoRegistry(window.localStorage));
+    try{if(typeof window!=="undefined")setRecords(readDemoRegistry(window.localStorage));}
+    catch{setRecords([]);}
   },[]);
   const purposes:SupportPurpose[] = [
     ...(assistance?["assistance" as const]:[]),
