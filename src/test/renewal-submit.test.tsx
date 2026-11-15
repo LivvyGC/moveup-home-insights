@@ -184,7 +184,7 @@ describe("V4 renter flow",()=>{
  });
  it("keeps all local organizations in the same support card after submission controls",()=>{
   const {container}=render(<RenewalPage/>);
-  expect(screen.queryByText("Tenant organizations in Los Angeles")).toBeNull();
+  expect(screen.queryByText("Database of tenant organizations below")).toBeNull();
   fill();submit();
   const support=container.querySelector("#moveup-connect");
   const network=container.querySelector(".v9-embedded-network");
@@ -193,7 +193,7 @@ describe("V4 renter flow",()=>{
   expect(network).toBeTruthy();
   expect(support?.contains(network)).toBe(true);
   expect((form?.compareDocumentPosition(network!)??0)&Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-  expect(screen.getByRole("heading",{name:"Tenant organizations in Los Angeles"})).toBeTruthy();
+  expect(screen.getByRole("heading",{name:"Database of tenant organizations below"})).toBeTruthy();
   expect(container.querySelector("#moveup-network")).toBeNull();
   expect(container.querySelectorAll(".v6-directory")).toHaveLength(1);
   expect(container.querySelectorAll(".v6-organization")).toHaveLength(3);
@@ -212,7 +212,7 @@ describe("V4 renter flow",()=>{
   await waitFor(()=>expect(screen.getByRole("status").textContent).toContain("Success!"));
   expect(screen.getByRole("status").textContent).toContain("saved to the MoveUp demo database on this device");
   expect(screen.getByText(/not connected recipients/)).toBeTruthy();
-  expect(screen.getByRole("heading",{name:"Tenant organizations in Los Angeles"})).toBeTruthy();
+  expect(screen.getByRole("heading",{name:"Database of tenant organizations below"})).toBeTruthy();
  });
  it("the report only appears after a completed analysis",()=>{
   render(<RenewalPage/>);
