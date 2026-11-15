@@ -5,6 +5,7 @@ import type { City } from "@/lib/renewalPolicy";
 import { evaluateRenewal, negotiationMessage, type Coverage, type IncreaseHistory } from "@/lib/renewalActions";
 import { assessMarketOffer } from "@/lib/renewalV4";
 import { isStale } from "@/lib/renewalCalculator";
+import { TenantIntakeDemo } from "@/components/TenantIntakeDemo";
 
 const CITIES: City[] = ["Los Angeles", "San Francisco", "San Diego", "Seattle"];
 type Bedroom = "1br" | "2br" | "other";
@@ -223,6 +224,19 @@ export function RenewalPage(){
             <p className="v4-report-provenance">Market: Apartment List, {benchmarkMonth}, {marketLabel}; <a href={RESEARCH_URL}>source</a>. Data age {stale?"over 45 days":"within 45 days"} as of {new Date().toISOString().slice(0,10)}.</p>
             {rules.map(c=><p key={c.rule.id} className="v4-report-provenance">{c.rule.title}: {c.rule.cap_pct}% standard ({c.coverage==="unknown"?"coverage unknown":c.coverage==="yes"?"self-reported covered":"self-reported exempt"}). <a href={c.rule.source_url}>Official source</a>, verified {c.rule.last_verified_at}.</p>)}
             <p><strong>Next action:</strong> {finding.heading}. <a href={supportAction?legalLink:finding.eligibilityUrl}>Official guidance</a>.</p>
+            <TenantIntakeDemo
+              key={submitted.city+"-"+submitted.effective+"-"+submitted.offer}
+              city={submitted.city}
+              bedrooms={marketLabel}
+              currentRent={submitted.current}
+              offeredRent={submitted.offer}
+              effectiveDate={submitted.effective}
+              benchmark={benchmark}
+              benchmarkMonth={benchmarkMonth}
+              legalStatus={statusLabel}
+              policyNotes={rules.map(c=>c.rule.title+": "+c.rule.cap_pct+"% published standard; "+c.rule.source_url)}
+              nextAction={finding.heading}
+            />
             <p className="v4-muted">No rent-law outcome is certified. No lease document has been reviewed. This summary is educational and can be taken to a tenant support organization. No account or payment required.</p>
             <button type="button" className="v4-print-button" onClick={()=>{if(typeof window!=="undefined")window.print();}}>Print / Save as PDF</button>
           </div>
