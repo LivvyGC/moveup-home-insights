@@ -49,7 +49,9 @@ export function composeTenantPacket(input: TenantCaseRecord, contact: RenterCont
   ].join("\n");
 }
 
-export function TenantIntakeDemo({caseRecord,children}:{caseRecord:TenantCaseRecord;children?:ReactNode}) {
+export type SubmissionReceipt = Pick<DemoRegistryRecord,"id"|"city"|"delivery">;
+
+export function TenantIntakeDemo({caseRecord,children,onReceiptChange}:{caseRecord:TenantCaseRecord;children?:ReactNode;onReceiptChange?:(receipt:SubmissionReceipt|null)=>void}) {
   const [contactName,setContactName]=useState("");
   const [contactEmail,setContactEmail]=useState("");
   const [contactPhone,setContactPhone]=useState("");
@@ -116,6 +118,7 @@ export function TenantIntakeDemo({caseRecord,children}:{caseRecord:TenantCaseRec
         purposes:["assistance"],issue:"Renter support inquiry",packet,delivery,
       });
       setRecords(saveDemoRecord(window.localStorage,record));
+      onReceiptChange?.({id:record.id,city:record.city,delivery:record.delivery});
       setStatus("success");
       setStatusText(delivery==="local_demo"
         ?"Success! Inquiry "+record.id+" saved to the MoveUp browser-only demo database. Your contact details and renewal summary were saved on this device; no organizations were contacted."
@@ -123,6 +126,7 @@ export function TenantIntakeDemo({caseRecord,children}:{caseRecord:TenantCaseRec
       setShowRegistry(false);
     }catch{
       if(delivery==="moveup_demo_inbox"){
+        onReceiptChange?.({id,city:caseRecord.city,delivery});
         setStatus("success");
         setStatusText("Success! MoveUp's demo inbox accepted the inquiry, but a local copy could not be saved. No tenant organization was contacted.");
       }else{
@@ -134,7 +138,7 @@ export function TenantIntakeDemo({caseRecord,children}:{caseRecord:TenantCaseRec
   function clearRegistry(){
     try{
       clearDemoRegistry(window.localStorage);
-      setRecords([]);setShowRegistry(false);setStatus("idle");setStatusText("");setConsent(false);
+      setRecords([]);setShowRegistry(false);setStatus("idle");setStatusText("");setConsent(false);onReceiptChange?.(null);
     }catch{
       setStatus("error");setStatusText("This browser could not clear the demo registry.");
     }
