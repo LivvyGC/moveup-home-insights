@@ -1,6 +1,4 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { TenantOrganizationDirectory } from "./TenantOrganizationDirectory";
-import { organizationsForCity } from "../data/tenantOrganizations";
 import { type TenantCaseRecord, coverageLabel, increaseLabel, currency, signedCurrency } from "../lib/tenantCase";
 import {
   createDemoRecord, readDemoRegistry, saveDemoRecord,
@@ -173,6 +171,7 @@ export function TenantIntakeDemo({caseRecord}:{caseRecord:TenantCaseRecord}) {
       <span>OPTIONAL RENTER CONNECTION</span>
       <h3>Connect with tenant support</h3>
       <p>You can request assistance, learn about organizing, or both. No legal violation is required.</p>
+      <p className="v4-network-anchor">Looking for local groups? <a href="#moveup-network">Explore renter organizations below</a>.</p>
     </div>
     <div className="v4-interest-choices">
       <label><input aria-label="I want assistance with my housing concern" type="checkbox" checked={assistance}
@@ -184,7 +183,6 @@ export function TenantIntakeDemo({caseRecord}:{caseRecord:TenantCaseRecord}) {
         <span><strong>I'm interested in tenant organizing</strong><small>Learn how renters can connect and organize collectively.</small></span>
       </label>
     </div>
-    <details className="v6-directory-disclosure"><summary>Explore {organizationsForCity(caseRecord.city).length} local renter organizations</summary><TenantOrganizationDirectory city={caseRecord.city}/></details>
     {assistance?<div className="v4-intake-controls">
       <label className="v4-field"><span>What do you need help with?</span>
         <select aria-label="Reason for tenant support" value={concern} onChange={e=>{setConcern(e.target.value as Concern);resetDelivery();}}>
