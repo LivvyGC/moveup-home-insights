@@ -31,3 +31,5 @@ use the editor.
 
 - MoveUp is a port of the developers prototype; keep its src/lib logic + tests as source of truth (combineSignals, signal-parse).
 - Polymarket Gamma calls go through src/lib/signal.functions.ts (server fn) so the browser never hits the API directly.
+- City housing history comes from the versioned snapshot src/data/cityMarket.snapshot.json (regenerate via scripts/build-city-snapshot.ts); never fetch the ~94 MB Zillow CSV at request time — it exceeds Worker memory and is wasteful.
+- The V2 local-first verdict (src/lib/localDecision.ts) is experimental; weights/thresholds change only with PM approval.
