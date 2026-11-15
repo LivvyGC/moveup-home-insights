@@ -220,7 +220,7 @@ export function RenewalPage(){
                 const isSecondary=hasLocalRule&&check.rule.type==="statewide";
                 const card=<article className={"v4-law-card"+(isSecondary?" v4-law-card-secondary":"")} key={check.rule.id}>
                   <div className="v4-law-top"><span>{check.rule.type==="city"?"CITY PROTECTION":"STATE PROTECTION"}</span><span className="v4-law-shield" aria-hidden="true">✦</span></div>
-                  <h3>{check.rule.title.replace(" (base annual adjustment)","")}</h3>
+                  <h3>{check.rule.id==="la-rso"?"Los Angeles rent stabilization":check.rule.id==="sf-rso"?"San Francisco rent control":check.rule.title}</h3>
                   <div className="v4-law-value"><strong>{check.rule.cap_pct}%</strong><span>published {check.rule.type==="city"?"standard adjustment":"rent limit"}</span></div>
                   <p>{check.abovePublishedStandard
                     ?"Your "+change.toFixed(2)+"% proposed increase exceeds this published standard if the rule applies."
