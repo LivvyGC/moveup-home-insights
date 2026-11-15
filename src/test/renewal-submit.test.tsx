@@ -62,13 +62,14 @@ describe("V4 renter flow",()=>{
   expect(screen.getAllByText(/Apartment List · 2026-10/).length).toBeGreaterThan(0);
   expect(screen.getByRole("img",{name:/Your offer.*benchmark/})).toBeTruthy();
  });
- it("uses the below-benchmark state when the renewal offer is lower",()=>{
+ it("uses the below-benchmark meter state when the renewal offer is lower",()=>{
   const {container}=render(<RenewalPage/>);fill({offer:"2200",bedrooms:"2br"});submit();
   expect(screen.getByText("Below city benchmark")).toBeTruthy();
-  const bars=container.querySelectorAll(".v7-market-bar-fill") as NodeListOf<HTMLDivElement>;
-  expect(bars).toHaveLength(2);
-  expect(parseFloat(bars[0].style.width)).toBe(100);
-  expect(parseFloat(bars[1].style.width)).toBeLessThan(100);
+  const meter=container.querySelector(".v4-meter") as HTMLDivElement;
+  expect(meter).toBeTruthy();
+  expect(parseFloat((meter.querySelector(".v4-market-line") as HTMLDivElement).style.left))
+    .toBeGreaterThan(parseFloat((meter.querySelector(".v4-offer-line") as HTMLDivElement).style.left));
+  expect(container.querySelector(".v7-market-chart")).toBeNull();
  });
  it("unsupported bedrooms never display a made-up benchmark",()=>{
   render(<RenewalPage/>);fill({bedrooms:"other"});submit();
@@ -125,18 +126,23 @@ describe("V4 renter flow",()=>{
   fill({offer:"3000",bedrooms:"2br"});submit();
   expect(screen.queryByRole("link",{name:/Open official LA complaint page/})).toBeNull();
  });
- it("shows clear same-scale benchmark bars and arithmetic differences",()=>{
+ it("shows a single benchmark meter with market and offer markers plus clear differences",()=>{
   const {container}=render(<RenewalPage/>);
   fireEvent.click(screen.getByRole("button",{name:"Fill with example numbers"}));
   submit();
   expect(screen.getByText("Above city benchmark")).toBeTruthy();
-  const bars=container.querySelectorAll(".v7-market-bar-fill") as NodeListOf<HTMLDivElement>;
-  expect(bars).toHaveLength(2);
-  expect(parseFloat(bars[0].style.width)).toBeCloseTo(100*2377/2650,3);
-  expect(parseFloat(bars[1].style.width)).toBe(100);
+  expect(container.querySelectorAll(".v4-meter")).toHaveLength(1);
+  expect(container.querySelectorAll(".v4-market-line")).toHaveLength(1);
+  expect(container.querySelectorAll(".v4-offer-line")).toHaveLength(1);
+  expect(screen.getByText("MARKET")).toBeTruthy();
+  expect(screen.getByText("YOUR OFFER")).toBeTruthy();
+  const meter=container.querySelector(".v4-meter") as HTMLDivElement;
+  const position=Number.parseFloat((meter.querySelector(".v4-market-line") as HTMLDivElement).style.left);
+  const offerPosition=Number.parseFloat((meter.querySelector(".v4-offer-line") as HTMLDivElement).style.left);
+  expect(offerPosition).toBeGreaterThan(position);
   expect(screen.getByText("+11.49%")).toBeTruthy();
   expect(screen.getByText("+$273.00 / month")).toBeTruthy();
-  expect(screen.getByText(/Bar lengths use the same dollar scale/)).toBeTruthy();
+  expect(screen.queryByText(/Bar lengths use the same dollar scale/)).toBeNull();
  });
  it("shows city and statewide protection cards together in source order",()=>{
   const {container}=render(<RenewalPage/>);fill({offer:"3000"});submit();
