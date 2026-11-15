@@ -97,10 +97,14 @@ describe("V4 renter flow",()=>{
   fireEvent.click(screen.getByRole("button",{name:/Negotiate my renewal/}));
   expect(screen.getByText("Negotiate your renewal")).toBeTruthy();
  });
- it("puts city rent protection first and statewide protection in an expandable section",()=>{
-  render(<RenewalPage/>);fill({offer:"3000"});submit();
-  expect(screen.getByText(/Statewide protections:/)).toBeTruthy();
-  expect(screen.getByText("Your protections")).toBeTruthy();
+ it("shows city and statewide protection cards together in source order",()=>{
+  const {container}=render(<RenewalPage/>);fill({offer:"3000"});submit();
+  const cityCard=container.querySelector(".v4-law-card:not(.v4-law-card-secondary)");
+  const stateCard=container.querySelector(".v4-law-card-secondary");
+  expect(cityCard).toBeTruthy();
+  expect(stateCard).toBeTruthy();
+  expect((cityCard?.compareDocumentPosition(stateCard!)??0)&Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  expect(screen.getByLabelText("State rent protection coverage")).toBeTruthy();
  });
  it("shows city and statewide protections without requiring expansion",()=>{
   render(<RenewalPage/>);fill({offer:"3000"});submit();
