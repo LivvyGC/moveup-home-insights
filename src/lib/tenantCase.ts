@@ -25,12 +25,12 @@ export type TenantCaseRecord = {
   sourceUrl: string;
 };
 export const coverageLabel = (value: Coverage): string => value === "yes"
-  ? "Reported covered — not independently verified"
+  ? "Reported covered: not independently verified"
   : value === "no"
-    ? "Reported exempt — not independently verified"
+    ? "Reported exempt: not independently verified"
     : "Not sure / unverified";
 export const increaseLabel = (value: IncreaseHistory): string => value === "yes"
-  ? "Yes — earlier increases reported"
+  ? "Yes: earlier increases reported"
   : value === "none" ? "No earlier increases reported" : "Not sure";
 export const currency = (n:number) => new Intl.NumberFormat("en-US", {
   style: "currency", currency:"USD", minimumFractionDigits:2, maximumFractionDigits:2,
