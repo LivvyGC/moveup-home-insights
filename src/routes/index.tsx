@@ -152,8 +152,8 @@ export function RenewalPage(){
                 <div><span>Your offer</span><strong>{money(submitted.offer)}</strong></div>
                 <div><span>New-lease benchmark</span><strong>{money(benchmark)}</strong></div>
               </div>
-              <div className="v4-meter" role="img" aria-label={"Your offer "+money(submitted.offer)+"; "+marketLabel+" city benchmark "+money(benchmark)+"; difference "+signedMoney(assessment.difference??0)}>
-                <div className="v4-track"></div>
+              <div className={"v4-meter v4-meter-"+assessment.tone} role="img" aria-label={"Your offer "+money(submitted.offer)+"; "+marketLabel+" city benchmark "+money(benchmark)+"; difference "+signedMoney(assessment.difference??0)}>
+                <div className="v4-track"><span className="v4-market-below" style={{width:(assessment.benchmarkPosition??0)+"%"}}></span><span className="v4-market-above" style={{left:(assessment.benchmarkPosition??0)+"%"}}></span></div>
                 <div className="v4-market-line" style={{left:(assessment.benchmarkPosition??0)+"%"}}><span>MARKET</span></div>
                 <div className="v4-offer-line" style={{left:(assessment.offerPosition??0)+"%"}}><span>YOUR OFFER</span></div>
               </div>
