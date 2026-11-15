@@ -7,7 +7,7 @@ import { assessMarketOffer } from "@/lib/renewalV4";
 import { isStale } from "@/lib/renewalCalculator";
 import { buildTenantCase,coverageLabel,increaseLabel } from "@/lib/tenantCase";
 import { House } from "lucide-react";
-import { TenantIntakeDemo } from "@/components/TenantIntakeDemo";
+import { TenantIntakeDemo, intakeEndpointConfigured, type SubmissionReceipt } from "@/components/TenantIntakeDemo";
 import { TenantOrganizationDirectory } from "@/components/TenantOrganizationDirectory";
 
 const CITIES: City[] = ["Los Angeles", "San Francisco", "San Diego", "Seattle"];
@@ -39,6 +39,7 @@ export function RenewalPage(){
   const [example,setExample] = useState(false);
   const [error,setError] = useState("");
   const [submitted,setSubmitted] = useState<{city:City;bedrooms:Bedroom;current:number;offer:number;effective:string}|null>(null);
+  const [submissionReceipt,setSubmissionReceipt] = useState<SubmissionReceipt|null>(null);
   const [stateCoverage,setStateCoverage] = useState<Coverage>("unknown");
   const [localCoverage,setLocalCoverage] = useState<Coverage>("unknown");
   const [priorIncrease,setPriorIncrease] = useState<IncreaseHistory>("unknown");
@@ -50,10 +51,10 @@ export function RenewalPage(){
     setStateCoverage("unknown");setLocalCoverage("unknown");setPriorIncrease("unknown");
     setNoticeReceived("");setPeriod("12");
   };
-  const resetOnEdit=()=>{setSubmitted(null);setError("");setExample(false);resetReview();};
+  const resetOnEdit=()=>{setSubmitted(null);setSubmissionReceipt(null);setError("");setExample(false);resetReview();};
   const clear=()=>{
     setCity("Los Angeles");setBedrooms("1br");setCurrent("");setOffer("");setEffective("");
-    setSubmitted(null);setError("");setExample(false);resetReview();
+    setSubmitted(null);setSubmissionReceipt(null);setError("");setExample(false);resetReview();
   };
   const loadExample=()=>{
     clear();
@@ -71,7 +72,7 @@ export function RenewalPage(){
     if(!isValidDate){
       setError("Enter a valid rent effective date. Past dates are allowed.");setSubmitted(null);return;
     }
-    setError("");resetReview();
+    setError("");resetReview();setSubmissionReceipt(null);
     setSubmitted({city,bedrooms,current:base,offer:asked,effective});
     if(typeof requestAnimationFrame==="function"){
       requestAnimationFrame(()=>output.current?.scrollIntoView?.({behavior:"smooth",block:"start"}));
@@ -269,7 +270,7 @@ export function RenewalPage(){
           </div>
           <a className="v7-resource-link" href={LA_COMPLAINT_URL} target="_blank" rel="noopener noreferrer">Open official LA complaint page <span aria-hidden="true">↗</span></a>
         </aside>:null}
-        {caseRecord?<TenantIntakeDemo key={submitted.city+"-"+submitted.effective+"-"+submitted.offer} caseRecord={caseRecord}>
+        {caseRecord?<TenantIntakeDemo key={submitted.city+"-"+submitted.effective+"-"+submitted.offer} caseRecord={caseRecord} onReceiptChange={setSubmissionReceipt}>
         <section id="moveup-summary" className="v4-section v4-report" aria-label="Tenant support summary">
           <div className="v4-heading"><h2>Your prefilled renewal assessment</h2><span>Included with your inquiry</span></div>
           <div className="v4-card">
@@ -307,13 +308,40 @@ export function RenewalPage(){
         </section>
         </TenantIntakeDemo>:null}
       </div>:null}
-      <section className="v6-network" id="moveup-network" aria-label="MoveUp renter support network">
-        <TenantOrganizationDirectory city={submitted?.city??city}/>
-        <aside className="v6-network-note" aria-label="For tenant organizations">
-          <strong>For tenant organizations</strong>
-          <p>MoveUp is building toward an opt-in network where participating groups could receive renter-approved, prefilled inquiries. Organization integrations and paid partnerships are not live yet.</p>
-        </aside>
-      </section>
+      {submitted?<section className="v6-network v9-routing" id="moveup-network" aria-label="Where your inquiry goes">
+        <div className="v9-routing-head">
+          <span className="v6-eyebrow">MOVEUP SUBMISSION ROUTE</span>
+          <h2>Where your inquiry goes</h2>
+          <p>Your assessment and contact details are bundled into one inquiry. Here's what happens to it today, and what we're building next.</p>
+        </div>
+        <div className="v9-routing-grid">
+          <div className="v9-routing-step v9-routing-now">
+            <span className="v9-routing-step-tag">01 · CURRENT DEMO</span>
+            <h3>{submissionReceipt
+              ? submissionReceipt.delivery==="local_demo"?"Saved to your browser":"Accepted by MoveUp demo inbox"
+              : "MoveUp demo intake"}</h3>
+            {submissionReceipt
+              ?<p role="status" className="v9-receipt-status">
+                <strong>Inquiry {submissionReceipt.id}</strong>
+                {submissionReceipt.delivery==="local_demo"
+                  ? " was saved on this device. No organization received it."
+                  : " was accepted by the MoveUp demo inbox. No tenant organization received it."}
+              </p>
+              :<p>{intakeEndpointConfigured
+                ? "Submit the form above to send it to MoveUp's demo inbox. No tenant organization is connected."
+                : "Submit the form above to save it in the browser-only demo database. It is not sent to an outside organization."}</p>}
+          </div>
+          <div className="v9-routing-step v9-routing-later">
+            <span className="v9-routing-step-tag">02 · FUTURE NETWORK</span>
+            <h3>Participating renter organizations</h3>
+            <p>With renter consent, a future MoveUp network could route prefilled inquiries to participating tenant-support groups. This connection is not live.</p>
+          </div>
+        </div>
+        <details className="v9-routing-directory">
+          <summary>Explore potential local organizations in {submitted.city} (not connected)</summary>
+          <TenantOrganizationDirectory city={submitted.city}/>
+        </details>
+      </section>:null}
     </main>
     <footer className="v4-container v4-footer">MOVEUP · EDUCATIONAL RENTAL AGREEMENT REVIEW</footer>
   </div>;
