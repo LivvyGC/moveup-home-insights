@@ -620,28 +620,19 @@ html{scroll-behavior:smooth}
 }
 .v7-market-card .v4-market-stats>div>span{font-size:15px;color:#4E4943;font-weight:650}
 .v7-market-card .v4-market-stats strong{color:#151412;font-size:clamp(28px,3.6vw,42px);letter-spacing:-.055em}
-.v7-market-chart{
-  padding:18px 21px 16px;
-  border:1px solid #E1D2C3;border-radius:10px;
+.v7-market-meter-panel{
+  border:1px solid #E1D2C3;
+  border-radius:10px;
   background:linear-gradient(135deg,#FCF7F0,#F9EDE0);
-  display:grid;gap:18px;
+  padding:20px 22px 13px;
 }
-.v7-market-bar{min-width:0}
-.v7-market-bar-label{
-  display:flex;justify-content:space-between;flex-wrap:wrap;gap:5px 12px;
-  align-items:baseline;margin-bottom:7px;
-  color:#28231F;font-size:15px;
-}
-.v7-market-bar-label span{font-weight:700}
-.v7-market-bar-label strong{font-size:16px;font-weight:850;white-space:nowrap;font-variant-numeric:tabular-nums}
-.v7-market-bar-track{
-  width:100%;height:24px;border-radius:6px;
-  background:#E8DED3;overflow:hidden;position:relative;
-}
-.v7-market-bar-fill{height:100%;border-radius:6px;min-width:0;transition:width 200ms ease-out}
-.v7-market-bar-benchmark{background:linear-gradient(90deg,#8DB89D,#4F8A74)}
-.v7-market-bar-offer{background:linear-gradient(90deg,#F2B77B,#DB824E)}
-.v7-chart-note{font-size:13px;color:#594E43;line-height:1.5}
+.v7-market-meter-panel .v4-meter{margin:18px 15px 7px;height:97px}
+.v7-market-meter-panel .v4-track{height:15px;border-radius:5px;overflow:hidden}
+.v7-market-meter-panel .v4-market-line{border-left-width:3px}
+.v7-market-meter-panel .v4-offer-line{border-left-color:#C15B28}
+.v7-market-meter-panel .v4-market-below{background:#B9DCC1}
+.v7-market-meter-panel .v4-market-above{background:#F5D48A}
+.v7-meter-explainer{font-size:14px;line-height:1.5;color:#554940;margin:3px 0 0}
 .v7-market-takeaway{
   display:flex;justify-content:space-between;gap:16px;align-items:center;flex-wrap:wrap;
   margin:18px 0 14px;padding:19px 21px;
@@ -682,9 +673,12 @@ html{scroll-behavior:smooth}
   .v7-market-card .v4-market-stats{grid-template-columns:1fr;gap:8px;margin-bottom:20px}
 }
 @media(max-width:460px){
-  .v7-market-chart{padding:14px;gap:14px}
   .v7-market-takeaway{padding:15px}
-  .v7-market-bar-track{height:21px}
 }
-@media(prefers-reduced-motion:reduce){.v7-market-bar-fill{transition:none}}
 @media print{.v7-la-resource{display:none!important}}
+@media(max-width:460px){
+  .v7-market-meter-panel{padding:16px 12px 12px}
+  .v7-market-meter-panel .v4-meter{margin:18px 8px 7px}
+  .v7-market-meter-panel .v4-market-line>span,
+  .v7-market-meter-panel .v4-offer-line>span{font-size:12px}
+}
