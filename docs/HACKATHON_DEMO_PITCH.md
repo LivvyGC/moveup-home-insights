@@ -4,6 +4,12 @@
 
 **MoveUp helps renters understand a proposed rent increase and turn that confusing experience into an organized, evidence-based case packet they can bring to a tenant-support organization.**
 
+## The network we are building toward
+
+MoveUp's longer-term product is a **consent-based renter support network**: renters understand an offer, prepare an inquiry, and opt into assistance or organizing; participating, verified tenant organizations could eventually receive structured, city-routed submissions. A future organization subscription could fund customized intake and partner-side workflow tools. These connections and subscriptions are a **business proposal**, not live integrations or customers today.
+
+The weekend prototype demonstrates the intake-to-submission interaction with **Submit to database** and a real success receipt after saving in the browser-only demo registry. It is not a shared cloud database, union delivery, or functioning multi-organization network. Say that distinction explicitly in the pitch.
+
 ## Why this product now
 
 Renters may receive a renewal offer without knowing how it compares with new-lease city benchmarks, which rent rules may be relevant, or which documents a tenant advocate needs to review. Tenant organizations may need to repeat basic intake questions. **The time-savings and willingness-to-pay claims are hypotheses, not measured business results.**
