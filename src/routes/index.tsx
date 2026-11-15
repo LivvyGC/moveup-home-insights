@@ -7,6 +7,7 @@ import { fetchSignal, type SignalResult } from "@/lib/signalClient";
 import { fetchCityMarketFn, type MarketResponse } from "@/lib/cityMarket.functions";
 import { assessCity, type LocalAssessment } from "@/lib/localDecision";
 import { policiesFor } from "@/lib/policyIndicators";
+import {localTaxAuthority} from "@/lib/localTaxAuthorities";
 
 const cityList = cities as CityData[];
 type Analysis = { a: SignalResult; b: SignalResult; result: CombineResult; market:MarketResponse;local:LocalAssessment };
@@ -91,6 +92,7 @@ function App(){
   const r=analysis?.result;
   const local=analysis?.local;
   const policy=policiesFor(city.state);
+  const taxAuthority=localTaxAuthority(city.city,city.state);
   const market=analysis?.market;
   const historical=market?.status==="available"?market.history:null;
   const forecast=market?.status==="available"?market.forecast:null;
@@ -176,7 +178,14 @@ function App(){
             </div>
             <div className="policy">
               <h3>04 / State and local policy context</h3>
-              <p className="local-note">Official rules may affect costs or eligibility, but exemptions are <strong>not automatically applied</strong> to this scenario.</p>
+              <p className="local-note">Official rules may affect costs or eligibility, but exemptions are <strong>not automatically applied</strong> to this scenario. Tax and insurance costs remain illustrative; state and local governments calculate actual taxes using parcel assessments, classifications and exemptions.</p>
+              {taxAuthority?<article className="policy-entry">
+                <strong>Local tax and assessment authority — {taxAuthority.jurisdiction}</strong>
+                <p>{taxAuthority.note}</p>
+                <a href={taxAuthority.officialUrl} target="_blank" rel="noopener noreferrer">
+                  Verify actual assessments and levies: {taxAuthority.authority}
+                </a>
+              </article>:null}
               {policy.map(p=><article key={p.id} className="policy-entry">
                 <strong>{p.title}</strong><p>{p.detail}</p><p>{p.applicability}</p>
                 <a href={p.officialUrl} target="_blank" rel="noopener noreferrer">Government source · reviewed {p.lastReviewed}</a>
@@ -185,9 +194,9 @@ function App(){
             <div className="weights">
               <strong>Experimental score / model weights</strong>
               <div><span>City historical price momentum</span><b>45%</b></div>
-              <div><span>City tax-cost policy proxy (illustrative)</span><b>35%</b></div>
+              <div><span>Illustrative tax-rate proxy (NOT statutory policy effects)</span><b>35%</b></div>
               <div><span>National market-implied odds</span><b>20%</b></div>
-              <p>Score: {local?.score==null?"Not available":local.score.toFixed(3)}. This is an uncalibrated research heuristic, not a validated predictor or a verified policy-effect estimate. The local tax proxy uses illustrative city assumptions and does not assume exemption eligibility.</p>
+              <p>Score: {local?.score==null?"Not available":local.score.toFixed(3)}. This is an uncalibrated research heuristic, not a validated predictor or a verified policy-effect estimate. The 35% input is NOT calculated from the government policies shown above; it currently uses illustrative city tax rates. No individual eligibility or tax saving is inferred.</p>
             </div>
           </section>
           <section className="breakdown">
