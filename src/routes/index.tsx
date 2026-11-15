@@ -1,4 +1,4 @@
-import { useState, type ChangeEvent } from "react";
+import { useRef, useState, type FormEvent } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import market from "@/data/rentMarket.snapshot.json";
 import {activeRules, conditionalCap, type City, type RuleStatus} from "@/lib/renewalPolicy";
@@ -14,10 +14,10 @@ type NumKey="current"|"offer"|"alt"|"moving"|"deposit"|"price"|"down"|"rate"|"ta
 const source=(label:string,href?:string)=>href?<a className="rc-source" href={href} target="_blank" rel="noopener noreferrer">{label}</a>:<span className="rc-source">{label}</span>;
 const num=(s:string):number|null=>s.trim()!==""&&Number.isFinite(Number(s))&&Number(s)>=0?Number(s):null;
 const asZero=(s:string)=>num(s)??0;
-function Field({label,value,onChange,note,placeholder,min=0}:{
- label:string;value:string;onChange:(s:string)=>void;note:string;placeholder?:string;min?:number
+function Field({label,value,onChange,note,placeholder,min=0,required=false}:{
+ label:string;value:string;onChange:(s:string)=>void;note:string;placeholder?:string;min?:number;required?:boolean
 }){
- return <div className="rc-field"><label>{label}<input type="number" min={min} step="any" value={value} placeholder={placeholder??"Enter amount"} onChange={e=>onChange(e.target.value)}/></label>{source(note)}</div>;
+ return <div className="rc-field"><label>{label}<input type="number" min={min} step="any" required={required} value={value} placeholder={placeholder??"Enter amount"} onChange={e=>onChange(e.target.value)}/></label>{source(note)}</div>;
 }
 function SourceMoney({value,sourceText}: {value:number|null;sourceText:string}){
  return <div><strong className="rc-amount">{value===null?"Not available":money(value)}</strong>{source(sourceText)}</div>;
@@ -26,7 +26,7 @@ export const Route=createFileRoute("/")({
  head:()=>({meta:[{title:"MoveUp — Renewal Check"},{name:"description",content:"Compare your lease renewal, new-lease market rents, conditional rent laws, and stay/move/buy costs."}]}),
  component:RenewalPage,
 });
-function RenewalPage(){
+export function RenewalPage(){
  const [city,setCity]=useState<City>("Los Angeles");
  const [current,setCurrent]=useState("");
  const [offer,setOffer]=useState("");
@@ -47,11 +47,38 @@ function RenewalPage(){
  const [localCovered,setLocalCovered]=useState<"yes"|"no"|"unknown">("unknown");
  const [buildingYear,setBuildingYear]=useState("");
  const [example,setExample]=useState(false);
+ const [submitted,setSubmitted]=useState<{city:City;current:number;offer:number;end:string;months:number}|null>(null);
+ const [submitError,setSubmitError]=useState("");
+ const resultRef=useRef<HTMLElement|null>(null);
+ const coreChange=(set:(s:string)=>void)=>(s:string)=>{
+  set(s);setSubmitted(null);setSubmitError("");setExample(false);
+ };
  const patch=(set:(s:string)=>void)=>(s:string)=>{set(s);setExample(false);};
- const cleared=()=>{setCurrent("");setOffer("");setEnd("");setMonths("12");setAlternative("");setMoving("");setDeposit("");setPrice("");setDown("");setRate(String(PMMS.rate));setTax("");setInsurance("");setOther("");setClosing("");setStateCovered("unknown");setLocalCovered("unknown");setBuildingYear("");setExample(false);};
+ const cleared=()=>{setSubmitted(null);setSubmitError("");setCurrent("");setOffer("");setEnd("");setMonths("12");setAlternative("");setMoving("");setDeposit("");setPrice("");setDown("");setRate(String(PMMS.rate));setTax("");setInsurance("");setOther("");setClosing("");setStateCovered("unknown");setLocalCovered("unknown");setBuildingYear("");setExample(false);};
  const loadExample=()=>{cleared();setCity("Los Angeles");setCurrent("2400");setOffer("2650");setMonths("12");setEnd("2027-01-15");setExample(true);};
- const currentN=num(current),offerN=num(offer),monthsN=Number(months);
- const valid= currentN!==null&&currentN>0&&offerN!==null&&offerN>0&&Number.isInteger(monthsN)&&monthsN>0;
+ const currentN=submitted?.current??null,offerN=submitted?.offer??null,monthsN=submitted?.months??Number(months);
+ const valid=submitted!==null&&currentN!==null&&currentN>0&&offerN!==null&&offerN>0&&Number.isInteger(monthsN)&&monthsN>0;
+ function launchAnalysis(event:FormEvent<HTMLFormElement>){
+  event.preventDefault();
+  const currentValue=num(current),offerValue=num(offer),horizon=Number(months);
+  if(currentValue===null||currentValue<=0||offerValue===null||offerValue<=0){
+   setSubmitted(null);setSubmitError("Enter your current and offered monthly rent, both above $0.");return;
+  }
+  if(!Number.isInteger(horizon)||horizon<1){
+   setSubmitted(null);setSubmitError("Select a valid comparison period.");return;
+  }
+  const effectiveDate=new Date(end+"T00:00:00");
+  const today=new Date();today.setHours(0,0,0,0);
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(end)||!Number.isFinite(effectiveDate.getTime())||effectiveDate<today){
+   setSubmitted(null);setSubmitError("Enter a valid rent effective date that is today or later.");return;
+  }
+  setSubmitError("");
+  setSubmitted({city,current:currentValue,offer:offerValue,end,months:horizon});
+  if(typeof requestAnimationFrame==="function") requestAnimationFrame(()=>{
+   resultRef.current?.focus({preventScroll:true});
+   resultRef.current?.scrollIntoView?.({behavior:"smooth",block:"start"});
+  });
+ }
  const costs=valid?renewalScenarios({
   currentRent:currentN,offeredRent:offerN,months:monthsN,
   alternativeRent:num(alternative),movingCost:num(moving),securityDeposit:num(deposit),
@@ -62,9 +89,9 @@ function RenewalPage(){
  const [z,al]=[row.zori,row.apartmentList];
  const now=new Date();
  const staleZ=isStale(z.observationDate,now),staleAL=isStale(al.observationDate,now);
- const rules=end?activeRules(city,end):[];
+ const rules=submitted?activeRules(submitted.city,submitted.end):[];
  const filtered=city==="San Diego"||city==="Seattle"?[]:rules.filter(r=>r.type==="city");
- const conditional=valid&&end?conditionalCap(currentN,rules,stateCovered,localCovered):null;
+ const conditional=valid&&submitted?conditionalCap(currentN,rules,stateCovered,localCovered):null;
  const stateRule=rules.find(r=>r.type==="statewide");
  const ceiling=valid&&conditional?capScenario(currentN,offerN,monthsN,conditional.capPct):null;
  // This is not a final legal determination: coverage is based only on self-reported inputs.
@@ -73,7 +100,7 @@ function RenewalPage(){
  const withCap=ceiling?.total??null;
  const primary=valid?costs?.stay.total??null:null;
  const proposedPct=valid?100*(offerN/currentN-1):null;
- const values=[{name:"Stay · offered rent",total:costs?.stay.total??null,delta:0,upfront:null,detail:"YOUR OFFER · RENT × MONTHS"},
+ const values=[{name:"Stay · offered rent",total:costs?.stay.total??null,delta:costs?.stay?0:null,upfront:null,detail:"YOUR OFFER · RENT × MONTHS"},
   {name:"Stay · conditional cap",total:withCap,delta:ceiling?ceiling.deltaVsOffer:null,upfront:null,detail:"OFFICIAL MAXIMUM · ONLY IF COVERED"},
   {name:"Move · entered rental quote",total:costs?.move?.total??null,delta:costs?.move?.differenceVsStay??null,upfront:costs?.move?.upfront??null,detail:"YOUR RENT QUOTE + MOVING COST"},
   {name:"Buy · mortgage cash outflow",total:costs?.buy?.total??null,delta:costs?.buy?.differenceVsStay??null,upfront:costs?.buy?.upfront??null,detail:"YOUR PRICE/DOWN PAYMENT + RATE"}];
@@ -87,15 +114,19 @@ function RenewalPage(){
    {staleZ||staleAL?<div className="rc-stale" role="status">DATA AGE: {staleZ?"Zillow ZORI":" "}{staleZ&&staleAL?" and ":""}{staleAL?"Apartment List":""} observation is over 45 days old. Verify before relying on market comparisons.</div>:null}
    <div className="rc-first">
     <section className="rc-panel rc-intake"><div className="rc-sectionhead"><span>01 / YOUR RENEWAL</span><h2>The offer</h2></div>
+     <form className="rc-renewal-form" onSubmit={launchAnalysis} noValidate>
      <div className="rc-fields">
-      <div className="rc-field"><label>City<select value={city} onChange={e=>{setCity(e.target.value as City);setStateCovered("unknown");setLocalCovered("unknown");setExample(false);}}>{CITIES.map(c=><option key={c}>{c}</option>)}</select></label>{source("YOUR SELECTION · CITY")}</div>
-      <Field label="Current rent / month" value={current} onChange={patch(setCurrent)} note="YOUR INPUT · CURRENT LEASE"/>
-      <Field label="Offered rent / month" value={offer} onChange={patch(setOffer)} note="YOUR INPUT · RENEWAL OFFER"/>
-      <div className="rc-field"><label>New rent takes effect<input type="date" value={end} onChange={e=>{setEnd(e.target.value);setExample(false);}}/></label>{source("YOUR INPUT · EFFECTIVE DATE")}</div>
-      <div className="rc-field"><label>Compare over<select value={months} onChange={e=>{setMonths(e.target.value);setExample(false);}}>{[6,12,18,24].map(x=><option key={x} value={x}>{x} months</option>)}</select></label>{source("YOUR SELECTION · TIME HORIZON")}</div>
+      <div className="rc-field"><label>City<select value={city} onChange={e=>{setCity(e.target.value as City);setStateCovered("unknown");setLocalCovered("unknown");setSubmitted(null);setSubmitError("");setExample(false);}}>{CITIES.map(c=><option key={c}>{c}</option>)}</select></label>{source("YOUR SELECTION · CITY")}</div>
+      <Field label="Current rent / month" value={current} onChange={coreChange(setCurrent)} note="YOUR INPUT · CURRENT LEASE" min={0.01} required/>
+      <Field label="Offered rent / month" value={offer} onChange={coreChange(setOffer)} note="YOUR INPUT · RENEWAL OFFER" min={0.01} required/>
+      <div className="rc-field"><label>New rent takes effect<input type="date" required value={end} onChange={e=>{setEnd(e.target.value);setSubmitted(null);setSubmitError("");setExample(false);}}/></label>{source("YOUR INPUT · EFFECTIVE DATE")}</div>
+      <div className="rc-field"><label>Compare over<select value={months} onChange={e=>{setMonths(e.target.value);setSubmitted(null);setSubmitError("");setExample(false);}}>{[6,12,18,24].map(x=><option key={x} value={x}>{x} months</option>)}</select></label>{source("YOUR SELECTION · TIME HORIZON")}</div>
      </div>
+     <button className="rc-launch" type="submit">LAUNCH ANALYSIS</button>
+     {submitError?<p className="rc-form-error" role="alert">{submitError}</p>:null}
+     </form>
     </section>
-    <section className="rc-hero" aria-live="polite"><div><div className="rc-herolabel">02 / ADDED RENT IF YOU RENEW</div><div className="rc-mainnumber">{impact===null?"Not available":signed(impact)}</div>{source("YOUR RENTS × TIME HORIZON")}</div>
+    <section className="rc-hero" ref={resultRef} tabIndex={-1} aria-live="polite"><div><div className="rc-herolabel">02 / ADDED RENT IF YOU RENEW</div><div className="rc-mainnumber">{impact===null?"Not available":signed(impact)}</div>{source("YOUR RENTS × TIME HORIZON")}</div>
       <div className="rc-herofoot"><strong>{valid?signed(offerN-currentN)+" / month":"Enter your current and offered rent"}</strong><span>{proposedPct===null?"—":pct(proposedPct)+" change"}</span></div>
     </section>
    </div>
@@ -142,7 +173,7 @@ function RenewalPage(){
     </div>
    </section>
    <section className="rc-section rc-printreport"><div className="rc-sectionhead"><span>06 / SUMMARY</span><h2>Renewal summary</h2></div><div className="rc-panel">
-     <p><b>{city}</b> · {end||"Effective date not entered"} · {months} months</p>{source("YOUR CITY + DATE + HORIZON")}
+     <p><b>{city}</b> · {submitted?.end||"Effective date not submitted"} · {submitted?.months??"Not submitted"} months</p>{source("YOUR CITY + DATE + HORIZON")}
      <p>Current {currentN===null?"Not available":money(currentN)} · Offer {offerN===null?"Not available":money(offerN)} · Added over horizon {impact===null?"Not available":signed(impact)}</p>{source("YOUR INPUTS · CALCULATED COST")}
      <p>Legal ceiling: {ceiling?money(ceiling.maxRent)+" (conditional)":"Not available"} · {conditional?.rule.title??"No applicable dated rule selected"}</p>{conditional?source("OFFICIAL POLICY · "+conditional.rule.last_verified_at,conditional.rule.source_url):source("UNVERIFIED APPLICABILITY")}
      <p>Zillow ZORI {money(z.typicalRent)} ({z.month}) · Apartment List {money(al.typicalRent)} ({al.month})</p>{source("ZILLOW ZORI + APARTMENT LIST · DIFFERENT METHODOLOGIES")}
