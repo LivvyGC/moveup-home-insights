@@ -1,190 +1,271 @@
 import { useRef, useState, type FormEvent } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import market from "@/data/rentMarket.snapshot.json";
-import {activeRules, conditionalCap, type City, type RuleStatus} from "@/lib/renewalPolicy";
-import {renewalScenarios, capScenario, isStale} from "@/lib/renewalCalculator";
+import type { City } from "@/lib/renewalPolicy";
+import { evaluateRenewal, officialActions, negotiationMessage, type Coverage, type IncreaseHistory } from "@/lib/renewalActions";
+import { renewalScenarios, isStale } from "@/lib/renewalCalculator";
 
-const CITIES:City[]=["Los Angeles","San Francisco","San Diego","Seattle"];
-const money=(n:number)=>new Intl.NumberFormat("en-US",{style:"currency",currency:"USD",maximumFractionDigits:2}).format(n);
-const signed=(n:number)=>`${n>0?"+":""}${money(n)}`;
-const pct=(n:number)=>`${n>0?"+":""}${n.toFixed(2)}%`;
-const FEEDBACK_FORM_URL=""; // Founder will supply a real form URL. Never link to an example domain.
-const PMMS={rate:7.11, date:"2026-11-12", url:"https://www.freddiemac.com/pmms"};
-type NumKey="current"|"offer"|"alt"|"moving"|"deposit"|"price"|"down"|"rate"|"tax"|"insurance"|"other"|"closing";
-const source=(label:string,href?:string)=>href?<a className="rc-source" href={href} target="_blank" rel="noopener noreferrer">{label}</a>:<span className="rc-source">{label}</span>;
-const num=(s:string):number|null=>s.trim()!==""&&Number.isFinite(Number(s))&&Number(s)>=0?Number(s):null;
-const asZero=(s:string)=>num(s)??0;
-function Field({label,value,onChange,note,placeholder,min=0,required=false}:{
- label:string;value:string;onChange:(s:string)=>void;note:string;placeholder?:string;min?:number;required?:boolean
-}){
- return <div className="rc-field"><label>{label}<input type="number" min={min} step="any" required={required} value={value} placeholder={placeholder??"Enter amount"} onChange={e=>onChange(e.target.value)}/></label>{source(note)}</div>;
+const cities: City[] = ["Los Angeles", "San Francisco", "San Diego", "Seattle"];
+const money = (n:number) => new Intl.NumberFormat("en-US",{style:"currency",currency:"USD",maximumFractionDigits:2}).format(n);
+const pct = (n:number) => (n > 0 ? "+" : "") + n.toFixed(2) + "%";
+const n = (s:string):number|null => s.trim() !== "" && Number.isFinite(Number(s)) && Number(s) >= 0 ? Number(s) : null;
+const source = (label:string,url?:string) => url
+  ? <a className="mv-source" href={url} target="_blank" rel="noopener noreferrer">{label}</a>
+  : <span className="mv-source">{label}</span>;
+const feedbackUrl = ""; // Add only when the founder provides a working form URL.
+const pmms = {rate:"7.11",date:"2026-11-12",url:"https://www.freddiemac.com/pmms"};
+
+function RentField({label,value,onChange,required=false,note,placeholder}:{label:string;value:string;onChange:(s:string)=>void;required?:boolean;note:string;placeholder?:string}){
+  return <label className="mv-field"><strong>{label}</strong><input type="number" min={required?"0.01":"0"} step="any" required={required} placeholder={placeholder??"Enter amount"} value={value} onChange={e=>onChange(e.target.value)}/>{source(note)}</label>;
 }
-function SourceMoney({value,sourceText}: {value:number|null;sourceText:string}){
- return <div><strong className="rc-amount">{value===null?"Not available":money(value)}</strong>{source(sourceText)}</div>;
-}
-export const Route=createFileRoute("/")({
- head:()=>({meta:[{title:"MoveUp — Renewal Check"},{name:"description",content:"Compare your lease renewal, new-lease market rents, conditional rent laws, and stay/move/buy costs."}]}),
- component:RenewalPage,
+
+export const Route = createFileRoute("/")({
+  head:()=>({meta:[{title:"MoveUp — Renewal Check"},{name:"description",content:"Check a lease renewal against local market trends, conditional rent protections and housing options."}]}),
+  component:RenewalPage
 });
+
 export function RenewalPage(){
- const [city,setCity]=useState<City>("Los Angeles");
- const [current,setCurrent]=useState("");
- const [offer,setOffer]=useState("");
- const [end,setEnd]=useState("");
- const [months,setMonths]=useState("12");
- const [alternative,setAlternative]=useState("");
- const [moving,setMoving]=useState("");
- const [deposit,setDeposit]=useState("");
- const [price,setPrice]=useState("");
- const [down,setDown]=useState("");
- const [rate,setRate]=useState(String(PMMS.rate));
- const [term,setTerm]=useState("30");
- const [tax,setTax]=useState("");
- const [insurance,setInsurance]=useState("");
- const [other,setOther]=useState("");
- const [closing,setClosing]=useState("");
- const [stateCovered,setStateCovered]=useState<"yes"|"no"|"unknown">("unknown");
- const [localCovered,setLocalCovered]=useState<"yes"|"no"|"unknown">("unknown");
- const [buildingYear,setBuildingYear]=useState("");
- const [example,setExample]=useState(false);
- const [submitted,setSubmitted]=useState<{city:City;current:number;offer:number;end:string;months:number}|null>(null);
- const [submitError,setSubmitError]=useState("");
- const resultRef=useRef<HTMLElement|null>(null);
- const coreChange=(set:(s:string)=>void)=>(s:string)=>{
-  set(s);setSubmitted(null);setSubmitError("");setExample(false);
- };
- const patch=(set:(s:string)=>void)=>(s:string)=>{set(s);setExample(false);};
- const cleared=()=>{setSubmitted(null);setSubmitError("");setCurrent("");setOffer("");setEnd("");setMonths("12");setAlternative("");setMoving("");setDeposit("");setPrice("");setDown("");setRate(String(PMMS.rate));setTax("");setInsurance("");setOther("");setClosing("");setStateCovered("unknown");setLocalCovered("unknown");setBuildingYear("");setExample(false);};
- const loadExample=()=>{cleared();setCity("Los Angeles");setCurrent("2400");setOffer("2650");setMonths("12");setEnd("2027-01-15");setExample(true);};
- const currentN=submitted?.current??null,offerN=submitted?.offer??null,monthsN=submitted?.months??Number(months);
- const valid=submitted!==null&&currentN!==null&&currentN>0&&offerN!==null&&offerN>0&&Number.isInteger(monthsN)&&monthsN>0;
- function launchAnalysis(event:FormEvent<HTMLFormElement>){
-  event.preventDefault();
-  const currentValue=num(current),offerValue=num(offer),horizon=Number(months);
-  if(currentValue===null||currentValue<=0||offerValue===null||offerValue<=0){
-   setSubmitted(null);setSubmitError("Enter your current and offered monthly rent, both above $0.");return;
+  const [city,setCity]=useState<City>("Los Angeles");
+  const [current,setCurrent]=useState("");
+  const [offered,setOffered]=useState("");
+  const [effective,setEffective]=useState("");
+  const [horizon,setHorizon]=useState("12");
+  const [example,setExample]=useState(false);
+  const [submitted,setSubmitted]=useState<{city:City;current:number;offered:number;effective:string}|null>(null);
+  const [error,setError]=useState("");
+  const resultRef=useRef<HTMLElement|null>(null);
+  const [stateCoverage,setStateCoverage]=useState<Coverage>("unknown");
+  const [localCoverage,setLocalCoverage]=useState<Coverage>("unknown");
+  const [priorIncrease,setPriorIncrease]=useState<IncreaseHistory>("unknown");
+  const [noticeReceived,setNoticeReceived]=useState("");
+  const [bedrooms,setBedrooms]=useState<"overall"|"1br"|"2br">("overall");
+  const [option,setOption]=useState<"none"|"move"|"buy">("none");
+  const [alternative,setAlternative]=useState("");
+  const [moving,setMoving]=useState("");
+  const [deposit,setDeposit]=useState("");
+  const [price,setPrice]=useState("");
+  const [down,setDown]=useState("");
+  const [rate,setRate]=useState(pmms.rate);
+  const [tax,setTax]=useState("");
+  const [insurance,setInsurance]=useState("");
+  const [other,setOther]=useState("");
+  const [closing,setClosing]=useState("");
+  const [loanYears,setLoanYears]=useState("30");
+
+  const resetFollowups=()=>{
+    setStateCoverage("unknown");setLocalCoverage("unknown");setPriorIncrease("unknown");setNoticeReceived("");
+    setBedrooms("overall");setOption("none");setAlternative("");setMoving("");setDeposit("");
+    setPrice("");setDown("");setRate(pmms.rate);setTax("");setInsurance("");setOther("");setClosing("");setLoanYears("30");
+  };
+  const change=(set:(s:string)=>void)=>(s:string)=>{set(s);setSubmitted(null);setExample(false);setError("");resetFollowups();};
+  const clear=()=>{setCity("Los Angeles");setCurrent("");setOffered("");setEffective("");setHorizon("12");setSubmitted(null);setExample(false);setError("");resetFollowups();};
+  const loadExample=()=>{
+    clear();setCurrent("2400");setOffered("2650");
+    const date=new Date();date.setDate(date.getDate()+45);
+    const local=new Date(date.getTime()-date.getTimezoneOffset()*60000).toISOString().slice(0,10);
+    setEffective(local);setCity("Los Angeles");setExample(true);
+  };
+  function launch(event:FormEvent<HTMLFormElement>){
+    event.preventDefault();
+    const base=n(current),offer=n(offered),date=new Date(effective+"T00:00:00");
+    const today=new Date();today.setHours(0,0,0,0);
+    if(base===null||base<=0||offer===null||offer<=0){setError("Enter two monthly rent amounts greater than $0.");setSubmitted(null);return;}
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(effective)||!Number.isFinite(date.getTime())||date<today){
+      setError("Enter the date your proposed rent takes effect (today or later).");setSubmitted(null);return;
+    }
+    setError("");setSubmitted({city,current:base,offered:offer,effective});
+    if(typeof requestAnimationFrame!=="undefined")requestAnimationFrame(()=>resultRef.current?.scrollIntoView?.({behavior:"smooth",block:"start"}));
   }
-  if(!Number.isInteger(horizon)||horizon<1){
-   setSubmitted(null);setSubmitError("Select a valid comparison period.");return;
-  }
-  const effectiveDate=new Date(end+"T00:00:00");
-  const today=new Date();today.setHours(0,0,0,0);
-  if(!/^\d{4}-\d{2}-\d{2}$/.test(end)||!Number.isFinite(effectiveDate.getTime())||effectiveDate<today){
-   setSubmitted(null);setSubmitError("Enter a valid rent effective date that is today or later.");return;
-  }
-  setSubmitError("");
-  setSubmitted({city,current:currentValue,offer:offerValue,end,months:horizon});
-  if(typeof requestAnimationFrame==="function") requestAnimationFrame(()=>{
-   resultRef.current?.focus({preventScroll:true});
-   resultRef.current?.scrollIntoView?.({behavior:"smooth",block:"start"});
-  });
- }
- const costs=valid?renewalScenarios({
-  currentRent:currentN,offeredRent:offerN,months:monthsN,
-  alternativeRent:num(alternative),movingCost:num(moving),securityDeposit:num(deposit),
-  homePrice:num(price),downPayment:num(down),aprPercent:num(rate),loanYears:Number(term),
-  propertyTaxMonthly:num(tax),insuranceMonthly:num(insurance),otherMonthly:num(other),closingCost:num(closing),
- }):null;
- const row=market.cities[city];
- const [z,al]=[row.zori,row.apartmentList];
- const now=new Date();
- const staleZ=isStale(z.observationDate,now),staleAL=isStale(al.observationDate,now);
- const rules=submitted?activeRules(submitted.city,submitted.end):[];
- const filtered=city==="San Diego"||city==="Seattle"?[]:rules.filter(r=>r.type==="city");
- const conditional=valid&&submitted?conditionalCap(currentN,rules,stateCovered,localCovered):null;
- const stateRule=rules.find(r=>r.type==="statewide");
- const ceiling=valid&&conditional?capScenario(currentN,offerN,monthsN,conditional.capPct):null;
- // This is not a final legal determination: coverage is based only on self-reported inputs.
- const coverage=conditional?.conditional?"depends_on_building_or_tenant":conditional?"verified_applicable":"unknown";
- const impact=valid?(offerN-currentN)*monthsN:null;
- const withCap=ceiling?.total??null;
- const primary=valid?costs?.stay.total??null:null;
- const proposedPct=valid?100*(offerN/currentN-1):null;
- const values=[{name:"Stay · offered rent",total:costs?.stay.total??null,delta:costs?.stay?0:null,upfront:null,detail:"YOUR OFFER · RENT × MONTHS"},
-  {name:"Stay · conditional cap",total:withCap,delta:ceiling?ceiling.deltaVsOffer:null,upfront:null,detail:"OFFICIAL MAXIMUM · ONLY IF COVERED"},
-  {name:"Move · entered rental quote",total:costs?.move?.total??null,delta:costs?.move?.differenceVsStay??null,upfront:costs?.move?.upfront??null,detail:"YOUR RENT QUOTE + MOVING COST"},
-  {name:"Buy · mortgage cash outflow",total:costs?.buy?.total??null,delta:costs?.buy?.differenceVsStay??null,upfront:costs?.buy?.upfront??null,detail:"YOUR PRICE/DOWN PAYMENT + RATE"}];
- const showSource=(name:"zori"|"apartmentList")=>name==="zori"?source("ZILLOW ZORI · SEP 2026 · ASKING RENT",market.sources.zori.page):source("APARTMENT LIST · OCT 2026 · NEW LEASE",market.sources.apartmentList.url);
- return <div className="rc-page">
-  <header className="rc-header"><div className="rc-wrap rc-headrow"><strong className="rc-brand">MOVEUP</strong><div className="rc-topnav"><span>RENEWAL CHECK</span><details><summary>ABOUT US</summary><div className="rc-about"><strong>THE TEAM</strong><a href="https://www.linkedin.com/in/laila-archer-21a482448/" target="_blank" rel="noopener noreferrer">Laila Archer · LinkedIn</a><a href="https://www.linkedin.com/in/olivia-cook-863b51344/" target="_blank" rel="noopener noreferrer">Olivia Cook · LinkedIn</a></div></details></div></div></header>
-  <main className="rc-wrap">
-   <div className="rc-title"><span className="rc-kicker">MOVEUP / RENEWAL CHECK</span><h1>Renew, move,<br/>or buy?</h1></div>
-   <div className="rc-actions"><button type="button" className="rc-button" onClick={loadExample}>Load example</button><button type="button" className="rc-quiet" onClick={cleared}>Clear inputs</button><button type="button" className="rc-quiet" onClick={()=>window.print()}>Print / Save PDF</button></div>
-   {example?<div className="rc-note" role="status">EXAMPLE INPUTS — not a real renter or market quote. Adjust any field.</div>:null}
-   {staleZ||staleAL?<div className="rc-stale" role="status">DATA AGE: {staleZ?"Zillow ZORI":" "}{staleZ&&staleAL?" and ":""}{staleAL?"Apartment List":""} observation is over 45 days old. Verify before relying on market comparisons.</div>:null}
-   <div className="rc-first">
-    <section className="rc-panel rc-intake"><div className="rc-sectionhead"><span>01 / YOUR RENEWAL</span><h2>The offer</h2></div>
-     <form className="rc-renewal-form" onSubmit={launchAnalysis} noValidate>
-     <div className="rc-fields">
-      <div className="rc-field"><label>City<select value={city} onChange={e=>{setCity(e.target.value as City);setStateCovered("unknown");setLocalCovered("unknown");setSubmitted(null);setSubmitError("");setExample(false);}}>{CITIES.map(c=><option key={c}>{c}</option>)}</select></label>{source("YOUR SELECTION · CITY")}</div>
-      <Field label="Current rent / month" value={current} onChange={coreChange(setCurrent)} note="YOUR INPUT · CURRENT LEASE" min={0.01} required/>
-      <Field label="Offered rent / month" value={offer} onChange={coreChange(setOffer)} note="YOUR INPUT · RENEWAL OFFER" min={0.01} required/>
-      <div className="rc-field"><label>New rent takes effect<input type="date" required value={end} onChange={e=>{setEnd(e.target.value);setSubmitted(null);setSubmitError("");setExample(false);}}/></label>{source("YOUR INPUT · EFFECTIVE DATE")}</div>
-      <div className="rc-field"><label>Compare over<select value={months} onChange={e=>{setMonths(e.target.value);setSubmitted(null);setSubmitError("");setExample(false);}}>{[6,12,18,24].map(x=><option key={x} value={x}>{x} months</option>)}</select></label>{source("YOUR SELECTION · TIME HORIZON")}</div>
-     </div>
-     <button className="rc-launch" type="submit">LAUNCH ANALYSIS</button>
-     {submitError?<p className="rc-form-error" role="alert">{submitError}</p>:null}
-     </form>
-    </section>
-    <section className="rc-hero" ref={resultRef} tabIndex={-1} aria-live="polite"><div><div className="rc-herolabel">02 / ADDED RENT IF YOU RENEW</div><div className="rc-mainnumber">{impact===null?"Not available":signed(impact)}</div>{source("YOUR RENTS × TIME HORIZON")}</div>
-      <div className="rc-herofoot"><strong>{valid?signed(offerN-currentN)+" / month":"Enter your current and offered rent"}</strong><span>{proposedPct===null?"—":pct(proposedPct)+" change"}</span></div>
-    </section>
-   </div>
-   <section className="rc-section"><div className="rc-sectionhead"><span>03 / LOCAL MARKET</span><h2>Your offer vs new-lease rents</h2></div>
-    <div className="rc-grid2">
-     <div className="rc-panel"><strong>Zillow ZORI</strong><div className="rc-large">{money(z.typicalRent)}</div>{showSource("zori")}<div className="rc-marketpair"><span>12-month change</span><strong>{pct(z.yoyPct)}</strong></div>{showSource("zori")}<div className="rc-marketpair"><span>Offer vs Zillow</span><strong>{valid?signed(offerN-z.typicalRent):"Not available"}</strong></div>{source("YOUR OFFER − ZORI ASKING RENT")}</div>
-     <div className="rc-panel"><strong>Apartment List</strong><div className="rc-large">{money(al.typicalRent)}</div>{showSource("apartmentList")}<div className="rc-marketpair"><span>12-month change</span><strong>{pct(al.yoyPct)}</strong></div>{showSource("apartmentList")}<div className="rc-marketpair"><span>Offer vs Apartment List</span><strong>{valid?signed(offerN-al.typicalRent):"Not available"}</strong></div>{source("YOUR OFFER − APARTMENT LIST RENT")}</div>
-    </div>
-    <p className="rc-muted">Different methods and reporting months. These describe new-tenant markets, not your landlord's renewal decision. No averaging.</p>
-   </section>
-   <section className="rc-section"><div className="rc-sectionhead"><span>04 / RENT RULES</span><h2>What might be allowed?</h2></div>
-    <div className="rc-panel">
-     <div className="rc-statusrow"><span className={"rc-status "+(coverage==="verified_applicable"?"rc-verified":coverage==="unknown"?"rc-unknown":"rc-depends")}>{coverage==="verified_applicable"?"SELF-REPORTED COVERED":coverage==="unknown"?"UNKNOWN":"DEPENDS ON BUILDING"}</span></div>
-     <div className="rc-rulegrid">
-      <div className="rc-field"><label>State-law coverage<select value={stateCovered} onChange={e=>setStateCovered(e.target.value as typeof stateCovered)}><option value="unknown">Not sure</option><option value="yes">I confirmed my unit is covered</option><option value="no">I confirmed my unit is exempt</option></select></label>{source("YOUR ANSWER · NOT LEGALLY VERIFIED")}</div>
-      {filtered.length>0?<div className="rc-field"><label>City rent stabilization<select value={localCovered} onChange={e=>setLocalCovered(e.target.value as typeof localCovered)}><option value="unknown">Not sure</option><option value="yes">I confirmed my unit is covered</option><option value="no">I confirmed it does not apply</option></select></label>{source("YOUR ANSWER · NOT LEGALLY VERIFIED")}</div>:null}
-      <div className="rc-field"><label>Building year (optional)<input type="number" min="1800" max={now.getFullYear()} value={buildingYear} onChange={e=>setBuildingYear(e.target.value)} placeholder="From building records"/></label>{source("YOUR INPUT · HELPS CHECK EXEMPTIONS")}</div>
-     </div>
-     <div className="rc-ruleout">
-      <div><strong>If covered, annual base ceiling</strong><div className="rc-large">{ceiling?money(ceiling.maxRent):"Not available"}</div>{conditional?source(`${conditional.rule.title.toUpperCase()} · ${conditional.rule.capPct}% · ${conditional.rule.effective_from}–${conditional.rule.effective_to}`,conditional.rule.source_url):source("ENTER RENTS + EFFECTIVE DATE · OFFICIAL APPLICABILITY")}</div>
-      <div><strong>Without a verified cap</strong><div className="rc-large">{valid?money(offerN):"Not available"}</div>{source("YOUR OFFER · NO CAP ASSUMED")}</div>
-     </div>
-     {rules.length?rules.map(rule=><div className="rc-ruleline" key={rule.id}><strong>{rule.title}</strong><span>{rule.cap_pct}% · {rule.effective_from} to {rule.effective_to}</span><p>{rule.conditions}</p>{source("OFFICIAL GOVERNMENT RULE · VERIFIED NOV 2026",rule.source_url)}</div>):<p className="rc-muted">No verified published cap in our records for the chosen effective date. Check the official agency; do not assume unlimited increases.</p>}
-     {buildingYear?<p className="rc-muted">Building year alone cannot establish all exemptions. Confirm with the official agency before treating a ceiling as your legal maximum.</p>:null}
-     <p className="rc-muted">Conditional illustration only. Banked increases, authorized adjustments, notice rules, exemptions and other local laws may change the legal result. Educational information, not legal advice.</p>
-    </div>
-   </section>
-   <section className="rc-section"><div className="rc-sectionhead"><span>05 / HOUSING COSTS</span><h2>Stay, move, or buy</h2></div>
-    <div className="rc-tablewrap"><table className="rc-table"><thead><tr><th>Option</th><th>Payments + included fees</th><th>Difference vs offer</th><th>Upfront cash</th></tr></thead><tbody>{values.map(v=><tr key={v.name}><td><b>{v.name}</b>{source(v.detail)}</td><td><SourceMoney value={v.total} sourceText={v.detail}/></td><td><SourceMoney value={v.delta} sourceText={v.delta===null?"NOT AVAILABLE · NEED INPUTS":"CALCULATED · VS STAY AT OFFER"}/></td><td><SourceMoney value={v.upfront} sourceText={v.upfront===null?"NOT MODELED / NOT REQUIRED":"YOUR INPUTS · REFUNDABLE DEPOSIT SEPARATE"}/></td></tr>)}</tbody></table></div>
-    {costs?.buy?<div className="rc-equity"><strong>Of mortgage payments, principal repaid: {money(costs.buy.principalRepaid)}</strong>{source("YOUR PRICE + DOWN PAYMENT + RATE · AMORTIZATION")}{costs.buy.excludedCosts.length?<p>Excluded from buy costs (not entered): {costs.buy.excludedCosts.join(", ")}.</p>:null}<p>Principal builds equity; resale value or appreciation is not estimated. Upfront cash may overlap with the payments-and-fees column.</p></div>:null}
-    <div className="rc-grid2 rc-expand">
-      <details><summary>Moving assumptions</summary><div className="rc-detailfields"><Field label="Alternative rent / month" value={alternative} onChange={patch(setAlternative)} note="YOUR INPUT · ALTERNATIVE QUOTE"/><Field label="Moving cost" value={moving} onChange={patch(setMoving)} note="ADJUSTABLE ASSUMPTION · BLANK EXCLUDED"/><Field label="Refundable deposit" value={deposit} onChange={patch(setDeposit)} note="YOUR INPUT · UPFRONT, NOT EXPENSE"/></div></details>
-      <details><summary>Buying assumptions</summary><div className="rc-detailfields">
-       <Field label="Home price" value={price} onChange={patch(setPrice)} note="YOUR INPUT · PROPERTY PRICE"/>
-       <Field label="Down payment" value={down} onChange={patch(setDown)} note="YOUR INPUT · CASH UPFRONT"/>
-       <Field label="Annual mortgage rate (%)" value={rate} onChange={patch(setRate)} note="EDITABLE ASSUMPTION · FREDDIE MAC NOV 12, 2026"/>
-       {source("FREDDIE MAC PMMS · NOV 12 2026 · NATIONAL BENCHMARK",PMMS.url)}
-       <div className="rc-field"><label>Mortgage term<select value={term} onChange={e=>setTerm(e.target.value)}><option value="30">30 years</option><option value="20">20 years</option><option value="15">15 years</option></select></label>{source("ADJUSTABLE ASSUMPTION · LOAN TERM")}</div>
-       <Field label="Property tax / month (optional)" value={tax} onChange={patch(setTax)} note="ADJUSTABLE ASSUMPTION · BLANK EXCLUDED"/>
-       <Field label="Insurance / month (optional)" value={insurance} onChange={patch(setInsurance)} note="ADJUSTABLE ASSUMPTION · BLANK EXCLUDED"/>
-       <Field label="Other ownership / month (optional)" value={other} onChange={patch(setOther)} note="ADJUSTABLE ASSUMPTION · BLANK EXCLUDED"/>
-       <Field label="Closing costs (optional)" value={closing} onChange={patch(setClosing)} note="ADJUSTABLE ASSUMPTION · BLANK EXCLUDED"/>
+  const valid=!!submitted;
+  const sCity=submitted?.city??city;
+  const sCurrent=submitted?.current??0,sOffered=submitted?.offered??0;
+  const months=Number(horizon);
+  const rentChange=valid?sOffered-sCurrent:0;
+  const finding=submitted?evaluateRenewal({
+    city:sCity,currentRent:sCurrent,offeredRent:sOffered,effectiveDate:submitted.effective,
+    stateCoverage,localCoverage,priorIncrease,noticeDate:noticeReceived,
+  }):null;
+  const latest=market.cities[sCity];
+  const z=latest.zori,al=latest.apartmentList;
+  const compare=bedrooms==="overall"?al:latest.apartmentListBedrooms[bedrooms];
+  const totalRent=valid?sOffered*months:null;
+  const costs=valid?renewalScenarios({
+    currentRent:sCurrent,offeredRent:sOffered,months,
+    alternativeRent:n(alternative),movingCost:n(moving),securityDeposit:n(deposit),
+    homePrice:n(price),downPayment:n(down),aprPercent:n(rate),loanYears:Number(loanYears),
+    propertyTaxMonthly:n(tax),insuranceMonthly:n(insurance),otherMonthly:n(other),closingCost:n(closing),
+  }):null;
+  const info=officialActions[sCity];
+  const checks=finding?.checks??[];
+  const showState=checks.some(c=>c.rule.type==="statewide");
+  const showLocal=checks.some(c=>c.rule.type==="city");
+  const showNotice=valid&&sCity==="Seattle"&&rentChange>0;
+  const concerned=!!finding&&(finding.potentialStandardConcern||finding.shortSeattleNotice);
+  const daysSinceZ=isStale(z.observationDate,new Date());
+  const daysSinceAL=isStale(al.observationDate,new Date());
+  const moveComplete=!!costs?.move && n(moving)!==null;
+  const buyMissing=costs?.buy?.excludedCosts??[];
+  const buyComplete=!!costs?.buy && buyMissing.length===0;
+  const lenderIncomplete=!!costs?.buy&&!buyComplete;
+
+  return <div className="mv-app">
+    <header className="mv-header"><div className="mv-container mv-nav">
+      <strong className="mv-brand">MOVEUP</strong><span>RENEWAL CHECK</span>
+      <details className="mv-about"><summary>ABOUT US</summary><div className="mv-about-content">
+        <strong>THE TEAM</strong>
+        <a href="https://www.linkedin.com/in/laila-archer-21a482448/" target="_blank" rel="noopener noreferrer">Laila Archer · LinkedIn</a>
+        <a href="https://www.linkedin.com/in/olivia-cook-863b51344/" target="_blank" rel="noopener noreferrer">Olivia Cook · LinkedIn</a>
       </div></details>
-    </div>
-   </section>
-   <section className="rc-section rc-printreport"><div className="rc-sectionhead"><span>06 / SUMMARY</span><h2>Renewal summary</h2></div><div className="rc-panel">
-     <p><b>{city}</b> · {submitted?.end||"Effective date not submitted"} · {submitted?.months??"Not submitted"} months</p>{source("YOUR CITY + DATE + HORIZON")}
-     <p>Current {currentN===null?"Not available":money(currentN)} · Offer {offerN===null?"Not available":money(offerN)} · Added over horizon {impact===null?"Not available":signed(impact)}</p>{source("YOUR INPUTS · CALCULATED COST")}
-     <p>Legal ceiling: {ceiling?money(ceiling.maxRent)+" (conditional)":"Not available"} · {conditional?.rule.title??"No applicable dated rule selected"}</p>{conditional?source("OFFICIAL POLICY · "+conditional.rule.last_verified_at,conditional.rule.source_url):source("UNVERIFIED APPLICABILITY")}
-     <p>Zillow ZORI {money(z.typicalRent)} ({z.month}) · Apartment List {money(al.typicalRent)} ({al.month})</p>{source("ZILLOW ZORI + APARTMENT LIST · DIFFERENT METHODOLOGIES")}
-     <p>Stay {primary===null?"Not available":money(primary)} · Move {costs?.move?money(costs.move.total):"Not available"} · Buy {costs?.buy?money(costs.buy.total):"Not available"}</p>{source("YOUR INPUTS + EDITABLE ASSUMPTIONS · SAME HORIZON")}
-     <p>Adjustable assumptions: moving {moving||"excluded"}, deposit {deposit||"excluded"}, price {price||"not entered"}, down payment {down||"not entered"}, rate {rate}%, loan term {term} years, tax {tax||"excluded"}, insurance {insurance||"excluded"}, other {other||"excluded"}, closing {closing||"excluded"}.</p>{source("YOUR INPUTS / EDITABLE PMMS BENCHMARK · NOV 12 2026")}
-     <p>Data freshness: ZORI {staleZ?"older than 45 days":"within 45 days"}, Apartment List {staleAL?"older than 45 days":"within 45 days"} as of {now.toISOString().slice(0,10)}.</p>{source("OBSERVATION DATE + CURRENT DATE · 45-DAY RULE")}
-     <p>Educational comparison only, not legal or financial advice. No personal information is saved.</p>
-     <button type="button" className="rc-printbutton" onClick={()=>window.print()}>Print / Save as PDF</button>
-     {FEEDBACK_FORM_URL?<a className="rc-feedback" href={FEEDBACK_FORM_URL} target="_blank" rel="noopener noreferrer">Would you pay for this? Tell us</a>:<p className="rc-muted">Feedback form: Not available until the founder supplies a URL.</p>}
-    </div></section>
-   <footer className="rc-footer">MOVEUP · RENEWAL CHECK · EDUCATIONAL DEMO</footer>
-  </main>
- </div>;
+    </div></header>
+    <main className="mv-container">
+      <div className="mv-intro"><span className="mv-eyebrow">MOVEUP / RENEWAL CHECK</span><h1>CHECK YOUR<br/>RENT OFFER.</h1><p>Understand your increase, check your protections and compare your options.</p></div>
+      <div className="mv-toolbar"><button type="button" onClick={loadExample}>Load example</button><button type="button" className="mv-text-button" onClick={clear}>Clear</button></div>
+      {example?<p className="mv-example" role="status">EXAMPLE INPUTS — the rent amounts and date are illustrative, not market facts.</p>:null}
+      <section className="mv-card mv-intake"><div className="mv-section-header"><span>01 / YOUR OFFER</span><h2>Start here.</h2></div>
+        <form onSubmit={launch} noValidate>
+          <div className="mv-form-grid">
+            <label className="mv-field"><strong>City</strong><select value={city} onChange={e=>{setCity(e.target.value as City);setSubmitted(null);setError("");resetFollowups();setExample(false);}}>{cities.map(c=><option key={c}>{c}</option>)}</select>{source("YOUR SELECTION")}</label>
+            <RentField label="Current rent / month" value={current} onChange={change(setCurrent)} required note="YOUR CURRENT LEASE"/>
+            <RentField label="Offered rent / month" value={offered} onChange={change(setOffered)} required note="YOUR RENEWAL OFFER"/>
+            <label className="mv-field"><strong>New rent takes effect</strong><input type="date" required value={effective} onChange={e=>{setEffective(e.target.value);setSubmitted(null);setError("");setExample(false);resetFollowups();}}/>{source("YOUR RENEWAL NOTICE")}</label>
+          </div>
+          <button className="mv-launch" type="submit">CHECK MY OFFER</button>
+          {error?<p role="alert" className="mv-error">{error}</p>:null}
+        </form>
+      </section>
+
+      {submitted&&finding?<div className="mv-results" ref={resultRef as React.Ref<HTMLDivElement>}>
+        <section className="mv-result-hero" aria-live="polite">
+          <span>02 / YOUR RENT CHANGE</span>
+          <div className="mv-decision">{rentChange>0?"+":""}{money(rentChange)}<small> / month</small></div>
+          <strong>{rentChange>0?"Your rent would increase":rentChange<0?"Your rent would decrease":"Your rent would stay the same"}</strong>
+          <p>{rentChange>0?"+":""}{money(rentChange*months)} over {months} months · {pct(finding.increasePercent)} from current rent</p>
+          {source("YOUR CURRENT RENT + OFFER · ADJUSTABLE 12-MONTH COMPARISON")}
+        </section>
+        <section className="mv-section mv-action">
+          <div className="mv-section-header"><span>03 / NEXT ACTION</span><h2>{finding.heading}</h2></div>
+          <div className="mv-card">
+            <p>{finding.explanation}</p>
+            {finding.potentialStandardConcern?<p className="mv-important">A published rent standard may apply. This is not proof the increase is unlawful.</p>:null}
+            {finding.shortSeattleNotice?<p className="mv-important">Seattle notice may be shorter than the 180-day requirement. Confirm the date and notice type with the city.</p>:null}
+            {concerned?<div className="mv-actionlinks">
+              <a href={info.url} target="_blank" rel="noopener noreferrer">{info.name}</a>
+              <a href={info.eligibilityUrl} target="_blank" rel="noopener noreferrer">{info.eligibilityName}</a>
+              {info.noticeUrl&&finding.shortSeattleNotice?<a href={info.noticeUrl} target="_blank" rel="noopener noreferrer">Seattle housing-cost notice guidance</a>:null}
+            </div>:<a href={info.eligibilityUrl} target="_blank" rel="noopener noreferrer">Review official eligibility guidance</a>}
+            {concerned?<p className="mv-minor">Before contacting an agency, keep your lease, written renewal offer, prior increase notices and the date the new rent would take effect.</p>:null}
+            <details className="mv-details"><summary>Draft a neutral request to your landlord</summary><textarea readOnly rows={8} value={negotiationMessage(sCity,sCurrent,sOffered)} aria-label="Draft landlord request"/>{source("TEMPLATE FROM YOUR INPUTS · NOT A LEGAL DEMAND")}</details>
+          </div>
+        </section>
+
+        <section className="mv-section">
+          <div className="mv-section-header"><span>04 / TENANT PROTECTIONS</span><h2>Which rules may apply?</h2></div>
+          <div className="mv-card">
+            {checks.length===0?<p>No dated rent-cap standard is stored for this effective date. Review official guidance.</p>:<>
+              <div className="mv-rule-questions">
+                {showState?<label className="mv-field"><strong>Is your unit covered by state rent limits?</strong><select value={stateCoverage} onChange={e=>setStateCoverage(e.target.value as Coverage)}>
+                  <option value="unknown">I'm not sure</option><option value="yes">I've checked — likely covered</option><option value="no">I've checked — exempt</option>
+                </select>{source("YOUR RESPONSE · NOT A LEGAL CERTIFICATION")}</label>:null}
+                {showLocal?<label className="mv-field"><strong>Is your unit covered by local rent control?</strong><select value={localCoverage} onChange={e=>setLocalCoverage(e.target.value as Coverage)}>
+                  <option value="unknown">I'm not sure</option><option value="yes">I've checked — likely covered</option><option value="no">I've checked — not covered</option>
+                </select>{source("YOUR RESPONSE · OFFICIAL RECORDS REQUIRED")}</label>:null}
+                {concerned?<label className="mv-field"><strong>Other rent increases in the last 12 months?</strong><select value={priorIncrease} onChange={e=>setPriorIncrease(e.target.value as IncreaseHistory)}>
+                  <option value="unknown">I'm not sure</option><option value="none">None</option><option value="yes">Yes</option>
+                </select>{source("YOUR RENT HISTORY · MAY CHANGE APPLICABLE LIMITS")}</label>:null}
+                {showNotice?<label className="mv-field"><strong>When did you receive written notice?</strong><input type="date" value={noticeReceived} onChange={e=>setNoticeReceived(e.target.value)}/>{source("YOUR INPUT · SEATTLE 180-DAY NOTICE STANDARD")}</label>:null}
+              </div>
+              {checks.map(check=><div className="mv-rule" key={check.rule.id}>
+                <div className="mv-rule-head"><strong>{check.rule.title}</strong><span className={"mv-status "+(check.coverage==="no"?"mv-unknown":"mv-depends")}>{check.coverage==="no"?"REPORTED EXEMPT":"CONDITIONAL"}</span></div>
+                <p>{check.rule.conditions}</p>
+                <div className="mv-rule-math">
+                  <div><span>If covered: published standard</span><strong>{check.coverage==="no"?"Not applied":pct(check.rule.cap_pct)}</strong>{source("OFFICIAL GOVERNMENT STANDARD · "+check.rule.effective_from+" TO "+check.rule.effective_to,check.rule.source_url)}</div>
+                  <div><span>Illustrative monthly rent at that standard</span><strong>{check.exampleMaxRent===null?"Not applied":money(check.exampleMaxRent)}</strong>{source("YOUR CURRENT RENT × PUBLISHED STANDARD · CONDITIONAL")}</div>
+                </div>
+                {check.abovePublishedStandard?<p className="mv-warning">Your offer exceeds this published standard. Eligibility, prior increases, exceptions and approvals remain unverified.</p>:null}
+              </div>)}
+            </>}
+            <p className="mv-minor">No legal ceiling is certified. Rules may depend on building type, exemption notices, prior increases, banked adjustments and other facts. Educational information, not legal advice.</p>
+          </div>
+        </section>
+
+        <section className="mv-section">
+          <div className="mv-section-header"><span>05 / YOUR RENTAL MARKET</span><h2>Compare new-lease rents.</h2></div>
+          <div className="mv-card">
+            <label className="mv-field mv-bedroom"><strong>Apartment size to compare</strong><select value={bedrooms} onChange={e=>setBedrooms(e.target.value as typeof bedrooms)}><option value="overall">All unit sizes</option><option value="1br">1 bedroom</option><option value="2br">2 bedrooms</option></select>{source("YOUR SELECTION · APARTMENT LIST CITY DATA")}</label>
+            <div className="mv-marketgrid">
+              <div><span>Zillow ZORI · city-wide</span><strong>{money(z.typicalRent)}</strong>{source("ZORI · "+z.month+" · ASKING RENT",market.sources.zori.page)}
+                <p>12-month change: {pct(z.yoyPct)}</p>{source("ZORI · HISTORICAL INDEX")}</div>
+              <div><span>Apartment List · {bedrooms==="overall"?"overall":bedrooms==="1br"?"1 bedroom":"2 bedrooms"}</span><strong>{money(compare.typicalRent)}</strong>{source("APARTMENT LIST · "+compare.month+" · NEW LEASE",market.sources.apartmentList.url)}
+                <p>12-month change: {pct(compare.yoyPct)}</p>{source("APARTMENT LIST · HISTORICAL ESTIMATE")}</div>
+            </div>
+            {daysSinceZ||daysSinceAL?<p className="mv-dataage">Data age: {daysSinceZ?"Zillow ZORI · "+z.month+" is older than 45 days. ":""}{daysSinceAL?"Apartment List · "+al.month+" is older than 45 days.":""}</p>:null}
+            <p className="mv-minor">These benchmarks use different methodologies and unit coverage; they are not an estimate of your landlord's lawful rent. Above-market rent alone does not establish a violation.</p>
+          </div>
+        </section>
+
+        <section className="mv-section">
+          <div className="mv-section-header"><span>06 / YOUR ALTERNATIVES</span><h2>Compare your next move.</h2></div>
+          <div className="mv-card">
+            <label className="mv-field mv-horizon"><strong>Compare over</strong><select value={horizon} onChange={e=>setHorizon(e.target.value)}><option value="6">6 months</option><option value="12">12 months</option><option value="18">18 months</option><option value="24">24 months</option></select>{source("YOUR CHOICE · SAME HORIZON FOR ALL OPTIONS")}</label>
+            <div className="mv-choice">
+              <button type="button" aria-pressed={option==="none"} onClick={()=>setOption("none")}>Stay</button>
+              <button type="button" aria-pressed={option==="move"} onClick={()=>setOption("move")}>Explore moving</button>
+              <button type="button" aria-pressed={option==="buy"} onClick={()=>setOption("buy")}>Explore buying</button>
+            </div>
+            {option==="move"?<div className="mv-extra">
+              <RentField label="Alternative rent / month" value={alternative} onChange={setAlternative} note="YOUR ALTERNATIVE RENT QUOTE"/>
+              <RentField label="Moving costs" value={moving} onChange={setMoving} note="YOUR ADJUSTABLE ASSUMPTION · REQUIRED FOR COMPLETE COMPARISON"/>
+              <RentField label="Refundable deposit (upfront only)" value={deposit} onChange={setDeposit} note="YOUR INPUT · NOT COUNTED AS EXPENSE"/>
+            </div>:null}
+            {option==="buy"?<div className="mv-extra">
+              <RentField label="Home purchase price" value={price} onChange={setPrice} note="YOUR PRICE ASSUMPTION"/>
+              <RentField label="Down payment" value={down} onChange={setDown} note="YOUR CASH ASSUMPTION"/>
+              <RentField label="Mortgage APR (%)" value={rate} onChange={setRate} note="EDITABLE · FREDDIE MAC PMMS NOV 12 2026"/>
+              {source("FREDDIE MAC PMMS · "+pmms.date+" · NATIONAL AVERAGE, NOT A QUOTE",pmms.url)}
+              <label className="mv-field"><strong>Mortgage term</strong><select value={loanYears} onChange={e=>setLoanYears(e.target.value)}><option value="30">30 years</option><option value="20">20 years</option><option value="15">15 years</option></select>{source("YOUR ADJUSTABLE ASSUMPTION")}</label>
+              <RentField label="Property tax / month" value={tax} onChange={setTax} note="YOUR ASSUMPTION · BLANK EXCLUDED"/>
+              <RentField label="Home insurance / month" value={insurance} onChange={setInsurance} note="YOUR ASSUMPTION · BLANK EXCLUDED"/>
+              <RentField label="Maintenance, HOA and other / month" value={other} onChange={setOther} note="YOUR ASSUMPTION · BLANK EXCLUDED"/>
+              <RentField label="Closing costs" value={closing} onChange={setClosing} note="YOUR ASSUMPTION · BLANK EXCLUDED"/>
+            </div>:null}
+            <div className="mv-table-wrap"><table className="mv-table">
+              <thead><tr><th>Option</th><th>Included cash outflow</th><th>Difference vs offered lease</th></tr></thead>
+              <tbody>
+                <tr><td><strong>Stay · offered rent</strong></td><td>{money(totalRent??0)}{source("YOUR OFFER × "+months+" MONTHS")}</td><td>{money(0)}{source("BASELINE")}</td></tr>
+                {option==="move"?<tr><td><strong>Move · alternative lease</strong></td><td>{costs?.move?money(costs.move.total):"Not available"}{source("YOUR RENT QUOTE + ENTERED MOVING COST")}</td><td>{costs?.move?money(costs.move.differenceVsStay):"Not available"}{source("RELATIVE TO STAYING AT OFFER")}</td></tr>:null}
+                {option==="buy"?<tr><td><strong>Buy · mortgage and entered costs</strong></td><td>{costs?.buy?money(costs.buy.total):"Not available"}{source("YOUR PURCHASE INPUTS + ENTERED COSTS")}</td><td>{costs?.buy?money(costs.buy.differenceVsStay):"Not available"}{source("RELATIVE TO STAYING AT OFFER")}</td></tr>:null}
+              </tbody>
+            </table></div>
+            {option==="move"&&costs?.move?<p className="mv-minor">{moveComplete?"Moving cost included. ":"Partial comparison: moving cost is missing. "}Upfront cash including any entered refundable deposit: {money(costs.move.upfront)}. Refundable deposit is not treated as an expense.</p>:null}
+            {option==="buy"&&costs?.buy?<div className="mv-buy-detail">
+              <strong>Principal repaid over {months} months: {money(costs.buy.principalRepaid)}</strong>
+              {source("MORTGAGE AMORTIZATION · YOUR PRICE, DOWN PAYMENT, RATE AND TERM")}
+              <p>Mortgage payments include principal and interest. Principal repayment builds equity, not spendable cash. Down payment is upfront, not a monthly expense.</p>
+              {lenderIncomplete?<p className="mv-warning">Partial comparison. Missing: {buyMissing.join(", ")}. The displayed total excludes these costs; do not treat it as a complete cost of buying.</p>:<p className="mv-minor">Entered ownership costs included. Resale, taxes on transactions and appreciation are not forecast.</p>}
+              <p>Upfront down payment and entered closing costs: {money(costs.buy.upfront)}.</p>
+            </div>:null}
+          </div>
+        </section>
+
+        <section className="mv-section mv-print">
+          <div className="mv-section-header"><span>07 / SAVE YOUR FINDINGS</span><h2>Renewal summary</h2></div>
+          <div className="mv-card">
+            <p><strong>{sCity} · {submitted.effective}</strong> · {months} months</p>{source("YOUR LOCATION, EFFECTIVE DATE AND HORIZON")}
+            <p>Current {money(sCurrent)} → Offered {money(sOffered)} · {pct(finding.increasePercent)}</p>{source("YOUR RENEWAL INPUTS")}
+            <p>Monthly change: {money(finding.changePerMonth)} · Over horizon: {money(finding.changePerMonth*months)}</p>{source("YOUR INPUTS · CALCULATED")}
+            <p><strong>Action: {finding.heading}</strong> — {finding.explanation}</p>{source("CONDITIONAL OFFICIAL RENT-RULE SCREEN")}
+            {checks.map(c=><p key={c.rule.id}>{c.rule.title}: {c.coverage==="no"?"reported exempt":pct(c.rule.cap_pct)+" published standard, "+(c.coverage==="unknown"?"coverage unknown":"coverage self-reported")}. <a href={c.rule.source_url} target="_blank" rel="noopener noreferrer">Official source</a> ({c.rule.effective_from}–{c.rule.effective_to}).</p>)}
+            <p>Zillow ZORI {money(z.typicalRent)} ({z.month}) · Apartment List {money(compare.typicalRent)} ({compare.month}; {bedrooms}).</p>{source("ZILLOW RESEARCH + APARTMENT LIST CITY OBSERVATIONS")}
+            <p>Stay: {money(totalRent??0)} · {option==="move"?"Move: "+(costs?.move?money(costs.move.total):"Not available"):""} {option==="buy"?"Buy: "+(costs?.buy?money(costs.buy.total):"Not available"):""}</p>{source("USER INPUTS + OPTIONAL COST ASSUMPTIONS")}
+            <p>Assumptions: {months}-month horizon; {option==="move"?"alternative rent "+alternative+", moving cost "+(moving||"missing")+", refundable deposit "+(deposit||"not entered"):""} {option==="buy"?"price "+price+", down payment "+down+", rate "+rate+"% (Freddie Mac "+pmms.date+"), tax "+(tax||"excluded")+", insurance "+(insurance||"excluded")+", other "+(other||"excluded")+", closing "+(closing||"excluded"):""}</p>{source("YOUR ENTRIES · USER-ADJUSTABLE")}
+            <p>Freshness: Zillow {z.month} {daysSinceZ?"(older than 45 days)":""}; Apartment List {al.month} {daysSinceAL?"(older than 45 days)":""}. Housing and legal rules can change.</p>{source("DATA OBSERVATION DATES · BROWSER DATE")}
+            <p className="mv-minor">Educational information, not legal or financial advice. No account; the application does not save your input to a server.</p>
+            <button className="mv-printbutton" type="button" onClick={()=>window.print()}>Print / Save as PDF</button>
+            {feedbackUrl?<a href={feedbackUrl} target="_blank" rel="noopener noreferrer">Would you pay for this? Tell us</a>:null}
+          </div>
+        </section>
+      </div>:null}
+    </main>
+    <footer className="mv-container mv-footer">MOVEUP · EDUCATIONAL RENEWAL CHECK</footer>
+  </div>;
 }
