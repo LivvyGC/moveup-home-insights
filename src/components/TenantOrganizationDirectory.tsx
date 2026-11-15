@@ -5,14 +5,14 @@ import {
   organizationsForCity, totalDirectoryOrganizations,
 } from "../data/tenantOrganizations";
 
-export function TenantOrganizationDirectory({city}:{city:City}) {
+export function TenantOrganizationDirectory({city,compact=false}:{city:City;compact?:boolean}) {
   const [focus,setFocus]=useState<"all"|"organizing"|"assistance">("all");
   const [showAll,setShowAll]=useState(false);
   const listed=organizationsForCity(city);
   const displayed=organizationsByFocus(city,focus);
   const visible=showAll?displayed:displayed.slice(0,2);
   return <section className="v6-directory" aria-label={"Public tenant organizations serving "+city}>
-    <div className="v6-directory-intro">
+    {!compact?<div className="v6-directory-intro">
       <div>
         <span className="v6-eyebrow">PUBLIC DIRECTORY</span>
         <h4>Renter organizations in {city}</h4>
@@ -22,7 +22,7 @@ export function TenantOrganizationDirectory({city}:{city:City}) {
         <strong>{listed.length}</strong>
         <span>public groups listed in {city}</span>
       </div>
-    </div>
+    </div>:null}
     <div className="v6-directory-filters" role="group" aria-label="Filter organizations by focus">
       <button type="button" className={focus==="all"?"active":""} aria-pressed={focus==="all"} onClick={()=>{setFocus("all");setShowAll(false);}}>All</button>
       <button type="button" className={focus==="organizing"?"active":""} aria-pressed={focus==="organizing"} onClick={()=>{setFocus("organizing");setShowAll(false);}}>Organizing</button>
