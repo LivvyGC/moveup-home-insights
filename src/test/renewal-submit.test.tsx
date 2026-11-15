@@ -14,7 +14,7 @@ describe("V4 renter flow",()=>{
   render(<RenewalPage/>);
   expect(screen.getByRole("button",{name:"CHECK MY OFFER"})).toBeTruthy();
   expect(screen.queryByText("Your protections")).toBeNull();
-  expect(screen.queryByText("Your renewal summary")).toBeNull();
+  expect(screen.queryByText("Save your renewal summary")).toBeNull();
   expect(screen.queryByLabelText("Local rent control coverage")).toBeNull();
  });
  it("validates positive inputs and effective date",()=>{
@@ -31,7 +31,7 @@ describe("V4 renter flow",()=>{
   fireEvent.submit(form);
   expect(screen.getByText("Offer vs market")).toBeTruthy();
   expect(screen.getByText("Your protections")).toBeTruthy();
-  expect(screen.getByText("Your renewal summary")).toBeTruthy();
+  expect(screen.getByText("Save your renewal summary")).toBeTruthy();
  });
  it("displays bedroom-matched benchmark and dated source",()=>{
   render(<RenewalPage/>);fill({offer:"2200",bedrooms:"2br"});submit();
@@ -51,12 +51,13 @@ describe("V4 renter flow",()=>{
  });
  it("changing core input removes stale result",()=>{
   render(<RenewalPage/>);fill();submit();
-  expect(screen.getByText("Your renewal summary")).toBeTruthy();
+  expect(screen.getByText("Save your renewal summary")).toBeTruthy();
   fireEvent.change(screen.getByLabelText("Offered rent / month"),{target:{value:"2300"}});
-  expect(screen.queryByText("Your renewal summary")).toBeNull();
+  expect(screen.queryByText("Save your renewal summary")).toBeNull();
  });
  it("reflects changed protection answers in the report and organizer preview",()=>{
   render(<RenewalPage/>);fill({offer:"3000",bedrooms:"2br"});submit();
+  fireEvent.click(screen.getByRole("button",{name:"Review protections"}));
   fireEvent.change(screen.getByLabelText("State rent protection coverage"),{target:{value:"yes"}});
   fireEvent.change(screen.getByLabelText("Local rent control coverage"),{target:{value:"no"}});
   fireEvent.change(screen.getByLabelText("Other increases in the last 12 months?"),{target:{value:"none"}});
@@ -76,8 +77,23 @@ describe("V4 renter flow",()=>{
  });
  it("puts city rent protection first and statewide protection in an expandable section",()=>{
   render(<RenewalPage/>);fill({offer:"3000"});submit();
+  fireEvent.click(screen.getByRole("button",{name:"Review protections"}));
   expect(screen.getByText(/Also check statewide protections:/)).toBeTruthy();
   expect(screen.getByText("Your protections")).toBeTruthy();
+ });
+ it("starts with short legal summary and hides detailed rules until requested",()=>{
+  render(<RenewalPage/>);fill({offer:"3000"});submit();
+  expect(screen.getByText("Your protections")).toBeTruthy();
+  expect(screen.getByRole("button",{name:"Review protections"})).toBeTruthy();
+  expect(screen.queryByLabelText("Local rent control coverage")).toBeNull();
+  fireEvent.click(screen.getByRole("button",{name:"Review protections"}));
+  expect(screen.getByLabelText("Local rent control coverage")).toBeTruthy();
+ });
+ it("puts tenant connection before the optional summary",()=>{
+  const {container}=render(<RenewalPage/>);fill();submit();
+  const a=container.querySelector("#moveup-connect"),r=container.querySelector(".v4-report");
+  expect(a).toBeTruthy();expect(r).toBeTruthy();
+  expect((a?.compareDocumentPosition(r!)??0)&Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
  });
  it("the report only appears after a completed analysis",()=>{
   render(<RenewalPage/>);
