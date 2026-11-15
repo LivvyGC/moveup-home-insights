@@ -74,8 +74,7 @@ export function RenewalPage(){
   }
 
   const row=market.cities[submitted?.city??city];
-  const benchmark=submitted?.bedrooms==="other"?null:
-    submitted?row.apartmentListBedrooms[submitted.bedrooms].typicalRent:null;
+  const benchmark=submitted&&submitted.bedrooms!=="other"?row.apartmentListBedrooms[submitted.bedrooms].typicalRent:null;
   const finding=submitted?evaluateRenewal({
     city:submitted.city,currentRent:submitted.current,offeredRent:submitted.offer,
     effectiveDate:submitted.effective,stateCoverage,localCoverage,priorIncrease,noticeDate:noticeReceived,
