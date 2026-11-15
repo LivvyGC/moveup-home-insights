@@ -1,0 +1,17 @@
+name: MoveUp Renewal Overhaul QA
+on:
+  push:
+    branches: [codex/renewal-action-overhaul]
+  pull_request:
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: bun install --frozen-lockfile
+      - run: bun run test
+      - run: bun run build
