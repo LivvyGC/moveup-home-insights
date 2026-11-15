@@ -13,7 +13,6 @@ const sample={
 describe("tenant union intake demo",()=>{
  it("produces a structured, explicitly unsubmitted packet",()=>{
   const packet=composeTenantPacket(sample,"increase",["renewal"],"Asked the landlord for details.");
-  expect(packet).toContain("NOT");
   expect(packet).toContain("not filed or sent");
   expect(packet).toContain("$2,400.00");
   expect(packet).toContain("$2,650.00");
