@@ -30,7 +30,8 @@ export function parseCityZHVI(csv:string,city:string,state:string):CityMarket|nu
  if(!row)return null;
  const cells:string[]=row;
  const valid=dateI.filter(i=>row[i]?.trim()!==""&&Number.isFinite(Number(row[i]))&&Number(row[i])>0);
- const latestI=valid.at(-1);if(latestI===undefined)return null;
+ const last=valid.at(-1);if(last===undefined)return null;
+ const latestI:number=last;
  const latest=Number(row[latestI]),month=(headers[latestI]??"").slice(0,7);
  function change(months:number):number|null{
   const prevI=valid.find(i=>monthIndex(headers[i]??"")===monthIndex(headers[latestI]??"")-months);

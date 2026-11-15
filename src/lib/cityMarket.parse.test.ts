@@ -19,6 +19,6 @@ describe("city research CSV",()=>{
   expect(parseCityZHVI(data,"Denver","CO")?.typicalHomeValue).toBe(115000);
  });
  it("parses quotes in a CSV",()=>{
-  expect(parseCSV('RegionName,State\n"Washington, DC",DC\n')[1][0]).toBe("Washington, DC");
+  expect(parseCSV('RegionName,State\n"Washington, DC",DC\n')[1]?.[0]).toBe("Washington, DC");
  });
 });
