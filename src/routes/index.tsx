@@ -108,6 +108,35 @@ function App(){
   return <>
     <header>
       <div className="brand">MOVE<span>UP</span><sup>↗</sup></div>
+      <nav className="header-nav" aria-label="Main navigation">
+        <details className="about-dropdown">
+          <summary>About Us <span aria-hidden="true">⌄</span></summary>
+          <div className="about-menu">
+            <div className="about-heading">MEET THE TEAM</div>
+            <p className="about-intro">The people behind MoveUp.</p>
+            <div className="about-people">
+              <article className="about-person">
+                <div className="about-avatar" aria-label="Photo pending for Laila Archer">LA</div>
+                <div className="about-bio">
+                  <strong>Laila Archer</strong>
+                  <span>Third-year · Cal Poly San Luis Obispo</span>
+                  <span>Interdisciplinary Studies</span>
+                  <a href="https://www.linkedin.com/in/laila-archer-21a482448/" target="_blank" rel="noopener noreferrer" aria-label="View Laila Archer on LinkedIn">LinkedIn ↗</a>
+                </div>
+              </article>
+              <article className="about-person">
+                <div className="about-avatar" aria-label="Photo pending for Olivia Cook">OC</div>
+                <div className="about-bio">
+                  <strong>Olivia Cook</strong>
+                  <span>Third-year · Cal Poly San Luis Obispo</span>
+                  <span>Business Administration</span>
+                  <a href="https://www.linkedin.com/in/olivia-cook-863b51344/" target="_blank" rel="noopener noreferrer" aria-label="View Olivia Cook on LinkedIn">LinkedIn ↗</a>
+                </div>
+              </article>
+            </div>
+          </div>
+        </details>
+      </nav>
     </header>
     <main className="shell">
       <h1>Buy a home <em>now or wait?</em></h1>
