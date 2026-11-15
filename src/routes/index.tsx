@@ -162,7 +162,7 @@ export function RenewalPage(){
           {assessment.legalScreen==="possible_issue"?<p className="v4-small-legal-flag">A published protection may need review. This does not establish a violation.</p>:null}
         </section>
         <section className="v4-section v4-market" aria-label="Offer versus market benchmark">
-          <div className="v4-heading"><h2>Offer vs market</h2><span>{submitted.city} · {marketLabel}</span></div>
+          <div className="v4-heading"><h2>Offer vs. Market</h2><span>{submitted.city} · {marketLabel}</span></div>
           {benchmark===null?
             <div className="v4-card"><strong>Market benchmark not available</strong><p>Apartment List data in this demo only covers one- and two-bedroom estimates. We won't substitute a different unit size.</p></div>:
             <div className="v4-card v7-market-card">
@@ -203,15 +203,6 @@ export function RenewalPage(){
               <p className="v4-muted">City estimate, not a property appraisal. Price relative to market does not establish whether a renewal is lawful.</p>
             </div>}
         </section>
-        {showLAComplaint?<aside className="v7-la-resource" aria-label="Official Los Angeles complaint resource">
-          <div className="v7-la-resource-copy">
-            <span className="v7-resource-kicker">OFFICIAL CITY OF LOS ANGELES RESOURCE</span>
-            <h3>Concerned about an RSO violation?</h3>
-            <p>The LA Housing Department explains how to file a complaint about a suspected Rent Stabilization Ordinance violation, including a possibly unlawful increase. Eligibility must be verified.</p>
-            <p className="v7-resource-caution">This applies to housing in the City of Los Angeles. A market price difference does not prove a violation. MoveUp does not submit complaints.</p>
-          </div>
-          <a className="v7-resource-link" href={LA_COMPLAINT_URL} target="_blank" rel="noopener noreferrer">Open official LA complaint page <span aria-hidden="true">↗</span></a>
-        </aside>:null}
         <section id="moveup-protections" className="v4-section v4-protections">
           <div className="v4-heading"><h2>Your protections</h2><span className="v4-legal-status">{statusLabel}</span></div>
           <p className="v4-section-intro">Explore published rent protections that may apply in {submitted.city}. Your building and rental history determine eligibility, so these are guides rather than a legal decision.</p>
@@ -266,6 +257,15 @@ export function RenewalPage(){
           <p className="v4-muted">Coverage and exceptions must be checked before any legal conclusion.</p>
           </div>
         </section>
+        {showLAComplaint?<aside className="v7-la-resource" aria-label="Official Los Angeles complaint resource">
+          <div className="v7-la-resource-copy">
+            <span className="v7-resource-kicker">OFFICIAL CITY OF LOS ANGELES RESOURCE</span>
+            <h3>Concerned about an RSO violation?</h3>
+            <p>The LA Housing Department explains how to file a complaint about a suspected Rent Stabilization Ordinance violation, including a possibly unlawful increase. Eligibility must be verified.</p>
+            <p className="v7-resource-caution">This applies to housing in the City of Los Angeles. A market price difference does not prove a violation. MoveUp does not submit complaints.</p>
+          </div>
+          <a className="v7-resource-link" href={LA_COMPLAINT_URL} target="_blank" rel="noopener noreferrer">Open official LA complaint page <span aria-hidden="true">↗</span></a>
+        </aside>:null}
         {caseRecord?<TenantIntakeDemo key={submitted.city+"-"+submitted.effective+"-"+submitted.offer} caseRecord={caseRecord}/>:null}
         <section className="v4-section v4-report" aria-label="Tenant support summary">
           <div className="v4-heading"><h2>Save your renewal summary</h2></div>
