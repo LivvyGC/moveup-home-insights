@@ -1,0 +1,18 @@
+name: MoveUp Decision Journey Review
+on:
+  push:
+    branches: [codex/decision-journey]
+  pull_request:
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: bun install --frozen-lockfile
+      - run: bun run test
+      - run: bun run build
+      - run: node scripts/verify-horizon-data.mjs
