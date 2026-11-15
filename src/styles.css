@@ -142,7 +142,7 @@
 header{max-width:1400px;margin:auto;padding:22px 34px;display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid var(--ink)}
 .brand{font-weight:900;font-size:30px;letter-spacing:-2.3px}.brand span{color:var(--signal)}.brand sup{font-weight:800;font-size:15px;margin-left:2px;vertical-align:top}.topright{font:500 10px 'IBM Plex Mono',monospace;letter-spacing:.11em}
 .shell{max-width:1400px;margin:auto;padding:58px 34px 70px}.eyebrow{display:inline-block;border:1px solid var(--ink);padding:9px 12px;background:var(--paper);font:600 11px 'IBM Plex Mono',monospace;letter-spacing:.08em}.eyebrow:before{content:'● ';color:var(--signal)}
-h1{font-weight:900;font-size:clamp(48px,7.8vw,118px);line-height:.95;letter-spacing:-.09em;margin:24px 0 23px;text-transform:uppercase;max-width:1200px}h1 em{font-style:normal;color:var(--signal)}
+h1{font-weight:900;font-size:clamp(48px,7.8vw,118px);line-height:1.02;letter-spacing:-.025em;word-spacing:.08em;margin:24px 0 23px;text-transform:uppercase;max-width:1200px}h1 em{font-style:normal;color:var(--signal)}
 .lede{font-size:15px;line-height:1.7;color:var(--mu-19);max-width:615px;margin:0 0 45px}
 .layout{display:grid;grid-template-columns:350px minmax(0,1fr);gap:16px;align-items:start}
 .panel,.signal,.breakdown{border:1.5px solid var(--ink);background:var(--card)}
