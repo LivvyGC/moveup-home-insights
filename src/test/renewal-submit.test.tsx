@@ -78,7 +78,7 @@ describe("V4 renter flow",()=>{
  it("puts city rent protection first and statewide protection in an expandable section",()=>{
   render(<RenewalPage/>);fill({offer:"3000"});submit();
   fireEvent.click(screen.getByRole("button",{name:"Review protections"}));
-  expect(screen.getByText(/Also check statewide protections:/)).toBeTruthy();
+  expect(screen.getByText(/Statewide protections:/)).toBeTruthy();
   expect(screen.getByText("Your protections")).toBeTruthy();
  });
  it("starts with short legal summary and hides detailed rules until requested",()=>{
