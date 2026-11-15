@@ -2,6 +2,7 @@
 export interface CityMarket {
  city:string; state:string; month:string; typicalHomeValue:number;
  yearOverYearPct:number|null; lastThreeMonthsPct:number|null;
+ oneMonthPct:number|null; sixMonthPct:number|null;
  source:"Zillow Research ZHVI";
 }
 export function parseCSV(csv:string):string[][] {
@@ -38,5 +39,5 @@ export function parseCityZHVI(csv:string,city:string,state:string):CityMarket|nu
   if(prevI===undefined)return null;
   return round((latest/Number(cells[prevI])-1)*100);
  }
- return {city,state,month,typicalHomeValue:round(latest),yearOverYearPct:change(12),lastThreeMonthsPct:change(3),source:"Zillow Research ZHVI"};
+ return {city,state,month,typicalHomeValue:round(latest),yearOverYearPct:change(12),lastThreeMonthsPct:change(3),oneMonthPct:change(1),sixMonthPct:change(6),source:"Zillow Research ZHVI"};
 }
