@@ -14,18 +14,17 @@ const usd = new Intl.NumberFormat("en-US", {style:"currency",currency:"USD"});
 function Tag({ direction }: {direction:Direction}) {
   return <span className={"pill direction " + direction.toLowerCase()}>{direction}</span>;
 }
-function SignalCard({label,signal,direction,loading,index}:{
-  label:string;signal?:SignalResult|undefined;direction?:Direction|undefined;loading:boolean;index:string;
+function SignalCard({label,signal,direction,loading}:{
+  label:string;signal?:SignalResult|undefined;direction?:Direction|undefined;loading:boolean;
 }) {
   return <div className="signal">
-    <div className="micro signal-id">{index} / "SIGNAL"</div>
     <div className="signal-label">{label}</div>
     <div className="number">{loading?"…":signal?signal.probability.toFixed(2)+"%":"—"}</div>
     <div className="signal-tags">
       {direction?<Tag direction={direction}/>:<span className="pill muted">PENDING</span>}
       {signal?<span className={"pill source "+signal.source}>{signal.source==="live"?"LIVE":"ESTIMATE"}</span>:null}
     </div>
-    <div className="tiny">{loading?"Retrieving market data…":signal?signal.question:"Press Analyze to check market availability."}</div>
+    {signal&&!loading?<div className="signal-q">{signal.question}</div>:null}
   </div>;
 }
 export const Route = createFileRoute("/")({
@@ -98,100 +97,87 @@ function App(){
 
   const costs=[
     ["Mortgage now",r?.current_mortgage],
-    ["Mortgage after hypothetical cut",r?.mortgage_after_cut],
-    ["Monthly savings",r?.monthly_savings],
-    ["Property tax / month",r?.property_tax_monthly],
-    ["Insurance / month",r?.insurance_monthly],
-    ["Total monthly now",r?.total_monthly_now],
+    ["After 0.25-pt cut",r?.mortgage_after_cut],
+    ["Savings",r?.monthly_savings],
+    ["Property tax",r?.property_tax_monthly],
+    ["Insurance",r?.insurance_monthly],
+    ["Total now",r?.total_monthly_now],
   ] as const;
-  const sourceNotice=analysis
-    ? (analysis.a.source==="live"||analysis.b.source==="live"
-      ? "Both national signals use U.S.-wide market contracts; only the city research and tax context vary by location. Verify each contract question."
-      : "No verified live market was returned. Both signals use neutral 50% estimates, not actual market odds.")
-    : "Analyze to request current market-implied odds. Unavailable markets display neutral estimates, never fabricated live data.";
+  const anyEstimate=analysis&&(analysis.a.source==="estimate"||analysis.b.source==="estimate");
+  const show=(v:string)=>loading?"…":analysis?v:"—";
   return <>
     <header>
       <div className="brand">MOVE<span>UP</span><sup>↗</sup></div>
-      <div className="topright">INDEPENDENT MARKET STUDY / 001</div>
     </header>
     <main className="shell">
-      <div className="eyebrow">MOVEUP™ / MARKET TIMING LAB</div>
-      <h1>Should you buy a home <em>now or wait?</em></h1>
-      <p className="lede">Explore how market expectations and mortgage costs could affect your timing. Transparent signals, clear scenarios, and no crystal ball.</p>
+      <h1>Buy a home <em>now or wait?</em></h1>
+      <p className="lede">Rate-market odds, your city's price trend and your monthly cost.</p>
       <div className="layout">
         <section className="panel" aria-labelledby="scenario-heading">
-          <h2 id="scenario-heading">01 / Set your scenario</h2>
-          <p className="sub">Adjust your assumptions to see how market signals affect your result.</p>
+          <h2 id="scenario-heading">01 / Your scenario</h2>
           <form onSubmit={analyze}>
             <div className="field"><label htmlFor="city">City</label>
               <select id="city" value={selectedCity} onChange={e=>{invalidate();setSelectedCity(e.target.value);}}>
                 {cityList.map(c=><option key={c.city} value={c.city+", "+c.state}>{c.city}, {c.state}</option>)}
-              </select><div className="help">City-level tax and insurance figures are illustrative.</div></div>
+              </select></div>
             <div className="field"><label htmlFor="loan">Loan amount (USD)</label>
               <input id="loan" inputMode="decimal" type="number" min="0.01" step="any"
                 value={loan} onChange={e=>{invalidate();setLoan(e.target.value);}} required/></div>
-            <div className="field"><label htmlFor="timeline">Buying timeline</label>
+            <div className="field"><label htmlFor="timeline">Buying within</label>
               <select id="timeline" value={timeline} onChange={e=>{invalidate();setTimeline(e.target.value);}}>
-                <option value="1">Within 1 month</option><option value="3">Within 3 months</option>
-                <option value="6">Within 6 months</option>
+                <option value="1">1 month</option><option value="3">3 months</option>
+                <option value="6">6 months</option>
               </select></div>
             <button className="primary" type="submit" disabled={!validLoan||loading}>
-              {loading?"ANALYZING…":"ANALYZE MARKET TIMING ↗"}
+              {loading?"ANALYZING…":"ANALYZE ↗"}
             </button>
             <div className="error" role="alert">{error}</div>
           </form>
-          <p className="tiny assumption">30-year fixed mortgage / 6.80% assumed APR / hypothetical 0.25 percentage-point decrease.</p>
         </section>
         <div className="results">
-          <div className="notice"><strong>{loading?"REQUESTING DATA":analysis?"DATA STATUS":"MARKET DATA"}</strong> — {sourceNotice}</div>
+          {anyEstimate?<div className="notice"><strong>ESTIMATE</strong> — No live market matched. Shown as 50%, not real odds.</div>:null}
           <div className="signalgrid">
-            <SignalCard label={SIGNAL_A.name} signal={analysis?.a} direction={r?.signal_a_direction} loading={loading} index="A"/>
-            <SignalCard label={SIGNAL_B.name} signal={analysis?.b} direction={r?.signal_b_direction} loading={loading} index="B"/>
+            <SignalCard label={SIGNAL_A.name} signal={analysis?.a} direction={r?.signal_a_direction} loading={loading}/>
+            <SignalCard label={SIGNAL_B.name} signal={analysis?.b} direction={r?.signal_b_direction} loading={loading}/>
           </div>
           <section className="verdict" aria-live="polite">
             <div className="verdict-body">
-              <div className="micro">02 / LOCAL-FIRST MARKET CLASSIFICATION</div>
+              <div className="micro">02 / VERDICT</div>
               <div className="big">{loading?"…":local?local.verdict:"—"}</div>
-              <div className="desc">{loading?"Waiting for both independent signals…":local?(local.available?local.reason:"Local research could not be verified, so no city-specific BUY or WAIT verdict is shown."):"No classification until you analyze."}</div>
-              <p className="micro rate-note">Fed cuts may already be priced into mortgage rates. After-cut figures are hypothetical.</p>
+              {local&&!loading?<div className="desc">{local.available?"Experimental score. Not a forecast.":"No city data, so no verdict."}</div>:null}
             </div>
-            <div className="stamp">2 MARKET<br/>SIGNALS<br/><strong>{local?(local.available?"LOCAL 45%":"NO LOCAL DATA"):"PENDING"}</strong></div>
           </section>
           <section className="local-insights" aria-labelledby="local-insights-title">
             <div className="sectionhead">
-              <h2 id="local-insights-title">03 / {city.city} housing outlook</h2>
-              <span>Independent city research</span>
+              <h2 id="local-insights-title">03 / {city.city} market</h2>
             </div>
-            <p className="local-note">Unlike national rate contracts, these historical observations and policy rules change by location. Historical changes are not forecasts.</p>
             <div className="market-metrics">
-              <div><span>Typical home value (ZHVI)</span><strong>{loading?"…":historical?usd.format(historical.typicalHomeValue):"Unavailable"}</strong></div>
-              <div><span>1-year value change</span><strong>{loading?"…":pct(historical?.yearOverYearPct)}</strong></div>
-              <div><span>3-month value change</span><strong>{loading?"…":pct(historical?.lastThreeMonthsPct)}</strong></div>
+              <div><span>Typical home value</span><strong>{show(historical?usd.format(historical.typicalHomeValue):"Unavailable")}</strong></div>
+              <div><span>1-year change</span><strong>{show(pct(historical?.yearOverYearPct))}</strong></div>
+              <div><span>3-month change</span><strong>{show(pct(historical?.lastThreeMonthsPct))}</strong></div>
             </div>
-            <p className="source-line">{historical?<>Source: <a href="https://www.zillow.com/research/data/" target="_blank" rel="noopener noreferrer">Zillow Research ZHVI</a> · observed {historical.month} · snapshot {market?.status==="available"?market.snapshotDate:""} · City-level home-value index</>:"City-level research data has not been verified for this selection."}</p>
+            {historical?<p className="source-line"><a href="https://www.zillow.com/research/data/" target="_blank" rel="noopener noreferrer">Zillow ZHVI</a> · {historical.month}</p>:null}
             <div className="local-forecast">
-              <strong>PUBLISHED CITY FORECAST</strong>
-              <span>{loading?"Checking…":forecast?pct(forecast.yearAheadPct)+" forecast to "+forecast.targetMonth:"Not available as verified city-level data"}</span>
-              {forecast?<small>Source: Zillow Research ZHVF · As of {forecast.asOf} · Forecast is not a guarantee</small>:null}
+              <strong>CITY FORECAST</strong>
+              <span>{loading?"…":forecast?pct(forecast.yearAheadPct)+" by "+forecast.targetMonth:"Not available as verified city-level data"}</span>
             </div>
             <div className="policy">
-              <h3>04 / State and local policy context</h3>
-              <p className="local-note">Official rules may affect costs or eligibility, but exemptions are <strong>not automatically applied</strong> to this scenario.</p>
+              <h3>04 / {city.state} policy</h3>
               {policy.map(p=><article key={p.id} className="policy-entry">
-                <strong>{p.title}</strong><p>{p.detail}</p><p>{p.applicability}</p>
-                <a href={p.officialUrl} target="_blank" rel="noopener noreferrer">Government source · reviewed {p.lastReviewed}</a>
+                <strong>{p.title}</strong><p>{p.detail}</p>
+                <a href={p.officialUrl} target="_blank" rel="noopener noreferrer">Official source</a>
               </article>)}
+              <p className="local-note">Eligibility varies. Not applied to your costs.</p>
             </div>
             <div className="weights">
-              <strong>Experimental score / model weights</strong>
-              <div><span>City historical price momentum</span><b>45%</b></div>
-              <div><span>City tax-cost policy proxy (illustrative)</span><b>35%</b></div>
-              <div><span>National market-implied odds</span><b>20%</b></div>
-              <p>Score: {local?.score==null?"Not available":local.score.toFixed(3)}. This is an uncalibrated research heuristic, not a validated predictor or a verified policy-effect estimate. The local tax proxy uses illustrative city assumptions and does not assume exemption eligibility.</p>
+              <div><span>City price trend</span><b>45%</b></div>
+              <div><span>Tax cost</span><b>35%</b></div>
+              <div><span>National odds</span><b>20%</b></div>
+              <div><span>Score</span><b>{local?.score==null?"—":local.score.toFixed(2)}</b></div>
             </div>
           </section>
           <section className="breakdown">
-            <div className="sectionhead"><h2>05 / Monthly cost scenario</h2><span>Illustrative estimates</span></div>
+            <div className="sectionhead"><h2>05 / Monthly cost</h2><span>30-yr fixed · 6.80% · 20% down</span></div>
             <div className="moneygrid">{costs.map(([label,value])=>
               <div className="moneyitem" key={label}>
                 <div className="name">{label}</div>
@@ -199,11 +185,9 @@ function App(){
               </div>
             )}</div>
           </section>
-          <section className="summary" aria-live="polite">{!loading&&r?<>National signal context: {r.summary} {local?.available?" Local-first verdict: "+local.verdict+".":" Local verdict withheld because city-level history is unavailable."}</>:"Run an analysis to see the signal explanation."}</section>
         </div>
       </div>
-      <footer><span>MOVEUP / EDUCATIONAL PROTOTYPE / NO PROPERTY LISTINGS</span>
-        <span>PROBABILITIES ARE MARKET-IMPLIED, NOT FORECASTS. MODEL OUTPUT IS NOT FINANCIAL ADVICE.</span></footer>
+      <footer><span>EDUCATIONAL PROTOTYPE · NOT FINANCIAL ADVICE · NO LISTINGS</span></footer>
     </main>
   </>;
 }

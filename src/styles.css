@@ -209,3 +209,17 @@ body,button,input,select,textarea,.topright,.eyebrow,.field label,.help,.tiny,.n
  .shell{padding-bottom:40px;}
  .signal .number{font-size:clamp(36px,12vw,60px);}
 }
+
+/* Lean copy pass: no text under 14px; one size scale for supporting text. */
+.micro,.pill,.sectionhead span,footer,.notice,.source-line,.local-forecast strong,.policy-entry a{font-size:14px;}
+.signal-label,.verdict .desc,.lede,.field label,.moneyitem .name,.market-metrics span,.local-note,.policy-entry p,.weights>div{font-size:16px;line-height:1.5;}
+.field label{text-transform:none;font-weight:700;}
+.signal-label{min-height:0;margin-top:0;max-width:100%;}
+.signal-q{font-size:14px;line-height:1.5;color:var(--mu-19);overflow-wrap:anywhere;}
+.moneyitem .name{min-height:0;}
+.local-forecast{margin-top:16px;}
+.weights{margin-top:20px;}
+.weights>div:first-child{border-top:0;}
+.weights>div:last-child b{font-size:20px;}
+.verdict .desc{margin:0;}
+footer{justify-content:center;}
