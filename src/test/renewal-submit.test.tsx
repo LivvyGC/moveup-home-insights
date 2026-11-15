@@ -31,12 +31,12 @@ describe("V4 renter flow",()=>{
   fireEvent.change(screen.getByLabelText("New rent takes effect"),{target:{value:"2026-01-09"}});
   submit();
   expect(screen.queryByRole("alert")).toBeNull();
-  expect(screen.getByText("Offer vs market")).toBeTruthy();
+  expect(screen.getByText("Offer vs. Market")).toBeTruthy();
  });
  it("submits with Enter from a rent input",()=>{
   render(<RenewalPage/>);fill();
   fireEvent.keyDown(screen.getByLabelText("Offered rent / month"),{key:"Enter",code:"Enter",charCode:13});
-  expect(screen.getByText("Offer vs market")).toBeTruthy();
+  expect(screen.getByText("Offer vs. Market")).toBeTruthy();
  });
  it("fills the sample only when requested and clears it again",()=>{
   render(<RenewalPage/>);
@@ -52,7 +52,7 @@ describe("V4 renter flow",()=>{
   if(!form)throw Error("Missing renewal form");
   expect(screen.getByRole("button",{name:"CHECK MY OFFER"}).getAttribute("type")).toBe("submit");
   fireEvent.submit(form);
-  expect(screen.getByText("Offer vs market")).toBeTruthy();
+  expect(screen.getByText("Offer vs. Market")).toBeTruthy();
   expect(screen.getByText("Your protections")).toBeTruthy();
   expect(screen.getByText("Save your renewal summary")).toBeTruthy();
  });
@@ -111,6 +111,11 @@ describe("V4 renter flow",()=>{
  it("shows LA Housing complaint guidance for a possible local RSO concern, without claiming to file",()=>{
   render(<RenewalPage/>);fill({offer:"3000",bedrooms:"2br"});submit();
   const link=screen.getByRole("link",{name:/Open official LA complaint page/});
+  const protections=screen.getByText("Your protections").closest("section");
+  const resource=link.closest(".v7-la-resource");
+  expect(protections).toBeTruthy();
+  expect(resource).toBeTruthy();
+  expect((protections?.compareDocumentPosition(resource!)??0)&Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   expect(link.getAttribute("href")).toBe("https://housing.lacity.gov/residents/file-a-rso-complaint");
   expect(link.getAttribute("target")).toBe("_blank");
   expect(screen.getByText(/MoveUp does not submit complaints/)).toBeTruthy();
