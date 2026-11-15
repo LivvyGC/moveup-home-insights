@@ -270,7 +270,7 @@ export function RenewalPage(){
         </aside>:null}
         {caseRecord?<TenantIntakeDemo key={submitted.city+"-"+submitted.effective+"-"+submitted.offer} caseRecord={caseRecord}>
         <section id="moveup-summary" className="v4-section v4-report" aria-label="Tenant support summary">
-          <div className="v4-heading"><h2>Your prefilled renewal assessment</h2><span>Included with your inquiry</span></div>
+          <div className="v4-heading"><h2>Your assessment</h2><span>Ready to submit</span></div>
           <div className="v4-card">
             <div className="v4-report-title"><strong>MOVEUP / CASE SUMMARY</strong><span>{submitted.city} · {marketLabel} · starts {submitted.effective}</span></div>
             <div className="v4-summary-groups">
