@@ -2,7 +2,7 @@ import { useRef, useState, type FormEvent } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import market from "@/data/rentMarket.snapshot.json";
 import type { City } from "@/lib/renewalPolicy";
-import { evaluateRenewal, negotiationMessage, type Coverage, type IncreaseHistory } from "@/lib/renewalActions";
+import { evaluateRenewal, type Coverage, type IncreaseHistory } from "@/lib/renewalActions";
 import { assessMarketOffer } from "@/lib/renewalV4";
 import { isStale } from "@/lib/renewalCalculator";
 import { buildTenantCase,coverageLabel,increaseLabel } from "@/lib/tenantCase";
@@ -18,6 +18,7 @@ const signedMoney = (v:number) => (v>0?"+":"") + money(v);
 const signedPct = (v:number) => (v>0?"+":"") + v.toFixed(2) + "%";
 const parseMoney = (s:string) => s.trim() && Number.isFinite(Number(s)) && Number(s)>0 ? Number(s) : null;
 const RESEARCH_URL = "https://www.apartmentlist.com/research/category/data-rent-estimates";
+const LA_COMPLAINT_URL = "https://housing.lacity.gov/residents/file-a-rso-complaint";
 const FormField = ({label,value,onChange}:{label:string;value:string;onChange:(next:string)=>void}) =>
   <label className="v4-field"><span>{label}</span><input aria-label={label} type="number" inputMode="decimal" step="0.01" min="0.01" value={value} onChange={e=>onChange(e.target.value)} placeholder="Monthly USD"/></label>;
 
@@ -95,7 +96,9 @@ export function RenewalPage(){
   const statusLabel=assessment?.legalScreen==="possible_issue"?"Potential concern: check details":
     assessment?.legalScreen==="needs_information"?"Coverage not confirmed":"No specific concern from entered facts";
   const hasLocalRule=rules.some(check=>check.rule.type==="city");
-  const supportAction=finding?.action==="check_rent_limits"||finding?.action==="review_notice";
+  const showLAComplaint = submitted?.city==="Los Angeles" && rules.some(check =>
+    check.rule.id==="la-rso" && (check.abovePublishedStandard || localCoverage==="yes")
+  );
   const caseRecord=submitted&&finding&&assessment?buildTenantCase({
     city:submitted.city,bedrooms:marketLabel,currentRent:submitted.current,offeredRent:submitted.offer,
     effectiveDate:submitted.effective,periodMonths:months,benchmark,benchmarkMonth,
@@ -162,34 +165,53 @@ export function RenewalPage(){
           <div className="v4-heading"><h2>Offer vs market</h2><span>{submitted.city} · {marketLabel}</span></div>
           {benchmark===null?
             <div className="v4-card"><strong>Market benchmark not available</strong><p>Apartment List data in this demo only covers one- and two-bedroom estimates. We won't substitute a different unit size.</p></div>:
-            <div className="v4-card">
+            <div className="v4-card v7-market-card">
+              <div className="v7-market-header">
+                <span className={"v7-market-status v7-market-status-"+assessment.marketPosition}>
+                  {assessment.marketPosition==="above"?"Above city benchmark":assessment.marketPosition==="below"?"Below city benchmark":"At city benchmark"}
+                </span>
+                <span className="v7-market-dated">Apartment List · {benchmarkMonth}</span>
+              </div>
               <div className="v4-market-stats">
-                <div><span>Your offer</span><strong>{money(submitted.offer)}</strong></div>
-                <div><span>New-lease benchmark</span><strong>{money(benchmark)}</strong></div>
+                <div><span>Your offered monthly rent</span><strong>{money(submitted.offer)}</strong></div>
+                <div><span>City {marketLabel} new-lease estimate</span><strong>{money(benchmark)}</strong></div>
               </div>
-              <div className={"v4-meter v4-meter-"+assessment.tone} role="img" aria-label={"Your offer "+money(submitted.offer)+"; "+marketLabel+" city benchmark "+money(benchmark)+"; difference "+signedMoney(assessment.difference??0)}>
-                <div className="v4-track"><span className="v4-market-below" style={{width:(assessment.benchmarkPosition??0)+"%"}}></span><span className="v4-market-above" style={{left:(assessment.benchmarkPosition??0)+"%"}}></span></div>
-                <div className="v4-market-line" style={{left:(assessment.benchmarkPosition??0)+"%"}}><span>MARKET</span></div>
-                <div className="v4-offer-line" style={{left:(assessment.offerPosition??0)+"%"}}><span>YOUR OFFER</span></div>
+              <div className="v7-market-chart" role="img" aria-label={"Your offer "+money(submitted.offer)+"; "+marketLabel+" city benchmark "+money(benchmark)+"; difference "+signedMoney(assessment.difference??0)}>
+                <div className="v7-market-bar">
+                  <div className="v7-market-bar-label"><span>City new-lease benchmark</span><strong>{money(benchmark)}</strong></div>
+                  <div className="v7-market-bar-track"><div className="v7-market-bar-fill v7-market-bar-benchmark" style={{width:(100*benchmark/Math.max(benchmark,submitted.offer))+"%"}}/></div>
+                </div>
+                <div className="v7-market-bar">
+                  <div className="v7-market-bar-label"><span>Your renewal offer</span><strong>{money(submitted.offer)}</strong></div>
+                  <div className="v7-market-bar-track"><div className="v7-market-bar-fill v7-market-bar-offer" style={{width:(100*submitted.offer/Math.max(benchmark,submitted.offer))+"%"}}/></div>
+                </div>
+                <span className="v7-chart-note">Bar lengths use the same dollar scale, from $0 to the higher of the two amounts.</span>
               </div>
-              <div className="v4-comparison"><strong>{signedMoney(assessment.difference??0)} / month</strong><span>{signedPct(assessment.differencePct??0)} vs market benchmark</span></div>
+              <div className="v7-market-takeaway">
+                <div><span>{assessment.marketPosition==="above"?"More than city benchmark each month":assessment.marketPosition==="below"?"Less than city benchmark each month":"Difference from city benchmark"}</span><strong>{signedMoney(assessment.difference??0)} / month</strong></div>
+                <div className="v7-market-percent"><strong>{signedPct(assessment.differencePct??0)}</strong><span>vs city benchmark</span></div>
+              </div>
+              <p className="v7-market-summary">
+                {assessment.marketPosition==="above"
+                  ?"Your offered rent is higher than the citywide new-lease estimate for this bedroom count."
+                  :assessment.marketPosition==="below"
+                    ?"Your offered rent is lower than the citywide new-lease estimate for this bedroom count."
+                    :"Your offered rent matches the available citywide new-lease estimate."}
+              </p>
               <p className="v4-source">Apartment List · {benchmarkMonth} · City {marketLabel} new-lease estimate · <a href={RESEARCH_URL} target="_blank" rel="noopener noreferrer">Source</a></p>
               {stale?<p className="v4-stale">Market observation is older than 45 days. Confirm current availability before making a decision.</p>:null}
               <p className="v4-muted">City estimate, not a property appraisal. Price relative to market does not establish whether a renewal is lawful.</p>
             </div>}
         </section>
-        <details className="v4-negotiation-inline">
-          <summary>Want to negotiate? Draft a message to your landlord</summary>
-          <div className="v4-negotiation-content">
-            <p>You can ask for better terms even when the increase is legal. Use this editable template as a starting point.</p>
-            {supportAction?<p>You may also want to <a href={finding.eligibilityUrl} target="_blank" rel="noopener noreferrer">check official coverage guidance</a>.</p>:null}
-            <textarea aria-label="Draft landlord request" defaultValue={negotiationMessage(submitted.city,submitted.current,submitted.offer)} rows={8} key={submitted.city+"-"+submitted.current+"-"+submitted.offer}/>
-            <button type="button" onClick={()=>{
-              const textarea=document.querySelector<HTMLTextAreaElement>(".v4-negotiation-inline textarea");
-              if(textarea&&typeof navigator!=="undefined"&&navigator.clipboard?.writeText) void navigator.clipboard.writeText(textarea.value);
-            }}>Copy message</button>
+        {showLAComplaint?<aside className="v7-la-resource" aria-label="Official Los Angeles complaint resource">
+          <div className="v7-la-resource-copy">
+            <span className="v7-resource-kicker">OFFICIAL CITY OF LOS ANGELES RESOURCE</span>
+            <h3>Concerned about an RSO violation?</h3>
+            <p>The LA Housing Department explains how to file a complaint about a suspected Rent Stabilization Ordinance violation, including a possibly unlawful increase. Eligibility must be verified.</p>
+            <p className="v7-resource-caution">This applies to housing in the City of Los Angeles. A market price difference does not prove a violation. MoveUp does not submit complaints.</p>
           </div>
-        </details>
+          <a className="v7-resource-link" href={LA_COMPLAINT_URL} target="_blank" rel="noopener noreferrer">Open official LA complaint page <span aria-hidden="true">↗</span></a>
+        </aside>:null}
         <section id="moveup-protections" className="v4-section v4-protections">
           <div className="v4-heading"><h2>Your protections</h2><span className="v4-legal-status">{statusLabel}</span></div>
           <p className="v4-section-intro">Explore published rent protections that may apply in {submitted.city}. Your building and rental history determine eligibility, so these are guides rather than a legal decision.</p>
