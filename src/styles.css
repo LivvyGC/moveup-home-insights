@@ -566,3 +566,33 @@ html{scroll-behavior:smooth}
   .v6-network,.v4-form-tools,.v4-sample-badge{display:none!important}
   .v4-app{background:#fff!important}
 }
+
+/* Compact optional negotiation replaces the redundant three-card navigation. */
+.v4-negotiation-inline{
+  margin:18px 0 26px;
+  border:1px solid #D9C6B4;
+  border-radius:10px;
+  background:#FFFCF8;
+  color:#191714;
+}
+.v4-negotiation-inline>summary{
+  padding:15px 18px;
+  font-size:16px;
+  font-weight:800;
+  line-height:1.4;
+}
+.v4-negotiation-inline[open]>summary{border-bottom:1px solid #E3D6C8}
+.v4-negotiation-content{padding:0 18px 18px}
+.v4-negotiation-content p{font-size:15px;line-height:1.5;color:#4F4841}
+.v4-negotiation-content textarea{
+  display:block;width:100%;min-height:160px;
+  padding:12px;border:1px solid #A59B90;
+  background:#FFFDF9;color:#191714;
+  font-size:15px;line-height:1.5;resize:vertical;
+}
+.v4-negotiation-content button{
+  margin-top:12px;min-height:44px;padding:10px 17px;
+  background:#191714;color:#FFFDF9;border:1px solid #191714;
+  font-weight:800;
+}
+@media print{.v4-negotiation-inline{display:none!important}}
