@@ -190,7 +190,8 @@ describe("V4 renter flow",()=>{
   expect(network?.contains(directory)).toBe(true);
   expect(intake?.contains(directory)).toBe(false);
   expect((report?.compareDocumentPosition(network!)??0)&Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-  expect(screen.getByRole("link",{name:"Find renter organizations below"})).toBeTruthy();
+  expect(screen.getByText("Renter organizations in Los Angeles")).toBeTruthy();
+  expect(screen.queryByRole("link",{name:"Find renter organizations below"})).toBeNull();
  });
  it("the report only appears after a completed analysis",()=>{
   render(<RenewalPage/>);
