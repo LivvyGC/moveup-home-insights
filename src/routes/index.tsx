@@ -50,7 +50,7 @@ function App(){
   const [analysis,setAnalysis]=useState<Analysis|null>(null);
   const [error,setError]=useState("");
   const requestId=useRef(0);
-  const city=cityList.find(c=>c.city+", "+c.state===selectedCity)??cityList[0];
+  const city=cityList.find(c=>c.city+", "+c.state===selectedCity)??(cityList[0] as CityData);
   const loanValue=Number(loan);
   const validLoan=loan.trim()!==""&&Number.isFinite(loanValue)&&loanValue>0;
   function invalidate(){

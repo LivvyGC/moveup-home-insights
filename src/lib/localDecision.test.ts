@@ -1,6 +1,8 @@
 import {describe,it,expect} from "vitest";
 import {assessCity, localMomentum, taxCostPressure, type CityMarketRecord} from "./localDecision";
-import cities from "../data/cities.json";
+import citiesJson from "../data/cities.json";
+import type { CityData } from "./combineSignals";
+const cities = citiesJson as [CityData, ...CityData[]] & CityData[];
 const mk=(lastThreeMonthsPct:number|null,yearOverYearPct:number|null):CityMarketRecord=>({
   city:"Los Angeles",state:"CA",month:"2026-09",typicalHomeValue:750000,
   lastThreeMonthsPct,yearOverYearPct,forecast:null
