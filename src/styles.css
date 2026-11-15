@@ -114,3 +114,11 @@ button{cursor:pointer}
  .rc-printreport .rc-source{font-size:9px}
  .rc-printreport h2{font-size:23px}
 }
+
+/* Explicit renewal form submission: same action via click or Enter. */
+.rc-launch{display:block;width:100%;min-height:52px;margin-top:23px;padding:12px 18px;background:#0B0B0B;color:#F4EFE6;border:1px solid #0B0B0B;border-radius:0;text-align:center;font:800 15px Inter,Arial,sans-serif;letter-spacing:.015em;cursor:pointer}
+.rc-launch:hover{background:#252525}
+.rc-launch:focus-visible{outline:3px solid #FF5A1F;outline-offset:3px}
+.rc-form-error{margin:10px 0 0!important;color:#9B261B;font-size:14px;font-weight:700;line-height:1.5}
+.rc-hero:focus{outline:none}
+@media print{.rc-launch,.rc-form-error{display:none!important}}
