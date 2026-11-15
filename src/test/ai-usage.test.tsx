@@ -18,11 +18,11 @@ describe("AI Usage and source transparency",()=>{
   });
 
   it("states the real development role and AI limitations",()=>{
-    render(<AiUsagePage/>);
+    const {container}=render(<AiUsagePage/>);
     expect(screen.getByRole("heading",{name:/Built with AI/})).toBeTruthy();
     expect(screen.getByRole("heading",{name:"How we used AI"})).toBeTruthy();
     expect(screen.getByRole("heading",{name:"What AI doesn't do"})).toBeTruthy();
-    expect(screen.getByText(/not.*run a live AI legal adviser/i)).toBeTruthy();
+    expect(container.querySelector(".v8-limits")?.textContent).toMatch(/does not run a live AI legal adviser/i);
     expect(screen.getByText(/does not automatically notify tenant unions/i)).toBeTruthy();
   });
 
@@ -57,6 +57,6 @@ describe("AI Usage and source transparency",()=>{
     for(const org of TENANT_ORGANIZATIONS){
       expect([...links].some(link=>link.getAttribute("href")===org.url)).toBe(true);
     }
-    expect(screen.getByText(/not.*MoveUp partners or paying customers/i)).toBeTruthy();
+    expect(container.querySelector(".v8-community")?.textContent).toMatch(/not MoveUp partners or paying customers/i);
   });
 });
