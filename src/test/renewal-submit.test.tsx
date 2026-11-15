@@ -208,7 +208,7 @@ describe("V4 renter flow",()=>{
   fireEvent.click(screen.getByRole("button",{name:"Submit to database"}));
   await waitFor(()=>expect(screen.getByText("Saved to your browser")).toBeTruthy());
   expect(screen.getByText(/was saved on this device. No organization received it/)).toBeTruthy();
-  expect(screen.getByText(/Inquiry MU-/)).toBeTruthy();
+  expect(screen.getAllByText(/Inquiry MU-/).length).toBeGreaterThanOrEqual(2);
  });
  it("the report only appears after a completed analysis",()=>{
   render(<RenewalPage/>);
