@@ -45,8 +45,8 @@ describe("simplified renter support handoff",()=>{
   it("shows renter support after RSO using a short contact-only form",()=>{
     const {container}=render(<TenantIntakeDemo caseRecord={sample}/>);
     expect(screen.getByText(/Filed an RSO complaint\? Still unhappy with your rent adjustment\?/)).toBeTruthy();
-    expect(screen.getByRole("link",{name:"View your summary"}).getAttribute("href")).toBe("#moveup-summary");
-    expect(screen.getByText(/Your MoveUp renewal summary above is ready/)).toBeTruthy();
+    expect(screen.getByText(/rent figures, market comparison and protection screening are already filled in/)).toBeTruthy();
+    expect(screen.queryByRole("link",{name:"View your summary"})).toBeNull();
     expect(screen.getByRole("textbox",{name:"Full name"})).toBeTruthy();
     expect(screen.getByRole("textbox",{name:"Email address"})).toBeTruthy();
     expect(screen.getByRole("textbox",{name:"Phone number"})).toBeTruthy();
@@ -104,8 +104,7 @@ describe("simplified renter support handoff",()=>{
     expect(screen.getByText(/Los Angeles: Renter support inquiry/)).toBeTruthy();
     fireEvent.click(screen.getByRole("button",{name:"Clear saved demo inquiries"}));
     expect(readDemoRegistry(window.localStorage)).toHaveLength(0);
-    const link=screen.getByRole("link",{name:"Find renter organizations below"});
-    expect(link.getAttribute("href")).toBe("#moveup-network");
+    expect(screen.queryByRole("link",{name:"Find renter organizations below"})).toBeNull();
   });
   it("does not pretend a remote provider is connected in the test environment",()=>{
     expect(intakeEndpointConfigured).toBe(false);
