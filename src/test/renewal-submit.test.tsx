@@ -2,53 +2,63 @@ import {afterEach,describe,expect,it} from "vitest";
 import {cleanup,fireEvent,render,screen} from "@testing-library/react";
 import {RenewalPage} from "../routes/index";
 afterEach(cleanup);
-function fill(){
+function fill({offer="2200",bedrooms="1br"}={}) {
+ fireEvent.change(screen.getByLabelText("Bedrooms"),{target:{value:bedrooms}});
  fireEvent.change(screen.getByLabelText("Current rent / month"),{target:{value:"2000"}});
- fireEvent.change(screen.getByLabelText("Offered rent / month"),{target:{value:"2200"}});
+ fireEvent.change(screen.getByLabelText("Offered rent / month"),{target:{value:offer}});
  fireEvent.change(screen.getByLabelText("New rent takes effect"),{target:{value:"2027-01-09"}});
 }
-function submit(){fireEvent.click(screen.getByRole("button",{name:"CHECK MY OFFER"}));}
-describe("Renewal Check guided submission",()=>{
- it("initially shows only essential intake, not results",()=>{
+const submit=()=>fireEvent.click(screen.getByRole("button",{name:"CHECK MY OFFER"}));
+describe("V4 renter flow",()=>{
+ it("initially hides results, print report and legal follow-ups",()=>{
   render(<RenewalPage/>);
   expect(screen.getByRole("button",{name:"CHECK MY OFFER"})).toBeTruthy();
-  expect(screen.queryByText("03 / NEXT ACTION")).toBeNull();
-  expect(screen.queryByText("Explore buying")).toBeNull();
+  expect(screen.queryByText("Your protections")).toBeNull();
+  expect(screen.queryByText("Renewal summary")).toBeNull();
+  expect(screen.queryByLabelText("Local rent control coverage")).toBeNull();
  });
- it("validates rent and effective date",()=>{
+ it("validates positive inputs and effective date",()=>{
   render(<RenewalPage/>);submit();
-  expect(screen.getByRole("alert").textContent).toMatch(/rent/i);
+  expect(screen.getByRole("alert").textContent).toMatch(/current rent/i);
   fill();fireEvent.change(screen.getByLabelText("New rent takes effect"),{target:{value:"2007-01-09"}});submit();
-  expect(screen.getByRole("alert").textContent).toMatch(/date/i);
+  expect(screen.getByRole("alert").textContent).toMatch(/future/i);
  });
- it("the button and native form submission share the same analysis",()=>{
+ it("click and native Enter-form submit share the analysis",()=>{
   const {container}=render(<RenewalPage/>);fill();
   const form=container.querySelector("form");
+  if(!form)throw Error("Missing renewal form");
   expect(screen.getByRole("button",{name:"CHECK MY OFFER"}).getAttribute("type")).toBe("submit");
-  if(!form)throw Error("Form missing");
   fireEvent.submit(form);
-  expect(screen.getByText("03 / NEXT ACTION")).toBeTruthy();
-  expect(screen.getByText("04 / TENANT PROTECTIONS")).toBeTruthy();
+  expect(screen.getByText("Offer vs market")).toBeTruthy();
+  expect(screen.getByText("Your protections")).toBeTruthy();
+  expect(screen.getByText("Renewal summary")).toBeTruthy();
  });
- it("shows conditional concern and correct LA route for potentially excessive increase",()=>{
-  render(<RenewalPage/>);fill();
-  fireEvent.change(screen.getByLabelText("Offered rent / month"),{target:{value:"3000"}});
-  submit();
-  expect(screen.getByText("Your increase may need a rent-law review")).toBeTruthy();
-  const link=screen.getByRole("link",{name:/LA Housing — RSO complaint guidance/i});
-  expect(link.getAttribute("href")).toContain("housing.lacity.gov");
-  expect(screen.getAllByText(/not proof the increase is unlawful/i).length).toBeGreaterThan(0);
+ it("displays bedroom-matched benchmark and dated source",()=>{
+  render(<RenewalPage/>);fill({offer:"2200",bedrooms:"2br"});submit();
+  expect(screen.getAllByText("$2,377.00").length).toBeGreaterThan(0);
+  expect(screen.getByText(/Apartment List · 2026-10/)).toBeTruthy();
+  expect(screen.getByRole("img",{name:/Your offer.*benchmark/})).toBeTruthy();
  });
- it("changing a primary input clears previous results",()=>{
+ it("unsupported bedrooms never display a made-up benchmark",()=>{
+  render(<RenewalPage/>);fill({bedrooms:"other"});submit();
+  expect(screen.getByText("Market benchmark not available")).toBeTruthy();
+  expect(screen.queryByRole("img",{name:/Your offer.*benchmark/})).toBeNull();
+ });
+ it("a possible LA standard concern takes precedence over market price",()=>{
+  render(<RenewalPage/>);fill({offer:"3000"});submit();
+  expect(screen.getByText("This offer may need a legal review")).toBeTruthy();
+  expect(screen.getByText(/A potential rule concern needs verification/i)).toBeTruthy();
+ });
+ it("changing core input removes stale result",()=>{
   render(<RenewalPage/>);fill();submit();
-  expect(screen.getByText("03 / NEXT ACTION")).toBeTruthy();
+  expect(screen.getByText("Renewal summary")).toBeTruthy();
   fireEvent.change(screen.getByLabelText("Offered rent / month"),{target:{value:"2300"}});
-  expect(screen.queryByText("03 / NEXT ACTION")).toBeNull();
+  expect(screen.queryByText("Renewal summary")).toBeNull();
  });
- it("buying inputs appear only after selecting buying",()=>{
-  render(<RenewalPage/>);fill();submit();
-  expect(screen.queryByLabelText("Home purchase price")).toBeNull();
-  fireEvent.click(screen.getByRole("button",{name:"Explore buying"}));
-  expect(screen.getByLabelText("Home purchase price")).toBeTruthy();
+ it("the report only appears after a completed analysis",()=>{
+  render(<RenewalPage/>);
+  expect(screen.queryByRole("button",{name:"Print / Save as PDF"})).toBeNull();
+  fill();submit();
+  expect(screen.getByRole("button",{name:"Print / Save as PDF"})).toBeTruthy();
  });
 });
