@@ -13,7 +13,7 @@ describe("0–100 local-first score",()=>{
     const a=assessCity({city:cities.at(9),market:mk(0,5),timeline:6,fedProbability:0,mortgageProbability:0}); // Denver
     expect(a.weights).toEqual({local:0.45,policy:0.35,national:0.20});
     expect([a.local,a.policy,a.national]).toEqual([100,93.3,100]);
-    expect(a.score).toBe(98);
+    expect(a.score).toBe(97); // 45 + 32.66 + 20, floored
   });
   it("bands: under 40 WAIT, 40–59 MIXED, 60+ BUY",()=>{
     expect(verdictFor(39)).toBe("WAIT");
