@@ -462,3 +462,12 @@ html{scroll-behavior:smooth}
  .v6-protection-expanded{display:block!important}
  .v4-intake-demo .v4-intake-print{display:block!important}
 }
+
+/* Directory expansion stays explicit and readable. */
+.v6-directory-more{
+ display:block;margin:14px 0 0;padding:11px 15px;min-height:44px;
+ font-size:15px;font-weight:850;border:1px solid var(--ink);
+ color:var(--ink);background:#FFFDF9;
+}
+.v6-directory-more:hover{background:#F4EFE6}
+.v6-directory-more:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
