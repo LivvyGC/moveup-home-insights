@@ -1,4 +1,6 @@
 import { useEffect, useState, type FormEvent, type ReactNode } from "react";
+import { TenantOrganizationDirectory } from "./TenantOrganizationDirectory";
+import { DIRECTORY_LAST_REVIEWED } from "../data/tenantOrganizations";
 import { type TenantCaseRecord, coverageLabel, increaseLabel, currency, signedCurrency } from "../lib/tenantCase";
 import {
   createDemoRecord, readDemoRegistry, saveDemoRecord, clearDemoRegistry,
@@ -61,9 +63,6 @@ export function TenantIntakeDemo({caseRecord,children,onReceiptChange}:{caseReco
   const [records,setRecords]=useState<DemoRegistryRecord[]>([]);
   const [showRegistry,setShowRegistry]=useState(false);
   const caseFingerprint=JSON.stringify(caseRecord);
-  const hasLAOrdinance=caseRecord.city==="Los Angeles" && caseRecord.rules.some(rule=>
-    rule.title.toLowerCase().includes("stabilization") || rule.title.toLowerCase().includes("rso")
-  );
 
   useEffect(()=>{
     setStatus("idle");setStatusText("");setConsent(false);
@@ -145,21 +144,14 @@ export function TenantIntakeDemo({caseRecord,children,onReceiptChange}:{caseReco
   }
   return <section id="moveup-connect" className="v4-intake-demo v8-support" aria-label="Request tenant support">
     <div className="v4-intake-header">
-      <span>RENTER SUPPORT</span>
-      <h3>{hasLAOrdinance
-        ?"Filed an RSO complaint? Still unhappy with your rent adjustment? Find help now."
-        :"Still unhappy with your rent adjustment? Find help now."}</h3>
-      <p>Your rent figures, market comparison and protection screening are already filled in. Add your contact details to submit the completed assessment.</p>
+      <span>MOVEUP SUPPORT NETWORK</span>
+      <h3>Connect with tenant support</h3>
+      <p>Your assessment is ready. Add your contact details to complete your inquiry.</p>
     </div>
     <div className="v4-demo-delivery">
-      <h4>Your assessment and contact information</h4>
-      <p>The assessment below will be included automatically. No need to re-enter your rent or protection details.</p>
-      {intakeEndpointConfigured
-        ?<p><strong>Demo submission:</strong> Your contact details and renewal summary are sent to a MoveUp-operated demo inbox, not a tenant organization.</p>
-        :<p><strong>Prototype database:</strong> Your contact details and summary are saved in this browser only, not a shared network. No tenant organizations receive them. Use sample contact details for this hackathon demo.</p>}
       <form onSubmit={submitInquiry}>
         <div className="v8-assessment">{children}</div>
-        <h4 className="v8-contact-title">Your contact details</h4>
+        <h4 className="v8-contact-title">Your contact information</h4>
         <div className="v8-contact-fields">
           <label className="v4-field"><span>Full name</span>
             <input aria-label="Full name" autoComplete="name" required maxLength={120} value={contactName}
@@ -176,15 +168,17 @@ export function TenantIntakeDemo({caseRecord,children,onReceiptChange}:{caseReco
         </div>
         <label className="v4-consent"><input aria-label="Consent to record this demo inquiry" type="checkbox" checked={consent}
           onChange={e=>{setConsent(e.target.checked);resetDelivery();}}/>
-          <span>{intakeEndpointConfigured
-            ?"I consent to send my name, email, phone, and renewal summary to MoveUp's demo inbox. No tenant organization receives it."
-            :"I consent to save my name, email, phone, and renewal summary on this device for the MoveUp demo. No tenant organization receives it."}</span>
+          <span>I consent to include my contact details and renewal assessment in this MoveUp demo inquiry.</span>
         </label>
         <button type="submit" disabled={!consent||status==="sending"||status==="success"}>
           {status==="sending"?"Submitting...":intakeEndpointConfigured?"Send to MoveUp demo inbox":"Submit to database"}
         </button>
       </form>
       {statusText?<p role="status" className={"v4-delivery-"+status}>{statusText}</p>:null}
+      <div className="v9-embedded-network" aria-label={"Potential tenant support organizations in "+caseRecord.city}>
+        <h4>Tenant organizations in {caseRecord.city}</h4>
+        <TenantOrganizationDirectory city={caseRecord.city} embedded/>
+      </div>
       <details className="v6-demo-tools">
         <summary>Hackathon demo tools: local inquiry records</summary>
         <div className="v4-registry-toolbar">
@@ -204,6 +198,12 @@ export function TenantIntakeDemo({caseRecord,children,onReceiptChange}:{caseReco
             </div>)}
         </div>:null}
       </details>
+      <p className="v9-demo-note">
+        {intakeEndpointConfigured
+          ?"Hackathon demo: submissions reach the MoveUp demo inbox, not these organizations."
+          :"Hackathon demo: submissions are saved in this browser only. The organizations above are public examples, not connected recipients."}
+        {" "}Listings checked {DIRECTORY_LAST_REVIEWED}. Use sample contact details.
+      </p>
     </div>
   </section>;
 }
