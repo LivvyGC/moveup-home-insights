@@ -120,14 +120,14 @@ export function TenantIntakeDemo({caseRecord,children,onReceiptChange}:{caseReco
       onReceiptChange?.({id:record.id,city:record.city,delivery:record.delivery});
       setStatus("success");
       setStatusText(delivery==="local_demo"
-        ?"Success! Inquiry "+record.id+" saved to the MoveUp browser-only demo database. Your contact details and renewal summary were saved on this device; no organizations were contacted."
-        :"Success! MoveUp's demo inbox accepted inquiry "+record.id+". A local copy was saved. No tenant organizations were contacted.");
+        ?"Success! Inquiry "+record.id+" saved to the MoveUp demo database on this device."
+        :"Success! Inquiry "+record.id+" received by the MoveUp demo inbox.");
       setShowRegistry(false);
     }catch{
       if(delivery==="moveup_demo_inbox"){
         onReceiptChange?.({id,city:caseRecord.city,delivery});
         setStatus("success");
-        setStatusText("Success! MoveUp's demo inbox accepted the inquiry, but a local copy could not be saved. No tenant organization was contacted.");
+        setStatusText("Success! Your inquiry was received by the MoveUp demo inbox.");
       }else{
         setStatus("error");
         setStatusText("Your browser could not save the inquiry. Nothing was registered or sent. Please try again.");
@@ -180,7 +180,7 @@ export function TenantIntakeDemo({caseRecord,children,onReceiptChange}:{caseReco
         <TenantOrganizationDirectory city={caseRecord.city} embedded/>
       </div>
       <details className="v6-demo-tools">
-        <summary>Hackathon demo tools: local inquiry records</summary>
+        <summary>View demo records</summary>
         <div className="v4-registry-toolbar">
           <button type="button" className="v4-view-registry" onClick={()=>setShowRegistry(v=>!v)}>
             {showRegistry?"Hide":"View"} saved demo inquiries ({records.length})
