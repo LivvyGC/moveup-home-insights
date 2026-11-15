@@ -33,7 +33,7 @@ export function RenewalPage(){
   const [example,setExample]=useState(false);
   const [submitted,setSubmitted]=useState<{city:City;current:number;offered:number;effective:string}|null>(null);
   const [error,setError]=useState("");
-  const resultRef=useRef<HTMLElement|null>(null);
+  const resultRef=useRef<HTMLDivElement|null>(null);
   const [stateCoverage,setStateCoverage]=useState<Coverage>("unknown");
   const [localCoverage,setLocalCoverage]=useState<Coverage>("unknown");
   const [priorIncrease,setPriorIncrease]=useState<IncreaseHistory>("unknown");
@@ -92,7 +92,7 @@ export function RenewalPage(){
   const costs=valid?renewalScenarios({
     currentRent:sCurrent,offeredRent:sOffered,months,
     alternativeRent:n(alternative),movingCost:n(moving),securityDeposit:n(deposit),
-    homePrice:n(price),downPayment:n(down),aprPercent:n(rate),loanYears:Number(loanYears),
+    homePrice:n(price),downPayment:n(down),aprPercent:n(rate)!==null&&n(rate)!<=100?n(rate):null,loanYears:Number(loanYears),
     propertyTaxMonthly:n(tax),insuranceMonthly:n(insurance),otherMonthly:n(other),closingCost:n(closing),
   }):null;
   const info=officialActions[sCity];
@@ -134,7 +134,7 @@ export function RenewalPage(){
         </form>
       </section>
 
-      {submitted&&finding?<div className="mv-results" ref={resultRef as React.Ref<HTMLDivElement>}>
+      {submitted&&finding?<div className="mv-results" ref={resultRef}>
         <section className="mv-result-hero" aria-live="polite">
           <span>02 / YOUR RENT CHANGE</span>
           <div className="mv-decision">{rentChange>0?"+":""}{money(rentChange)}<small> / month</small></div>
