@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { TenantOrganizationDirectory } from "./TenantOrganizationDirectory";
+import { organizationsForCity } from "../data/tenantOrganizations";
 import { type TenantCaseRecord, coverageLabel, increaseLabel, currency, signedCurrency } from "../lib/tenantCase";
 import {
   createDemoRecord, readDemoRegistry, saveDemoRecord,
@@ -183,7 +184,7 @@ export function TenantIntakeDemo({caseRecord}:{caseRecord:TenantCaseRecord}) {
         <span><strong>I'm interested in tenant organizing</strong><small>Learn how renters can connect and organize collectively.</small></span>
       </label>
     </div>
-    <TenantOrganizationDirectory city={caseRecord.city}/>
+    <details className="v6-directory-disclosure"><summary>Explore {organizationsForCity(caseRecord.city).length} local renter organizations</summary><TenantOrganizationDirectory city={caseRecord.city}/></details>
     {assistance?<div className="v4-intake-controls">
       <label className="v4-field"><span>What do you need help with?</span>
         <select aria-label="Reason for tenant support" value={concern} onChange={e=>{setConcern(e.target.value as Concern);resetDelivery();}}>
