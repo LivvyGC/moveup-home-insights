@@ -97,8 +97,6 @@ export function RenewalPage(){
   const hasLocalRule=rules.some(check=>check.rule.type==="city");
   const primaryRule=rules.find(check=>check.rule.type==="city")??rules[0];
   const supportAction=finding?.action==="check_rent_limits"||finding?.action==="review_notice";
-  const legalLink= finding?.actionUrl??"";
-  const legalLabel= finding?.actionName??"";
   const caseRecord=submitted&&finding&&assessment?buildTenantCase({
     city:submitted.city,bedrooms:marketLabel,currentRent:submitted.current,offeredRent:submitted.offer,
     effectiveDate:submitted.effective,periodMonths:months,benchmark,benchmarkMonth,
