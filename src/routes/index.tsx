@@ -284,7 +284,7 @@ export function RenewalPage(){
                 </dl>
               </div>
               <div className="v4-summary-group">
-                <h3>Your assessment</h3>
+                <h3>Market &amp; protections</h3>
                 <dl className="v4-summary-list">
                   <div><dt>Market difference</dt><dd>{benchmark===null?"Unavailable":signedMoney(assessment.difference??0)+" ("+signedPct(assessment.differencePct??0)+")"}</dd></div>
                   <div><dt>Legal screening</dt><dd>{statusLabel}</dd></div>
