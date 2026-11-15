@@ -211,7 +211,7 @@ html{scroll-behavior:smooth}
 .v4-demo-delivery button{padding:12px 17px;background:var(--ink);color:#fff;border:1px solid var(--ink);font-weight:850}
 .v4-demo-delivery button:disabled{opacity:.5;cursor:not-allowed}
 .v4-demo-unavailable{background:#ECE9E1;padding:12px}
-.v4-delivery-success{color:#21613A;font-weight:750}
+.v4-delivery-success{color:#1A5D36;font-weight:750;background:#E9F5EB;border:1px solid #91B9A0;border-radius:10px;padding:14px 16px;max-width:620px}
 .v4-delivery-error{color:#9D2828;font-weight:750}
 @media(max-width:750px){
  .v4-law-grid,.v4-history-row,.v4-summary-groups{grid-template-columns:1fr}
