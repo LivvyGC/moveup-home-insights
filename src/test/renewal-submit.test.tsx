@@ -36,7 +36,7 @@ describe("V4 renter flow",()=>{
  it("displays bedroom-matched benchmark and dated source",()=>{
   render(<RenewalPage/>);fill({offer:"2200",bedrooms:"2br"});submit();
   expect(screen.getAllByText("$2,377.00").length).toBeGreaterThan(0);
-  expect(screen.getByText(/Apartment List · 2026-10/)).toBeTruthy();
+  expect(screen.getAllByText(/Apartment List · 2026-10/).length).toBeGreaterThan(0);
   expect(screen.getByRole("img",{name:/Your offer.*benchmark/})).toBeTruthy();
  });
  it("unsupported bedrooms never display a made-up benchmark",()=>{
