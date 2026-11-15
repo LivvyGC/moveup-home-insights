@@ -21,11 +21,10 @@ describe("0–100 local-first score",()=>{
     expect(verdictFor(59)).toBe("MIXED");
     expect(verdictFor(60)).toBe("BUY");
   });
-  it("national odds alone cannot reach BUY",()=>{
-    const a=assessCity({city:neutralCity,market:mk(0,0),timeline:6,fedProbability:0,mortgageProbability:0});
-    expect(a.score).toBe(60-0); // 22.5 + 17.5 + 20
-    const b=assessCity({city:{...neutralCity,property_tax_rate:0.0126},market:mk(0,0),timeline:6,fedProbability:0,mortgageProbability:0});
-    expect(b.verdict).toBe("MIXED");
+  it("national odds alone stay MIXED with neutral city and tax (today's odds)",()=>{
+    const a=assessCity({city:neutralCity,market:mk(0,0),timeline:6,fedProbability:0.35,mortgageProbability:3.2});
+    expect(a.score).toBe(59); // 22.5 + 17.5 + 19.64, floored
+    expect(a.verdict).toBe("MIXED");
   });
   it("city trend: ±5% yearly (±1.5% for 3-month timelines) is the extreme",()=>{
     expect(localTrendRating(mk(0,5),6)).toBe(100);

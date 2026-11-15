@@ -77,7 +77,8 @@ export function assessCity(input: {
     return { verdict: "MIXED", score: null, local, policy, national, weights,
       reason: "Local historical data unavailable; no location-specific verdict generated.", available: false };
   }
-  const score = Math.round(local * weights.local + policy * weights.policy + national * weights.national);
+  // Floor keeps the shown whole number consistent with the bands (59.6 shows 59, MIXED).
+  const score = Math.floor(local * weights.local + policy * weights.policy + national * weights.national + 1e-9);
   return { verdict: verdictFor(score), score, local, policy, national, weights,
     reason: "Experimental 0–100 score from past city price trend, illustrative tax cost and national market odds; not a forecast.",
     available: true };
