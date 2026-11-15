@@ -471,3 +471,10 @@ html{scroll-behavior:smooth}
 }
 .v6-directory-more:hover{background:#F4EFE6}
 .v6-directory-more:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
+
+/* Reading floor for customer-visible labels on desktop and mobile. */
+.v4-law-top,.v4-action-number,.v4-intake-header>span,.v4-organizer-head,
+.v4-result-eyebrow,.v4-example,.v4-intake-disclaimer{font-size:14px}
+.v4-market-stats>div>span,.v4-market .v4-muted{font-size:15px}
+.v4-protections .v4-field>span,.v4-protections .v4-field select,
+.v4-history-row .v4-field>span,.v4-history-row .v4-field select{font-size:16px}
