@@ -62,6 +62,14 @@ describe("V4 renter flow",()=>{
   expect(screen.getAllByText(/Apartment List · 2026-10/).length).toBeGreaterThan(0);
   expect(screen.getByRole("img",{name:/Your offer.*benchmark/})).toBeTruthy();
  });
+ it("uses the below-benchmark state when the renewal offer is lower",()=>{
+  const {container}=render(<RenewalPage/>);fill({offer:"2200",bedrooms:"2br"});submit();
+  expect(screen.getByText("Below city benchmark")).toBeTruthy();
+  const bars=container.querySelectorAll(".v7-market-bar-fill") as NodeListOf<HTMLDivElement>;
+  expect(bars).toHaveLength(2);
+  expect(parseFloat(bars[0].style.width)).toBe(100);
+  expect(parseFloat(bars[1].style.width)).toBeLessThan(100);
+ });
  it("unsupported bedrooms never display a made-up benchmark",()=>{
   render(<RenewalPage/>);fill({bedrooms:"other"});submit();
   expect(screen.getByText("Market benchmark not available")).toBeTruthy();
@@ -89,19 +97,46 @@ describe("V4 renter flow",()=>{
   expect(screen.getAllByText(/No earlier increases reported/).length).toBeGreaterThan(0);
   expect(screen.getByText("RENTER INQUIRY PREVIEW")).toBeTruthy();
  });
- it("skips redundant action cards and keeps optional negotiation accessible",()=>{
+ it("does not show redundant action cards or an unrelated complaint prompt",()=>{
   const {container}=render(<RenewalPage/>);fill({offer:"2010",bedrooms:"2br"});submit();
   expect(screen.queryByText("What would you like to do?")).toBeNull();
   expect(container.querySelector(".v4-action-grid")).toBeNull();
+  expect(container.querySelector(".v4-negotiation-inline")).toBeNull();
+  expect(screen.queryByText(/Draft a message to your landlord/)).toBeNull();
+  expect(screen.queryByRole("link",{name:/Open official LA complaint page/})).toBeNull();
   expect(screen.getByText("Your protections")).toBeTruthy();
   expect(screen.getByText("Connect with tenant support")).toBeTruthy();
-  const details=container.querySelector(".v4-negotiation-inline") as HTMLDetailsElement;
-  expect(details).toBeTruthy();
-  expect(details.open).toBe(false);
-  fireEvent.click(screen.getByText("Want to negotiate? Draft a message to your landlord"));
-  expect(details.open).toBe(true);
-  expect((screen.getByRole("textbox",{name:"Draft landlord request"}) as HTMLTextAreaElement).value).toContain("$2010.00");
-  expect(screen.getByRole("button",{name:"Copy message"})).toBeTruthy();
+ });
+ it("shows LA Housing complaint guidance for a possible local RSO concern, without claiming to file",()=>{
+  render(<RenewalPage/>);fill({offer:"3000",bedrooms:"2br"});submit();
+  const link=screen.getByRole("link",{name:/Open official LA complaint page/});
+  expect(link.getAttribute("href")).toBe("https://housing.lacity.gov/residents/file-a-rso-complaint");
+  expect(link.getAttribute("target")).toBe("_blank");
+  expect(screen.getByText(/MoveUp does not submit complaints/)).toBeTruthy();
+  expect(screen.getByText(/eligibility must be verified/i)).toBeTruthy();
+  fireEvent.change(screen.getByLabelText("Local rent control coverage"),{target:{value:"no"}});
+  expect(screen.queryByRole("link",{name:/Open official LA complaint page/})).toBeNull();
+  fireEvent.change(screen.getByLabelText("Local rent control coverage"),{target:{value:"yes"}});
+  expect(screen.getByRole("link",{name:/Open official LA complaint page/})).toBeTruthy();
+ });
+ it("never shows LA's RSO complaint form to non-LA renters",()=>{
+  render(<RenewalPage/>);
+  fireEvent.change(screen.getByLabelText("City"),{target:{value:"San Francisco"}});
+  fill({offer:"3000",bedrooms:"2br"});submit();
+  expect(screen.queryByRole("link",{name:/Open official LA complaint page/})).toBeNull();
+ });
+ it("shows clear same-scale benchmark bars and arithmetic differences",()=>{
+  const {container}=render(<RenewalPage/>);
+  fireEvent.click(screen.getByRole("button",{name:"Fill with example numbers"}));
+  submit();
+  expect(screen.getByText("Above city benchmark")).toBeTruthy();
+  const bars=container.querySelectorAll(".v7-market-bar-fill") as NodeListOf<HTMLDivElement>;
+  expect(bars).toHaveLength(2);
+  expect(parseFloat(bars[0].style.width)).toBeCloseTo(100*2377/2650,3);
+  expect(parseFloat(bars[1].style.width)).toBe(100);
+  expect(screen.getByText("+11.49%")).toBeTruthy();
+  expect(screen.getByText("+$273.00 / month")).toBeTruthy();
+  expect(screen.getByText(/Bar lengths use the same dollar scale/)).toBeTruthy();
  });
  it("shows city and statewide protection cards together in source order",()=>{
   const {container}=render(<RenewalPage/>);fill({offer:"3000"});submit();
