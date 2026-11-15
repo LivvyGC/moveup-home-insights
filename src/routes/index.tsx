@@ -5,7 +5,7 @@ import { combineSignals, type CityData, type CombineResult, type Direction } fro
 import { SIGNAL_A, SIGNAL_B } from "@/lib/config";
 import { fetchSignal, type SignalResult } from "@/lib/signalClient";
 import { fetchCityMarketFn, type MarketResponse } from "@/lib/cityMarket.functions";
-import { assessCity, type LocalAssessment } from "@/lib/localDecision";
+import { assessCity, scoreLabel, type LocalAssessment } from "@/lib/localDecision";
 import { policiesFor } from "@/lib/policyIndicators";
 
 const cityList = cities as CityData[];
@@ -81,7 +81,7 @@ function App(){
       } : null;
       const local=assessCity({
         city,market:history,timeline:Number(timeline),
-        fed:result.signal_a_direction,mortgage:result.signal_b_direction,
+        fedProbability:a.probability,mortgageProbability:b.probability,
       });
       setAnalysis({a,b,result,market,local});
     } catch {setError("Unable to calculate this scenario. Check the inputs.");}
@@ -144,7 +144,7 @@ function App(){
             <div className="verdict-body">
               <div className="micro">02 / VERDICT</div>
               <div className="big">{loading?"…":local?local.verdict:"—"}</div>
-              {local&&!loading?<div className="desc">{local.available?"Experimental score. Not a forecast.":"No city data, so no verdict."}</div>:null}
+              {local&&!loading?<div className="desc">{local.available&&local.score!=null?<><b>{local.score} / 100 · {scoreLabel(local.score)}</b><br/>Experimental score. Not a forecast.</>:"No city data, so no verdict."}</div>:null}
             </div>
           </section>
           <section className="local-insights" aria-labelledby="local-insights-title">
@@ -170,10 +170,14 @@ function App(){
               <p className="local-note">Eligibility varies. Not applied to your costs.</p>
             </div>
             <div className="weights">
-              <div><span>City price trend</span><b>45%</b></div>
-              <div><span>Tax cost</span><b>35%</b></div>
-              <div><span>National odds</span><b>20%</b></div>
-              <div><span>Score</span><b>{local?.score==null?"—":local.score.toFixed(2)}</b></div>
+              {([["City price trend","45%",local?.local],["Tax cost","35%",local?.policy],["National odds","20%",local?.national]] as const).map(([name,w,v])=>
+                <div key={name} className="factor">
+                  <span>{name} <em>{w}</em></span>
+                  <b>{loading||v==null?"—":Math.round(v)+" / 100"}</b>
+                  <i className="bar" aria-hidden="true"><i style={{width:(loading||v==null?0:v)+"%"}}/></i>
+                </div>)}
+              <div className="total"><span>Score</span><b>{loading||local?.score==null?"—":local.score+" / 100"}</b></div>
+              <p className="scale">0–39 WAIT · 40–59 MIXED · 60–100 BUY</p>
             </div>
           </section>
           <section className="breakdown">

@@ -1,9 +1,10 @@
-
 // Experimental, uncalibrated prototype weighting — not a financial recommendation.
-// 45% local momentum, 35% illustrative property-tax-cost pressure, 20% national odds.
+// PM-approved 0–100 scale (2026-11-15): each factor is rated 0–100 (50 = neutral),
+// then weighted 45% city price trend, 35% tax cost, 20% national odds.
+// Score < 40 → WAIT, 40–59 → MIXED, ≥ 60 → BUY. National odds alone cannot reach BUY.
 // Policy statutes and exemptions displayed elsewhere are informational and are NOT
 // treated as automatically available personal benefits.
-import type { CityData, Direction, Verdict } from "./combineSignals";
+import type { CityData, Verdict } from "./combineSignals";
 export interface CityMarketRecord {
   city: string; state: string; month: string;
   typicalHomeValue: number | null;
@@ -20,51 +21,65 @@ export interface CityMarketSnapshot {
 }
 export interface LocalAssessment {
   verdict: Verdict; score: number | null;
+  /** 0–100 factor ratings; higher favors buying now. */
   local: number | null; policy: number; national: number;
   weights: {local:number;policy:number;national:number};
   reason: string; available: boolean;
 }
-function directionScore(d: Direction): number {
-  return d==="BUY"?1:d==="WAIT"?-1:0;
-}
-// Strong *past* local momentum is interpreted as cost-of-waiting pressure,
-// not as a probability of future gains. Separate metrics have separate units.
-export function localMomentum(city: CityMarketRecord | null | undefined, timeline: number): number | null {
+export const WEIGHTS = { local: 0.45, policy: 0.35, national: 0.20 } as const;
+export const BUY_AT = 60;
+export const WAIT_BELOW = 40;
+const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
+const r1 = (v: number) => Math.round(v * 10) / 10;
+
+// Rising *past* prices are read as cost-of-waiting pressure, not a forecast of gains.
+// Timeline ≤ 3 months uses the 3-month change (±1.5% = extreme), otherwise 1-year (±5%).
+export function localTrendRating(city: CityMarketRecord | null | undefined, timeline: number): number | null {
   if (!city) return null;
   const recent = timeline <= 3;
   const change = recent ? city.lastThreeMonthsPct : city.yearOverYearPct;
-  if (change===null || !Number.isFinite(change)) return null;
-  const threshold=recent?0.75:2;
-  if (change>threshold) return 1;
-  if (change< -threshold) return -1;
-  return 0;
+  if (change === null || !Number.isFinite(change)) return null;
+  const extreme = recent ? 1.5 : 5;
+  return r1(50 + 50 * clamp(change / extreme, -1, 1));
 }
-export function taxCostPressure(city: CityData): number {
-  // Illustrative local tax rate, NOT a verified effective tax rate for a property.
-  const t=city.property_tax_rate;
-  if (!Number.isFinite(t) || t<0) throw new Error("Invalid tax assumption");
-  if (t<0.010) return 1;
-  if (t>0.015) return -1;
-  return 0;
+// Illustrative city tax rate, NOT a verified effective rate. 0.5% → 100, 2.0% → 0.
+export function taxRating(city: CityData): number {
+  const t = city.property_tax_rate;
+  if (!Number.isFinite(t) || t < 0) throw new Error("Invalid tax assumption");
+  return r1(clamp((0.02 - t) / 0.015, 0, 1) * 100);
+}
+// Low odds of a Fed cut / mortgage rates below 6% mean little reason to wait.
+export function nationalRating(fedProbability: number, mortgageProbability: number): number {
+  for (const p of [fedProbability, mortgageProbability])
+    if (!Number.isFinite(p) || p < 0 || p > 100) throw new Error("Invalid probability");
+  return r1(100 - (fedProbability + mortgageProbability) / 2);
+}
+export function verdictFor(score: number): Verdict {
+  return score >= BUY_AT ? "BUY" : score < WAIT_BELOW ? "WAIT" : "MIXED";
+}
+export function scoreLabel(score: number): string {
+  const v = verdictFor(score);
+  return v === "BUY" ? "Leaning buy" : v === "WAIT" ? "Leaning wait" : "No clear edge";
 }
 export function assessCity(input: {
-  city:CityData; market:CityMarketRecord|null|undefined;
-  timeline:number; fed:Direction; mortgage:Direction;
+  city: CityData; market: CityMarketRecord | null | undefined;
+  timeline: number; fedProbability: number; mortgageProbability: number;
 }): LocalAssessment {
-  const {city,market,timeline,fed,mortgage}=input;
-  if (!Number.isFinite(timeline)||![1,3,6].includes(timeline))
+  const { city, market, timeline } = input;
+  if (!Number.isFinite(timeline) || ![1, 3, 6].includes(timeline))
     throw new Error("Invalid timeline");
-  const local=localMomentum(market,timeline);
-  const policy=taxCostPressure(city);
-  const national=(directionScore(fed)+directionScore(mortgage))/2;
-  const weights={local:0.45,policy:0.35,national:0.20};
+  const local = localTrendRating(market, timeline);
+  const policy = taxRating(city);
+  const national = nationalRating(input.fedProbability, input.mortgageProbability);
+  const weights = { ...WEIGHTS };
   // Missing essential local data means no confident location-specific verdict.
-  if (local===null) {
-    return {verdict:"MIXED",score:null,local,policy,national,weights,
-      reason:"Local historical data unavailable; no location-specific verdict generated.",available:false};
+  if (local === null) {
+    return { verdict: "MIXED", score: null, local, policy, national, weights,
+      reason: "Local historical data unavailable; no location-specific verdict generated.", available: false };
   }
-  const score=Number((local*weights.local+policy*weights.policy+national*weights.national).toFixed(4));
-  const verdict: Verdict = score>0.15?"BUY":score< -0.15?"WAIT":"MIXED";
-  return {verdict,score,local,policy,national,weights,
-    reason:"Experimental weighted classification based on past city momentum, illustrative local tax-cost pressure, and national prediction-market signals; not a validated forecast.",available:true};
+  // Floor keeps the shown whole number consistent with the bands (59.6 shows 59, MIXED).
+  const score = Math.floor(local * weights.local + policy * weights.policy + national * weights.national + 1e-9);
+  return { verdict: verdictFor(score), score, local, policy, national, weights,
+    reason: "Experimental 0–100 score from past city price trend, illustrative tax cost and national market odds; not a forecast.",
+    available: true };
 }

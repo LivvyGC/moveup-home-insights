@@ -220,6 +220,12 @@ body,button,input,select,textarea,.topright,.eyebrow,.field label,.help,.tiny,.n
 .local-forecast{margin-top:16px;}
 .weights{margin-top:20px;}
 .weights>div:first-child{border-top:0;}
-.weights>div:last-child b{font-size:20px;}
+
 .verdict .desc{margin:0;}
 footer{justify-content:center;}
+.weights>.factor{display:grid;grid-template-columns:1fr auto;row-gap:8px;}
+.weights .factor em{font-style:normal;color:var(--mu-19);margin-left:6px;}
+.weights .bar{grid-column:1/-1;display:block;height:6px;background:var(--mu-13);}
+.weights .bar>i{display:block;height:100%;background:var(--signal);}
+.weights>.total b{font-size:22px;}
+.weights>p.scale{font-size:14px;margin:10px 0 0;color:var(--mu-19);}
