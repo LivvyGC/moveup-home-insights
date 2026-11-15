@@ -43,12 +43,11 @@ export function RenewalPage(){
   const [priorIncrease,setPriorIncrease] = useState<IncreaseHistory>("unknown");
   const [noticeReceived,setNoticeReceived] = useState("");
   const [period,setPeriod] = useState("12");
-  const [showRequest,setShowRequest] = useState(false);
   const output = useRef<HTMLDivElement|null>(null);
 
   const resetReview=()=>{
     setStateCoverage("unknown");setLocalCoverage("unknown");setPriorIncrease("unknown");
-    setNoticeReceived("");setPeriod("12");setShowRequest(false);
+    setNoticeReceived("");setPeriod("12");
   };
   const resetOnEdit=()=>{setSubmitted(null);setError("");setExample(false);resetReview();};
   const clear=()=>{
@@ -179,33 +178,18 @@ export function RenewalPage(){
               <p className="v4-muted">City estimate, not a property appraisal. Price relative to market does not establish whether a renewal is lawful.</p>
             </div>}
         </section>
-        <section className="v4-section v4-action-paths" aria-label="Choose how to take action">
-          <div className="v4-heading"><h2>What would you like to do?</h2></div>
-          <p className="v4-section-intro">You can take action even when your rent increase is legal. Choose what matters to you.</p>
-          <div className="v4-action-grid">
+        <details className="v4-negotiation-inline">
+          <summary>Want to negotiate? Draft a message to your landlord</summary>
+          <div className="v4-negotiation-content">
+            <p>You can ask for better terms even when the increase is legal. Use this editable template as a starting point.</p>
+            {supportAction?<p>You may also want to <a href={finding.eligibilityUrl} target="_blank" rel="noopener noreferrer">check official coverage guidance</a>.</p>:null}
+            <textarea aria-label="Draft landlord request" defaultValue={negotiationMessage(submitted.city,submitted.current,submitted.offer)} rows={8} key={submitted.city+"-"+submitted.current+"-"+submitted.offer}/>
             <button type="button" onClick={()=>{
-              setShowRequest(true);
-              if(typeof requestAnimationFrame==="function")requestAnimationFrame(()=>document.getElementById("moveup-negotiate")?.scrollIntoView?.({behavior:"smooth",block:"start"}));
-            }}>
-              <span className="v4-action-number">01</span>
-              <strong>Negotiate my renewal</strong>
-              <span>Prepare a message asking for better terms or an explanation.</span>
-              <span className="v4-action-arrow" aria-hidden="true">→</span>
-            </button>
-            <a href="#moveup-protections">
-              <span className="v4-action-number">02</span>
-              <strong>Check my protections</strong>
-              <span>Explore relevant laws without assuming your landlord broke one.</span>
-              <span className="v4-action-arrow" aria-hidden="true">→</span>
-            </a>
-            <a href="#moveup-connect">
-              <span className="v4-action-number">03</span>
-              <strong>Connect with tenant support</strong>
-              <span>Request help, learn about organizing, or choose both.</span>
-              <span className="v4-action-arrow" aria-hidden="true">→</span>
-            </a>
+              const textarea=document.querySelector<HTMLTextAreaElement>(".v4-negotiation-inline textarea");
+              if(textarea&&typeof navigator!=="undefined"&&navigator.clipboard?.writeText) void navigator.clipboard.writeText(textarea.value);
+            }}>Copy message</button>
           </div>
-        </section>
+        </details>
         <section id="moveup-protections" className="v4-section v4-protections">
           <div className="v4-heading"><h2>Your protections</h2><span className="v4-legal-status">{statusLabel}</span></div>
           <p className="v4-section-intro">Explore published rent protections that may apply in {submitted.city}. Your building and rental history determine eligibility, so these are guides rather than a legal decision.</p>
@@ -257,19 +241,6 @@ export function RenewalPage(){
           <p className="v4-muted">Coverage and exceptions must be checked before any legal conclusion.</p>
           </div>
         </section>
-        {showRequest?<section id="moveup-negotiate" className="v4-section v4-negotiation"> 
-          <div className="v4-heading"><h2>Negotiate your renewal</h2></div>
-          <div className="v4-card v4-action">
-            <strong>You can request different terms whether or not an increase is legal.</strong>
-            <p>Use your renewal figures to ask your landlord for a written explanation or a lower rate.</p>
-            {supportAction?<p className="v4-minor-link">You may also want to review your eligibility. <a href={finding.eligibilityUrl} target="_blank" rel="noopener noreferrer">Check official coverage guidance</a></p>:null}
-            <details className="v4-request" open={showRequest} onToggle={e=>setShowRequest(e.currentTarget.open)}>
-              <summary>Review and copy a landlord request</summary>
-              <textarea aria-label="Draft landlord request" readOnly rows={8} value={negotiationMessage(submitted.city,submitted.current,submitted.offer)} />
-              <button type="button" onClick={()=>{if(typeof navigator!=="undefined"&&navigator.clipboard?.writeText) void navigator.clipboard.writeText(negotiationMessage(submitted.city,submitted.current,submitted.offer));}}>Copy request</button>
-            </details>
-          </div>
-        </section>:null}
         {caseRecord?<TenantIntakeDemo key={submitted.city+"-"+submitted.effective+"-"+submitted.offer} caseRecord={caseRecord}/>:null}
         <section className="v4-section v4-report" aria-label="Tenant support summary">
           <div className="v4-heading"><h2>Save your renewal summary</h2></div>
