@@ -110,7 +110,10 @@ export function RenewalPage(){
     <header className="v4-header">
       <div className="v4-container v4-nav">
         <strong className="v4-logo"><House size={28} strokeWidth={2.5} aria-hidden="true"/> MOVEUP</strong>
-        <span>RENEWAL CHECK</span>
+        <nav className="v8-nav" aria-label="Main navigation">
+          <a className="v8-nav-link" href="/" aria-current="page">RENEWAL CHECK</a>
+          <a className="v8-nav-link" href="/ai-usage">AI USAGE</a>
+        </nav>
         <details className="v4-about"><summary>ABOUT US</summary><div className="v4-about-panel">
           <strong>MOVEUP TEAM</strong>
           <a href="https://www.linkedin.com/in/laila-archer-21a482448/" target="_blank" rel="noopener noreferrer">Laila Archer</a>
