@@ -1008,3 +1008,31 @@ html{scroll-behavior:smooth}
   .v9-routing-directory .v6-directory{padding:14px!important}
 }
 @media print{.v9-routing{display:none!important}}
+
+
+/* Single visible local organization list; no routing diagram or dropdown. */
+.v9-routing-simple{
+  padding:clamp(17px,2.7vw,28px);
+  margin:20px 0 26px;
+  background:#FFF9F3;
+}
+.v9-routing-simple>h2{
+  font-size:clamp(22px,3.2vw,32px);
+  letter-spacing:-.045em;
+  line-height:1.2;
+  font-weight:850;
+  color:#211A16;
+  margin:0 0 18px;
+}
+.v9-routing-simple .v6-directory{
+  display:block;
+  padding:0!important;
+  margin:0!important;
+  background:transparent;
+  border:0;
+}
+.v9-routing-simple .v6-directory-filters{margin-top:0}
+@media(max-width:580px){
+  .v9-routing-simple{padding:17px}
+  .v9-routing-simple>h2{margin-bottom:15px}
+}
