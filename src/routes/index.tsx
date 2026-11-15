@@ -43,11 +43,12 @@ export function RenewalPage(){
   const [noticeReceived,setNoticeReceived] = useState("");
   const [period,setPeriod] = useState("12");
   const [showRequest,setShowRequest] = useState(false);
+  const [showProtections,setShowProtections] = useState(false);
   const output = useRef<HTMLDivElement|null>(null);
 
   const resetReview=()=>{
     setStateCoverage("unknown");setLocalCoverage("unknown");setPriorIncrease("unknown");
-    setNoticeReceived("");setPeriod("12");setShowRequest(false);
+    setNoticeReceived("");setPeriod("12");setShowRequest(false);setShowProtections(false);
   };
   const resetOnEdit=()=>{setSubmitted(null);setError("");setExample(false);resetReview();};
   const clear=()=>{
@@ -94,14 +95,13 @@ export function RenewalPage(){
   const statusLabel=assessment?.legalScreen==="possible_issue"?"Potential concern: check details":
     assessment?.legalScreen==="needs_information"?"Coverage not confirmed":"No specific concern from entered facts";
   const hasLocalRule=rules.some(check=>check.rule.type==="city");
+  const primaryRule=rules.find(check=>check.rule.type==="city")??rules[0];
   const supportAction=finding?.action==="check_rent_limits"||finding?.action==="review_notice";
-  const legalLink= finding?.actionUrl??"";
-  const legalLabel= finding?.actionName??"";
   const caseRecord=submitted&&finding&&assessment?buildTenantCase({
     city:submitted.city,bedrooms:marketLabel,currentRent:submitted.current,offeredRent:submitted.offer,
     effectiveDate:submitted.effective,periodMonths:months,benchmark,benchmarkMonth,
     assessment,finding,legalStatus:statusLabel,stateCoverage,localCoverage,priorIncrease,noticeReceived,
-    sourceUrl:RESEARCH_URL,supportUrl:supportAction?legalLink:finding.eligibilityUrl,
+    sourceUrl:RESEARCH_URL,supportUrl:finding.eligibilityUrl,
   }):null;
 
   return <div className="v4-app">
@@ -180,14 +180,14 @@ export function RenewalPage(){
           <div className="v4-action-grid">
             <button type="button" onClick={()=>{
               setShowRequest(true);
-              document.getElementById("moveup-negotiate")?.scrollIntoView?.({behavior:"smooth",block:"start"});
+              if(typeof requestAnimationFrame==="function")requestAnimationFrame(()=>document.getElementById("moveup-negotiate")?.scrollIntoView?.({behavior:"smooth",block:"start"}));
             }}>
               <span className="v4-action-number">01</span>
               <strong>Negotiate my renewal</strong>
               <span>Prepare a message asking for better terms or an explanation.</span>
               <span className="v4-action-arrow" aria-hidden="true">→</span>
             </button>
-            <a href="#moveup-protections">
+            <a href="#moveup-protections" onClick={()=>setShowProtections(true)}>
               <span className="v4-action-number">02</span>
               <strong>Check my protections</strong>
               <span>Explore relevant laws without assuming your landlord broke one.</span>
@@ -203,7 +203,15 @@ export function RenewalPage(){
         </section>
         <section id="moveup-protections" className="v4-section v4-protections">
           <div className="v4-heading"><h2>Your protections</h2><span className="v4-legal-status">{statusLabel}</span></div>
-          <p className="v4-section-intro">These published rules may protect your home. Select what you know:your answers are not independently verified.</p>
+          <div className="v6-protections-preview">
+            <div>
+              <strong>{primaryRule?"Published standard: "+primaryRule.rule.cap_pct+"%": "Check current renter protections"}</strong>
+              <p>{primaryRule?"Rent rules may apply to your home in "+submitted.city+". The coverage questions help identify what to check.":"No dated rule is available in the saved records for this date."}</p>
+            </div>
+            <button type="button" aria-expanded={showProtections} onClick={()=>setShowProtections(v=>!v)}>{showProtections?"Hide questions":"Review protections"}</button>
+          </div>
+          {showProtections?<div className="v6-protection-expanded">
+          <p className="v4-section-intro">The rules below depend on your home and rental history. Choose what you know.</p>
           <div className="v4-law-grid">
             {rules.length===0?<div className="v4-card">No dated rule in our stored records for this date. Check official guidance.</div>:
               [...rules].sort((left,right)=>Number(right.rule.type==="city")-Number(left.rule.type==="city")).map(check=>{
@@ -212,7 +220,7 @@ export function RenewalPage(){
                 const isSecondary=hasLocalRule&&check.rule.type==="statewide";
                 const card=<article className={"v4-law-card"+(isSecondary?" v4-law-card-secondary":"")} key={check.rule.id}>
                   <div className="v4-law-top"><span>{check.rule.type==="city"?"CITY PROTECTION":"STATE PROTECTION"}</span><span className="v4-law-shield" aria-hidden="true">✦</span></div>
-                  <h3>{check.rule.title}</h3>
+                  <h3>{check.rule.id==="la-rso"?"Los Angeles rent stabilization":check.rule.id==="sf-rso"?"San Francisco rent control":check.rule.title}</h3>
                   <div className="v4-law-value"><strong>{check.rule.cap_pct}%</strong><span>published {check.rule.type==="city"?"standard adjustment":"rent limit"}</span></div>
                   <p>{check.abovePublishedStandard
                     ?"Your "+change.toFixed(2)+"% proposed increase exceeds this published standard if the rule applies."
@@ -225,14 +233,13 @@ export function RenewalPage(){
                       <option value="no">I believe it's exempt</option>
                     </select>
                   </label>
-                  <span className="v4-law-report">{coverageLabel(selected)}</span>
-                  <details className="v4-law-details"><summary>Who qualifies? · Dates and exceptions</summary>
+                  <details className="v4-law-details"><summary>Who qualifies and what are the exceptions?</summary>
                     <p>{check.rule.conditions}</p>
                     <p>Published for {check.rule.effective_from} to {check.rule.effective_to}. Prior increases and authorized adjustments may change the outcome.</p>
                   </details>
                   <a href={check.rule.source_url} target="_blank" rel="noopener noreferrer">Read official law guidance</a>
                 </article>;
-                return isSecondary?<details className="v4-statewide-disclosure" key={check.rule.id}><summary>Also check statewide protections: {check.rule.cap_pct}% published standard</summary>{card}</details>:card;
+                return isSecondary?<details className="v4-statewide-disclosure" key={check.rule.id}><summary>Statewide protections: {check.rule.cap_pct}%</summary>{card}</details>:card;
               })}
           </div>
           {submitted.city==="Seattle"&&amountChange>0?<div className="v4-card v4-notice-card">
@@ -246,25 +253,27 @@ export function RenewalPage(){
               <select aria-label="Other increases in the last 12 months?" value={priorIncrease} onChange={e=>setPriorIncrease(e.target.value as IncreaseHistory)}>
                 <option value="unknown">I'm not sure</option><option value="none">No</option><option value="yes">Yes</option>
               </select></label>
-            <p>Previous increases may affect how a rent limit applies. <strong>{increaseLabel(priorIncrease)}</strong>.</p>
+            <p>Earlier increases may affect which rent limits apply.</p>
           </div>:null}
-          <p className="v4-muted">These figures are published standards, not a certified legal maximum for your lease. Eligibility, jurisdiction and exceptions require verification.</p>
+          <p className="v4-muted">Coverage and exceptions must be checked before any legal conclusion.</p>
+          </div>:null}
         </section>
-        <section id="moveup-negotiate" className="v4-section v4-negotiation"> 
+        {showRequest?<section id="moveup-negotiate" className="v4-section v4-negotiation"> 
           <div className="v4-heading"><h2>Negotiate your renewal</h2></div>
           <div className="v4-card v4-action">
             <strong>You can request different terms whether or not an increase is legal.</strong>
             <p>Use your renewal figures to ask your landlord for a written explanation or a lower rate.</p>
-            {supportAction?<p className="v4-minor-link">You may also need a protection review. <a href={legalLink} target="_blank" rel="noopener noreferrer">{legalLabel}</a></p>:null}
+            {supportAction?<p className="v4-minor-link">You may also want to review your eligibility. <a href={finding.eligibilityUrl} target="_blank" rel="noopener noreferrer">Check official coverage guidance</a></p>:null}
             <details className="v4-request" open={showRequest} onToggle={e=>setShowRequest(e.currentTarget.open)}>
               <summary>Review and copy a landlord request</summary>
               <textarea aria-label="Draft landlord request" readOnly rows={8} value={negotiationMessage(submitted.city,submitted.current,submitted.offer)} />
               <button type="button" onClick={()=>{if(typeof navigator!=="undefined"&&navigator.clipboard?.writeText) void navigator.clipboard.writeText(negotiationMessage(submitted.city,submitted.current,submitted.offer));}}>Copy request</button>
             </details>
           </div>
-        </section>
+        </section>:null}
+        {caseRecord?<TenantIntakeDemo key={submitted.city+"-"+submitted.effective+"-"+submitted.offer} caseRecord={caseRecord}/>:null}
         <section className="v4-section v4-report" aria-label="Tenant support summary">
-          <div className="v4-heading"><h2>Your renewal summary</h2></div>
+          <div className="v4-heading"><h2>Save your renewal summary</h2></div>
           <div className="v4-card">
             <div className="v4-report-title"><strong>MOVEUP / CASE SUMMARY</strong><span>{submitted.city} · {marketLabel} · starts {submitted.effective}</span></div>
             <div className="v4-summary-groups">
@@ -289,21 +298,32 @@ export function RenewalPage(){
                 </dl>
               </div>
               <div className="v4-summary-group">
-                <h3>Your next step</h3>
-                <p>{finding.heading}. {assessment.legalScreen==="possible_issue"?"Verify the applicable protections and previous notices before taking further action.":"Confirm coverage and review your renewal terms before deciding."}</p>
+                <h3>Next step</h3>
+                <p>Choose negotiation, protection review or tenant support based on what you need. No violation is required to take action.</p>
               </div>
             </div>
             <details className="v4-report-details"><summary>Data, sources and legal qualifications</summary>
               <p>Apartment List · {benchmarkMonth} · city {marketLabel} new-lease benchmark: <a href={RESEARCH_URL} target="_blank" rel="noopener noreferrer">data source</a>. {stale?"Dataset is older than 45 days.":"Dataset is within 45 days."}</p>
               {rules.map(c=><p key={c.rule.id}>{c.rule.title}: {c.rule.cap_pct}% standard, {coverageLabel(c.coverage)}. <a href={c.rule.source_url} target="_blank" rel="noopener noreferrer">Official government source</a>.</p>)}
-              <p>None of these sources verifies your individual rent-law eligibility.</p>
+              <p>Eligibility is not independently verified.</p>
             </details>
             <p className="v4-muted">This summary is renter-prepared, not legal advice. Rent rules and eligibility still need verification.</p>
             <button type="button" className="v4-print-button" onClick={()=>{if(typeof window!=="undefined")window.print();}}>Print / Save as PDF</button>
           </div>
-          {caseRecord?<TenantIntakeDemo key={submitted.city+"-"+submitted.effective+"-"+submitted.offer} caseRecord={caseRecord}/>:null}
         </section>
       </div>:null}
+      <section className="v6-partner-story" aria-label="MoveUp for tenant organizations">
+        <div className="v6-partner-copy">
+          <span className="v6-eyebrow">FOR TENANT ORGANIZATIONS</span>
+          <h2>Reach renters before a crisis.</h2>
+          <p>Everyday rent questions can become opportunities for counseling, negotiation and collective action. MoveUp helps renters prepare those conversations instead of starting with a blank form.</p>
+        </div>
+        <div className="v6-partner-model">
+          <div><strong>Free for renters</strong><span>Offer comparison, renter protections and practical next steps.</span></div>
+          <div><strong>Designed for organizers</strong><span>Voluntary interest, structured case packets and future customizable intake.</span></div>
+          <p>12 researched public organization examples in 4 launch cities. This is a curated sample, not a full market count, partnership claim or paying customer total.</p>
+        </div>
+      </section>
     </main>
     <footer className="v4-container v4-footer">MOVEUP · EDUCATIONAL RENTAL AGREEMENT REVIEW</footer>
   </div>;

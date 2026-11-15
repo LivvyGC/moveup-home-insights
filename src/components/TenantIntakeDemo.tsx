@@ -1,8 +1,10 @@
 import { useEffect, useState, type FormEvent } from "react";
+import { TenantOrganizationDirectory } from "./TenantOrganizationDirectory";
+import { organizationsForCity } from "../data/tenantOrganizations";
 import { type TenantCaseRecord, coverageLabel, increaseLabel, currency, signedCurrency } from "../lib/tenantCase";
 import {
-  CITY_ROUTING, createDemoRecord, readDemoRegistry, saveDemoRecord,
-  clearDemoRegistry, countDemoRecordsByCity,
+  createDemoRecord, readDemoRegistry, saveDemoRecord,
+  clearDemoRegistry,
   type DemoRegistryRecord, type SupportPurpose,
 } from "../lib/demoRegistry";
 
@@ -100,8 +102,6 @@ export function TenantIntakeDemo({caseRecord}:{caseRecord:TenantCaseRecord}) {
   ];
   const packet=composeTenantPacket(caseRecord,concern,available,details,purposes);
   const missing=(Object.keys(evidenceNames) as Evidence[]).filter(k=>!available.includes(k));
-  const routing=CITY_ROUTING[caseRecord.city];
-  const counts=countDemoRecordsByCity(records);
   const resetDelivery=()=>{setStatus("idle");setStatusText("");setConsent(false);};
   const toggle=(key:Evidence)=>{
     setAvailable(prev=>prev.includes(key)?prev.filter(k=>k!==key):[...prev,key]);
@@ -151,13 +151,13 @@ export function TenantIntakeDemo({caseRecord}:{caseRecord:TenantCaseRecord}) {
       setRecords(result);
       setStatus("success");
       setStatusText(delivery==="local_demo"
-        ?"Saved in this browser's "+routing.label+" demo registry. No tenant unions were notified."
-        :"Accepted by the configured MoveUp demo inbox and saved to this browser's registry. No tenant unions were notified.");
-      setShowRegistry(true);
+        ?"Inquiry "+record.id+" saved on this device for "+caseRecord.city+". No organizations were contacted."
+        :"MoveUp demo inbox accepted the inquiry. A local copy was saved. No tenant organizations were contacted.");
+      setShowRegistry(false);
     }catch{
       if(delivery==="moveup_demo_inbox"){
         setStatus("success");
-        setStatusText("The MoveUp demo inbox accepted this inquiry, but this browser could not save a local copy. No tenant unions were notified.");
+        setStatusText("The MoveUp demo inbox accepted this inquiry, but a local copy was not saved. No tenant organizations were contacted.");
       }else{
         setStatus("error");
         setStatusText("This browser could not save the inquiry. Nothing was registered or sent. Download the case packet instead.");
@@ -184,6 +184,7 @@ export function TenantIntakeDemo({caseRecord}:{caseRecord:TenantCaseRecord}) {
         <span><strong>I'm interested in tenant organizing</strong><small>Learn how renters can connect and organize collectively.</small></span>
       </label>
     </div>
+    <details className="v6-directory-disclosure"><summary>Explore {organizationsForCity(caseRecord.city).length} local renter organizations</summary><TenantOrganizationDirectory city={caseRecord.city}/></details>
     {assistance?<div className="v4-intake-controls">
       <label className="v4-field"><span>What do you need help with?</span>
         <select aria-label="Reason for tenant support" value={concern} onChange={e=>{setConcern(e.target.value as Concern);resetDelivery();}}>
@@ -210,7 +211,7 @@ export function TenantIntakeDemo({caseRecord}:{caseRecord:TenantCaseRecord}) {
       <button type="button" onClick={()=>downloadTenantPacket(packet)}>Download case packet</button>
     </div>
     {preview?<div className="v4-intake-organizer">
-      <div className="v4-intake-organizer-head"><strong>RENTER INQUIRY PREVIEW</strong><span>NOT SENT</span></div>
+      <div className="v4-intake-organizer-head"><strong>RENTER INQUIRY PREVIEW</strong><span>NOT SHARED WITH ANY ORGANIZATION</span></div>
       <p><strong>Interest:</strong> {purposes.length?purposes.map(k=>PURPOSE_NAMES[k]).join("; "):"None selected"}</p>
       <p><strong>Renewal:</strong> {caseRecord.city}, {caseRecord.bedrooms}. {currency(caseRecord.currentRent)} to {currency(caseRecord.offeredRent)}</p>
       <p><strong>Market:</strong> {caseRecord.marketDifference===null?"Benchmark unavailable":signedCurrency(caseRecord.marketDifference)+" versus the city benchmark"}</p>
@@ -223,11 +224,11 @@ export function TenantIntakeDemo({caseRecord}:{caseRecord:TenantCaseRecord}) {
       <p className="v4-intake-disclaimer">Renter-prepared information. A tenant organization has not reviewed or received this packet.</p>
     </div>:null}
     <div className="v4-demo-delivery">
-      <h4>Register your interest</h4>
-      <p>City routing: <strong>{routing.label}</strong>. Connected tenant unions: <strong>{routing.connectedUnions}</strong>.</p>
+      <h4>Keep a copy of your inquiry</h4>
+      <p>You choose whether to contact an organization using its public website. MoveUp does not automatically send this inquiry to any of the groups listed above.</p>
       {intakeEndpointConfigured?
         <p>The configured receiver is a MoveUp demo inbox, not a tenant union. Only a confirmed response can mark it received.</p>
-        :<p>This demo saves your inquiry in this browser only. A tenant union cannot access it remotely.</p>}
+        :<p>For this hackathon demo, you can save the inquiry on this device. No renter information is sent to a tenant organization.</p>}
       <form onSubmit={submitInquiry}>
         {intakeEndpointConfigured?<label className="v4-field"><span>Contact email</span>
           <input aria-label="Contact email" type="email" required autoComplete="email" value={contactEmail}
@@ -236,30 +237,33 @@ export function TenantIntakeDemo({caseRecord}:{caseRecord:TenantCaseRecord}) {
         <label className="v4-consent"><input aria-label="Consent to record this demo inquiry" type="checkbox" checked={consent}
           onChange={e=>setConsent(e.target.checked)}/>
           <span>{intakeEndpointConfigured
-            ?"I consent to send this inquiry and contact email to MoveUp's demo inbox and save a local copy. No tenant unions will be notified."
-            :"I consent to save this case packet in this browser's demo registry. I understand no union or external service receives it."}</span>
+            ?"I consent to send my inquiry and email to MoveUp's demo inbox, not to any listed organization."
+            :"I consent to save this inquiry on my device for demonstration. I understand no organization will receive it."}</span>
         </label>
         <button type="submit" disabled={!consent||purposes.length===0||status==="sending"||status==="success"}>
-          {status==="sending"?"Registering inquiry...":"Submit demo inquiry"}
+          {status==="sending"?"Saving inquiry...":intakeEndpointConfigured?"Send to MoveUp demo inbox":"Save demo inquiry"}
         </button>
       </form>
       {statusText?<p role="status" className={"v4-delivery-"+status}>{statusText}</p>:null}
-      <div className="v4-registry-toolbar">
-        <button type="button" className="v4-view-registry" onClick={()=>setShowRegistry(v=>!v)}>
-          {showRegistry?"Hide":"View"} browser demo registry ({records.length})
-        </button>
-        {records.length>0?<button type="button" className="v4-clear-registry" onClick={clearRegistry}>Clear demo registry</button>:null}
-      </div>
-      {showRegistry?<div className="v4-registry" aria-label="Local demo registry">
-        <strong>Browser demo registry</strong>
-        <p>This list is saved only on this device. It is not a shared service or tenant-union inbox.</p>
-        {(Object.keys(CITY_ROUTING) as Array<keyof typeof CITY_ROUTING>).map(city=>
-          <div className="v4-registry-city" key={city}>
-            <strong>{CITY_ROUTING[city].label}: {counts[city]} {counts[city]===1?"inquiry":"inquiries"}</strong>
-            {records.filter(r=>r.city===city).map(r=>
-              <p key={r.id}><span>{r.id}</span>. {r.purposes.map(p=>PURPOSE_NAMES[p]).join(" and ")}. {r.delivery==="local_demo"?"Saved locally":"MoveUp demo inbox accepted"}.</p>)}
-          </div>)}
-      </div>:null}
+      <details className="v6-demo-tools">
+        <summary>Hackathon demo tools: local inquiry records</summary>
+        <div className="v4-registry-toolbar">
+          <button type="button" className="v4-view-registry" onClick={()=>setShowRegistry(v=>!v)}>
+            {showRegistry?"Hide":"View"} saved demo inquiries ({records.length})
+          </button>
+          {records.length>0?<button type="button" className="v4-clear-registry" onClick={clearRegistry}>Clear saved demo inquiries</button>:null}
+        </div>
+        {showRegistry?<div className="v4-registry" aria-label="Local demo registry">
+          <strong>Local demo records</strong>
+          <p>These are stored only in this browser, not in a shared service or organization inbox.</p>
+          {records.length===0?<p>No inquiries saved on this device.</p>:
+            records.map(record=><div className="v4-registry-city" key={record.id}>
+              <strong>{record.id}</strong>
+              <p>{record.city}: {record.purposes.map(p=>PURPOSE_NAMES[p]).join(" and ")}.
+                {record.delivery==="local_demo"?" Saved on this device.":" Accepted by the MoveUp demo inbox."}</p>
+            </div>)}
+        </div>:null}
+      </details>
     </div>
     <div className="v4-intake-print">
       <strong>TENANT INQUIRY: {purposes.map(p=>PURPOSE_NAMES[p]).join("; ")||"No interest selected"}</strong>
