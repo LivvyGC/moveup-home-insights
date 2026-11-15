@@ -16,7 +16,7 @@ const feedbackUrl = ""; // Add only when the founder provides a working form URL
 const pmms = {rate:"7.11",date:"2026-11-12",url:"https://www.freddiemac.com/pmms"};
 
 function RentField({label,value,onChange,required=false,note,placeholder}:{label:string;value:string;onChange:(s:string)=>void;required?:boolean;note:string;placeholder?:string}){
-  return <label className="mv-field"><strong>{label}</strong><input type="number" min={required?"0.01":"0"} step="any" required={required} placeholder={placeholder??"Enter amount"} value={value} onChange={e=>onChange(e.target.value)}/>{source(note)}</label>;
+  return <label className="mv-field"><strong>{label}</strong><input aria-label={label} type="number" min={required?"0.01":"0"} step="any" required={required} placeholder={placeholder??"Enter amount"} value={value} onChange={e=>onChange(e.target.value)}/>{source(note)}</label>;
 }
 
 export const Route = createFileRoute("/")({
@@ -127,7 +127,7 @@ export function RenewalPage(){
             <label className="mv-field"><strong>City</strong><select value={city} onChange={e=>{setCity(e.target.value as City);setSubmitted(null);setError("");resetFollowups();setExample(false);}}>{cities.map(c=><option key={c}>{c}</option>)}</select>{source("YOUR SELECTION")}</label>
             <RentField label="Current rent / month" value={current} onChange={change(setCurrent)} required note="YOUR CURRENT LEASE"/>
             <RentField label="Offered rent / month" value={offered} onChange={change(setOffered)} required note="YOUR RENEWAL OFFER"/>
-            <label className="mv-field"><strong>New rent takes effect</strong><input type="date" required value={effective} onChange={e=>{setEffective(e.target.value);setSubmitted(null);setError("");setExample(false);resetFollowups();}}/>{source("YOUR RENEWAL NOTICE")}</label>
+            <label className="mv-field"><strong>New rent takes effect</strong><input aria-label="New rent takes effect" type="date" required value={effective} onChange={e=>{setEffective(e.target.value);setSubmitted(null);setError("");setExample(false);resetFollowups();}}/>{source("YOUR RENEWAL NOTICE")}</label>
           </div>
           <button className="mv-launch" type="submit">CHECK MY OFFER</button>
           {error?<p role="alert" className="mv-error">{error}</p>:null}
@@ -172,7 +172,7 @@ export function RenewalPage(){
                 {concerned?<label className="mv-field"><strong>Other rent increases in the last 12 months?</strong><select value={priorIncrease} onChange={e=>setPriorIncrease(e.target.value as IncreaseHistory)}>
                   <option value="unknown">I'm not sure</option><option value="none">None</option><option value="yes">Yes</option>
                 </select>{source("YOUR RENT HISTORY · MAY CHANGE APPLICABLE LIMITS")}</label>:null}
-                {showNotice?<label className="mv-field"><strong>When did you receive written notice?</strong><input type="date" value={noticeReceived} onChange={e=>setNoticeReceived(e.target.value)}/>{source("YOUR INPUT · SEATTLE 180-DAY NOTICE STANDARD")}</label>:null}
+                {showNotice?<label className="mv-field"><strong>When did you receive written notice?</strong><input aria-label="When did you receive written notice?" type="date" value={noticeReceived} onChange={e=>setNoticeReceived(e.target.value)}/>{source("YOUR INPUT · SEATTLE 180-DAY NOTICE STANDARD")}</label>:null}
               </div>
               {checks.map(check=><div className="mv-rule" key={check.rule.id}>
                 <div className="mv-rule-head"><strong>{check.rule.title}</strong><span className={"mv-status "+(check.coverage==="no"?"mv-unknown":"mv-depends")}>{check.coverage==="no"?"REPORTED EXEMPT":"CONDITIONAL"}</span></div>
