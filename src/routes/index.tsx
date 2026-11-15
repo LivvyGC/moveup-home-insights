@@ -208,12 +208,12 @@ export function RenewalPage(){
           <div className="v6-protections-preview">
             <div>
               <strong>{primaryRule?"Published standard: "+primaryRule.rule.cap_pct+"%": "Check current renter protections"}</strong>
-              <p>{primaryRule?"A published rule may apply to your renewal in "+submitted.city+". See coverage and exceptions before drawing a conclusion.":"No dated rule is available in the saved records for this date."}</p>
+              <p>{primaryRule?"Rent rules may apply to your home in "+submitted.city+". The coverage questions help identify what to check.":"No dated rule is available in the saved records for this date."}</p>
             </div>
             <button type="button" aria-expanded={showProtections} onClick={()=>setShowProtections(v=>!v)}>{showProtections?"Hide questions":"Review protections"}</button>
           </div>
           {showProtections?<div className="v6-protection-expanded">
-          <p className="v4-section-intro">These are published standards, not certified limits for your home. Tell us only what you know.</p>
+          <p className="v4-section-intro">The rules below depend on your home and rental history. Choose what you know.</p>
           <div className="v4-law-grid">
             {rules.length===0?<div className="v4-card">No dated rule in our stored records for this date. Check official guidance.</div>:
               [...rules].sort((left,right)=>Number(right.rule.type==="city")-Number(left.rule.type==="city")).map(check=>{
@@ -222,7 +222,7 @@ export function RenewalPage(){
                 const isSecondary=hasLocalRule&&check.rule.type==="statewide";
                 const card=<article className={"v4-law-card"+(isSecondary?" v4-law-card-secondary":"")} key={check.rule.id}>
                   <div className="v4-law-top"><span>{check.rule.type==="city"?"CITY PROTECTION":"STATE PROTECTION"}</span><span className="v4-law-shield" aria-hidden="true">✦</span></div>
-                  <h3>{check.rule.title}</h3>
+                  <h3>{check.rule.title.replace(" (base annual adjustment)","")}</h3>
                   <div className="v4-law-value"><strong>{check.rule.cap_pct}%</strong><span>published {check.rule.type==="city"?"standard adjustment":"rent limit"}</span></div>
                   <p>{check.abovePublishedStandard
                     ?"Your "+change.toFixed(2)+"% proposed increase exceeds this published standard if the rule applies."
@@ -235,14 +235,13 @@ export function RenewalPage(){
                       <option value="no">I believe it's exempt</option>
                     </select>
                   </label>
-                  <span className="v4-law-report">{coverageLabel(selected)}</span>
-                  <details className="v4-law-details"><summary>Who qualifies? · Dates and exceptions</summary>
+                  <details className="v4-law-details"><summary>Who qualifies and what are the exceptions?</summary>
                     <p>{check.rule.conditions}</p>
                     <p>Published for {check.rule.effective_from} to {check.rule.effective_to}. Prior increases and authorized adjustments may change the outcome.</p>
                   </details>
                   <a href={check.rule.source_url} target="_blank" rel="noopener noreferrer">Read official law guidance</a>
                 </article>;
-                return isSecondary?<details className="v4-statewide-disclosure" key={check.rule.id}><summary>Also check statewide protections: {check.rule.cap_pct}% published standard</summary>{card}</details>:card;
+                return isSecondary?<details className="v4-statewide-disclosure" key={check.rule.id}><summary>Statewide protections: {check.rule.cap_pct}%</summary>{card}</details>:card;
               })}
           </div>
           {submitted.city==="Seattle"&&amountChange>0?<div className="v4-card v4-notice-card">
@@ -256,7 +255,7 @@ export function RenewalPage(){
               <select aria-label="Other increases in the last 12 months?" value={priorIncrease} onChange={e=>setPriorIncrease(e.target.value as IncreaseHistory)}>
                 <option value="unknown">I'm not sure</option><option value="none">No</option><option value="yes">Yes</option>
               </select></label>
-            <p>Previous increases may affect how a rent limit applies. <strong>{increaseLabel(priorIncrease)}</strong>.</p>
+            <p>Earlier increases may affect which rent limits apply.</p>
           </div>:null}
           <p className="v4-muted">Coverage and exceptions must be checked before any legal conclusion.</p>
           </div>:null}
