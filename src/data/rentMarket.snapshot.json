@@ -14,7 +14,8 @@
       "url": "https://www.apartmentlist.com/research/category/data-rent-estimates",
       "filename": "Apartment_List_Rent_Estimates_2026_10.csv",
       "sha256": "bc25bf0f7d354e6272c761dae3952d1be350925b1d146eab5f19891d3c0d4d25",
-      "measurement": "Median rent of new leases, city overall, not lease renewals."
+      "measurement": "Median rent of new leases, city overall, not lease renewals.",
+      "bedroomDefinitions": "City-level overall, 1br and 2br rows from founder-uploaded Apartment_List_Rent_Estimates_2026_10.csv; these are new-lease estimates."
     },
     "apartmentListMoM": {
       "name": "Apartment List Rent Growth MoM",
@@ -40,6 +41,20 @@
         "typicalRent": 2083,
         "yearAgoRent": 2095,
         "yoyPct": -0.57
+      },
+      "apartmentListBedrooms": {
+        "1br": {
+          "month": "2026-10",
+          "typicalRent": 1864,
+          "yearAgoRent": 1874,
+          "yoyPct": -0.53
+        },
+        "2br": {
+          "month": "2026-10",
+          "typicalRent": 2377,
+          "yearAgoRent": 2390,
+          "yoyPct": -0.54
+        }
       }
     },
     "San Francisco": {
@@ -57,6 +72,20 @@
         "typicalRent": 3842,
         "yearAgoRent": 3091,
         "yoyPct": 24.3
+      },
+      "apartmentListBedrooms": {
+        "1br": {
+          "month": "2026-10",
+          "typicalRent": 3879,
+          "yearAgoRent": 3120,
+          "yoyPct": 24.33
+        },
+        "2br": {
+          "month": "2026-10",
+          "typicalRent": 4597,
+          "yearAgoRent": 3698,
+          "yoyPct": 24.31
+        }
       }
     },
     "San Diego": {
@@ -74,6 +103,20 @@
         "typicalRent": 2314,
         "yearAgoRent": 2298,
         "yoyPct": 0.7
+      },
+      "apartmentListBedrooms": {
+        "1br": {
+          "month": "2026-10",
+          "typicalRent": 1972,
+          "yearAgoRent": 1958,
+          "yoyPct": 0.72
+        },
+        "2br": {
+          "month": "2026-10",
+          "typicalRent": 2472,
+          "yearAgoRent": 2454,
+          "yoyPct": 0.73
+        }
       }
     },
     "Seattle": {
@@ -91,6 +134,20 @@
         "typicalRent": 2073,
         "yearAgoRent": 2118,
         "yoyPct": -2.12
+      },
+      "apartmentListBedrooms": {
+        "1br": {
+          "month": "2026-10",
+          "typicalRent": 1935,
+          "yearAgoRent": 1977,
+          "yoyPct": -2.12
+        },
+        "2br": {
+          "month": "2026-10",
+          "typicalRent": 2415,
+          "yearAgoRent": 2467,
+          "yoyPct": -2.11
+        }
       }
     }
   }
