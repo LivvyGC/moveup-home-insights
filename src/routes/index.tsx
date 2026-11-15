@@ -168,7 +168,7 @@ function App(){
               <div><span>1-year value change</span><strong>{loading?"…":pct(historical?.yearOverYearPct)}</strong></div>
               <div><span>3-month value change</span><strong>{loading?"…":pct(historical?.lastThreeMonthsPct)}</strong></div>
             </div>
-            <p className="source-line">{historical?<>Source: <a href="https://www.zillow.com/research/data/" target="_blank" rel="noopener noreferrer">Zillow Research ZHVI</a> · {historical.month} · City-level home-value index</>:"City-level research data has not been verified for this selection."}</p>
+            <p className="source-line">{historical?<>Source: <a href="https://www.zillow.com/research/data/" target="_blank" rel="noopener noreferrer">Zillow Research ZHVI</a> · observed {historical.month} · snapshot {market?.status==="available"?market.snapshotDate:""} · City-level home-value index</>:"City-level research data has not been verified for this selection."}</p>
             <div className="local-forecast">
               <strong>PUBLISHED CITY FORECAST</strong>
               <span>{loading?"Checking…":forecast?pct(forecast.yearAheadPct)+" forecast to "+forecast.targetMonth:"Not available as verified city-level data"}</span>
