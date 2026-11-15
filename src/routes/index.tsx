@@ -103,7 +103,7 @@ export function RenewalPage(){
     city:submitted.city,bedrooms:marketLabel,currentRent:submitted.current,offeredRent:submitted.offer,
     effectiveDate:submitted.effective,periodMonths:months,benchmark,benchmarkMonth,
     assessment,finding,legalStatus:statusLabel,stateCoverage,localCoverage,priorIncrease,noticeReceived,
-    sourceUrl:RESEARCH_URL,supportUrl:supportAction?legalLink:finding.eligibilityUrl,
+    sourceUrl:RESEARCH_URL,supportUrl:finding.eligibilityUrl,
   }):null;
 
   return <div className="v4-app">
@@ -265,7 +265,7 @@ export function RenewalPage(){
           <div className="v4-card v4-action">
             <strong>You can request different terms whether or not an increase is legal.</strong>
             <p>Use your renewal figures to ask your landlord for a written explanation or a lower rate.</p>
-            {supportAction?<p className="v4-minor-link">You may also need a protection review. <a href={legalLink} target="_blank" rel="noopener noreferrer">{legalLabel}</a></p>:null}
+            {supportAction?<p className="v4-minor-link">You may also want to review your eligibility. <a href={finding.eligibilityUrl} target="_blank" rel="noopener noreferrer">Check official coverage guidance</a></p>:null}
             <details className="v4-request" open={showRequest} onToggle={e=>setShowRequest(e.currentTarget.open)}>
               <summary>Review and copy a landlord request</summary>
               <textarea aria-label="Draft landlord request" readOnly rows={8} value={negotiationMessage(submitted.city,submitted.current,submitted.offer)} />
