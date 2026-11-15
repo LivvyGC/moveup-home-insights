@@ -182,7 +182,7 @@ export function RenewalPage(){
           <div className="v4-action-grid">
             <button type="button" onClick={()=>{
               setShowRequest(true);
-              document.getElementById("moveup-negotiate")?.scrollIntoView?.({behavior:"smooth",block:"start"});
+              if(typeof requestAnimationFrame==="function")requestAnimationFrame(()=>document.getElementById("moveup-negotiate")?.scrollIntoView?.({behavior:"smooth",block:"start"}));
             }}>
               <span className="v4-action-number">01</span>
               <strong>Negotiate my renewal</strong>
