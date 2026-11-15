@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { type TenantCaseRecord, coverageLabel, increaseLabel, currency, signedCurrency } from "../lib/tenantCase";
 import {
   createDemoRecord, readDemoRegistry, saveDemoRecord, clearDemoRegistry,
@@ -49,7 +49,7 @@ export function composeTenantPacket(input: TenantCaseRecord, contact: RenterCont
   ].join("\n");
 }
 
-export function TenantIntakeDemo({caseRecord}:{caseRecord:TenantCaseRecord}) {
+export function TenantIntakeDemo({caseRecord,children}:{caseRecord:TenantCaseRecord;children?:ReactNode}) {
   const [contactName,setContactName]=useState("");
   const [contactEmail,setContactEmail]=useState("");
   const [contactPhone,setContactPhone]=useState("");
@@ -65,7 +65,6 @@ export function TenantIntakeDemo({caseRecord}:{caseRecord:TenantCaseRecord}) {
 
   useEffect(()=>{
     setStatus("idle");setStatusText("");setConsent(false);
-    setContactName("");setContactEmail("");setContactPhone("");
   },[caseFingerprint]);
   useEffect(()=>{
     try{if(typeof window!=="undefined")setRecords(readDemoRegistry(window.localStorage));}
@@ -146,21 +145,17 @@ export function TenantIntakeDemo({caseRecord}:{caseRecord:TenantCaseRecord}) {
       <h3>{hasLAOrdinance
         ?"Filed an RSO complaint? Still unhappy with your rent adjustment? Find help now."
         :"Still unhappy with your rent adjustment? Find help now."}</h3>
-      <p>Your MoveUp renewal summary above is ready. Just add your contact details; the summary is included automatically.</p>
-    </div>
-    <div className="v8-attached-summary" aria-label="Attached renewal summary">
-      <span>READY TO INCLUDE</span>
-      <strong>Your renewal summary</strong>
-      <p>{caseRecord.city} · {caseRecord.bedrooms} · {currency(caseRecord.currentRent)} to {currency(caseRecord.offeredRent)} per month</p>
-      <a href="#moveup-summary">View your summary</a>
+      <p>Your rent figures, market comparison and protection screening are already filled in. Add your contact details to submit the completed assessment.</p>
     </div>
     <div className="v4-demo-delivery">
-      <h4>Submit your inquiry to MoveUp</h4>
-      <p>In the future, participating tenant-support organizations could receive inquiries like this with renter permission.</p>
+      <h4>Your assessment and contact information</h4>
+      <p>The assessment below will be included automatically. No need to re-enter your rent or protection details.</p>
       {intakeEndpointConfigured
         ?<p><strong>Demo submission:</strong> Your contact details and renewal summary are sent to a MoveUp-operated demo inbox, not a tenant organization.</p>
         :<p><strong>Prototype database:</strong> Your contact details and summary are saved in this browser only, not a shared network. No tenant organizations receive them. Use sample contact details for this hackathon demo.</p>}
       <form onSubmit={submitInquiry}>
+        <div className="v8-assessment">{children}</div>
+        <h4 className="v8-contact-title">Your contact details</h4>
         <div className="v8-contact-fields">
           <label className="v4-field"><span>Full name</span>
             <input aria-label="Full name" autoComplete="name" required maxLength={120} value={contactName}
@@ -206,6 +201,5 @@ export function TenantIntakeDemo({caseRecord}:{caseRecord:TenantCaseRecord}) {
         </div>:null}
       </details>
     </div>
-    <p className="v8-network-link">Want to contact an organization yourself? <a href="#moveup-network">Find renter organizations below</a>.</p>
   </section>;
 }
