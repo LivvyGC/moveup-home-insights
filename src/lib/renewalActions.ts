@@ -48,25 +48,25 @@ export const officialActions: Record<City, {
 }> = {
   "Los Angeles": {
     url: "https://housing.lacity.gov/residents/file-a-rso-complaint",
-    name: "LA Housing — RSO complaint guidance",
-    eligibilityUrl: "https://housing.lacity.gov/",
-    eligibilityName: "Check Los Angeles RSO coverage (ZIMAS guidance)",
+    name: "LA Housing: RSO complaint guidance",
+    eligibilityUrl: "https://housing.lacity.gov/residents/what-is-covered-under-the-rso",
+    eligibilityName: "Check which Los Angeles homes are covered",
   },
   "San Francisco": {
     url: "https://www.sf.gov/tenant-petitions",
-    name: "San Francisco Rent Board — tenant petition guidance",
+    name: "San Francisco Rent Board: tenant petition guidance",
     eligibilityUrl: "https://www.sf.gov/learn-about-san-francisco-rental-laws",
     eligibilityName: "Check San Francisco rent-control eligibility",
   },
   "San Diego": {
     url: "https://www.sandiego.gov/city-attorney/resources/hpu-complaint-form",
-    name: "San Diego City Attorney — HPU complaint form",
+    name: "San Diego City Attorney: HPU complaint form",
     eligibilityUrl: "https://oag.ca.gov/rentcaps",
     eligibilityName: "Check California rent-cap coverage",
   },
   "Seattle": {
     url: "https://www.atg.wa.gov/landlord-tenant",
-    name: "Washington Attorney General — rent stabilization and complaints",
+    name: "Washington Attorney General: rent stabilization and complaints",
     eligibilityUrl: "https://www.commerce.wa.gov/housing-policy/hb1217-landlord-resource-center/",
     eligibilityName: "Check Washington rent-cap exemptions",
     noticeUrl: "https://seattle.gov/construction-and-inspections/codes/common-code-questions/housing-cost-increases",
@@ -145,7 +145,7 @@ export function evaluateRenewal(intake: LegalIntake): RenewalFinding {
     action,heading,explanation,changePerMonth,increasePercent,checks,
     noticeDays,shortSeattleNotice,needsPriorIncreaseHistory,potentialStandardConcern,
     actionUrl:stateOnlyConcern?"https://oag.ca.gov/tenants":links.url,
-    actionName:stateOnlyConcern?"California Attorney General — statewide tenant protections":links.name,
+    actionName:stateOnlyConcern?"California Attorney General: statewide tenant protections":links.name,
     eligibilityUrl:links.eligibilityUrl,eligibilityName:links.eligibilityName,
   };
 }

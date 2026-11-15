@@ -51,27 +51,20 @@ export function assessMarketOffer(
     : legalScreen === "needs_information" || marketPosition === "unavailable" ? "neutral"
       : marketPosition === "above" ? "yellow" : "green";
 
-  const headline = legalScreen === "possible_issue"
-    ? "This offer may need a legal review"
-    : marketPosition === "unavailable"
-      ? "Market comparison unavailable"
-      : legalScreen === "needs_information"
-        ? "Check your protections before deciding"
-        : marketPosition === "above"
-          ? "Your offer is above the city benchmark"
-          : marketPosition === "at"
-            ? "Your offer matches the city benchmark"
-            : "Your offer is below the city benchmark";
+  // Lead with what the user can verify. Legal screening is a separate finding.
+  const headline = marketPosition === "unavailable"
+    ? "Review your proposed renewal"
+    : marketPosition === "above"
+      ? "Your offer is above the city benchmark"
+      : marketPosition === "at"
+        ? "Your offer matches the city benchmark"
+        : "Your offer is below the city benchmark";
 
-  const explanation = legalScreen === "possible_issue"
-    ? "A published rent standard or notice requirement may be relevant. Check coverage and prior increases before drawing conclusions."
-    : legalScreen === "needs_information"
-      ? "Your market comparison is available, but we do not yet know enough to screen the applicable rent rules."
-      : marketPosition === "unavailable"
-        ? "We do not have a bedroom-matched estimate for this unit type. No market value has been substituted."
-        : marketPosition === "above"
-          ? "Your offer exceeds the available citywide new-lease estimate. This alone does not make an increase unlawful."
-          : "Your offer is at or below the citywide new-lease estimate. This is not a property appraisal or confirmation of legal compliance.";
+  const explanation = marketPosition === "unavailable"
+    ? "We do not have a bedroom-matched estimate for this unit type."
+    : marketPosition === "above"
+      ? "Your offer exceeds the available citywide new-lease estimate. You can still negotiate regardless of legal status."
+      : "Your offer is at or below the citywide new-lease estimate. You can still ask questions, negotiate, or seek support.";
 
   // Add 10% headroom without a fictitious marked price/tick; the scale is explicitly
   // shown in the visual accessibility description.
