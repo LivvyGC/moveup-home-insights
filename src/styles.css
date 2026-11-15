@@ -596,3 +596,95 @@ html{scroll-behavior:smooth}
   font-weight:800;
 }
 @media print{.v4-negotiation-inline{display:none!important}}
+
+
+/* MoveUp benchmark: two truthful same-scale bars, high-contrast takeaway. */
+.v7-market-card{
+  padding:clamp(20px,3.2vw,32px);
+  background:#FFFCF7;
+  border:1px solid #D8C3B2;
+  border-radius:12px;
+}
+.v7-market-header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:19px}
+.v7-market-status{
+  display:inline-block;padding:7px 11px;border-radius:999px;
+  font-size:14px;line-height:1.3;font-weight:850;
+  background:#F4E7D7;color:#53301F;border:1px solid #D6B494;
+}
+.v7-market-status-below{background:#E4EEDC;color:#27543D;border-color:#BDD3B5}
+.v7-market-status-at{background:#EBEAE6;color:#3F4240;border-color:#D4D1CB}
+.v7-market-dated{font-size:14px;font-weight:650;color:#5C544D}
+.v7-market-card .v4-market-stats{gap:20px;margin-bottom:28px}
+.v7-market-card .v4-market-stats>div{
+  padding:3px 0 5px;min-width:0;
+}
+.v7-market-card .v4-market-stats>div>span{font-size:15px;color:#4E4943;font-weight:650}
+.v7-market-card .v4-market-stats strong{color:#151412;font-size:clamp(28px,3.6vw,42px);letter-spacing:-.055em}
+.v7-market-chart{
+  padding:18px 21px 16px;
+  border:1px solid #E1D2C3;border-radius:10px;
+  background:linear-gradient(135deg,#FCF7F0,#F9EDE0);
+  display:grid;gap:18px;
+}
+.v7-market-bar{min-width:0}
+.v7-market-bar-label{
+  display:flex;justify-content:space-between;flex-wrap:wrap;gap:5px 12px;
+  align-items:baseline;margin-bottom:7px;
+  color:#28231F;font-size:15px;
+}
+.v7-market-bar-label span{font-weight:700}
+.v7-market-bar-label strong{font-size:16px;font-weight:850;white-space:nowrap;font-variant-numeric:tabular-nums}
+.v7-market-bar-track{
+  width:100%;height:24px;border-radius:6px;
+  background:#E8DED3;overflow:hidden;position:relative;
+}
+.v7-market-bar-fill{height:100%;border-radius:6px;min-width:0;transition:width 200ms ease-out}
+.v7-market-bar-benchmark{background:linear-gradient(90deg,#8DB89D,#4F8A74)}
+.v7-market-bar-offer{background:linear-gradient(90deg,#F2B77B,#DB824E)}
+.v7-chart-note{font-size:13px;color:#594E43;line-height:1.5}
+.v7-market-takeaway{
+  display:flex;justify-content:space-between;gap:16px;align-items:center;flex-wrap:wrap;
+  margin:18px 0 14px;padding:19px 21px;
+  border:1px solid #E5C5AB;border-left:5px solid #D47C47;
+  border-radius:9px;background:#FBE9D9;
+}
+.v7-market-takeaway>div{min-width:0}
+.v7-market-takeaway span{display:block;color:#503D31;font-size:14px;font-weight:700}
+.v7-market-takeaway strong{display:block;color:#1B1815;font-weight:900;font-variant-numeric:tabular-nums}
+.v7-market-takeaway>div:first-child strong{font-size:clamp(22px,3.5vw,34px);letter-spacing:-.05em}
+.v7-market-percent strong{font-size:clamp(21px,3vw,29px);letter-spacing:-.04em}
+.v7-market-summary{font-size:16px;line-height:1.5;color:#29241F;font-weight:650;margin:12px 0 18px}
+.v7-market-card .v4-source,.v7-market-card .v4-muted{font-size:14px;line-height:1.5;color:#57514B}
+
+/* The official LAHD link is a conditional resource, not a submitted complaint. */
+.v7-la-resource{
+  display:grid;grid-template-columns:minmax(0,1fr) auto;
+  gap:14px 22px;align-items:center;margin:18px 0 27px;
+  padding:20px 22px;border:1px solid #D9C6B5;border-radius:10px;
+  background:#FFF9F2;color:#181512;
+}
+.v7-resource-kicker{display:block;font-size:13px;font-weight:850;letter-spacing:.04em;color:#7B4C31}
+.v7-la-resource h3{font-size:clamp(18px,2.5vw,22px);font-weight:850;letter-spacing:-.025em;margin:5px 0 8px}
+.v7-la-resource p{font-size:15px;line-height:1.55;color:#39342F;margin:6px 0}
+.v7-la-resource .v7-resource-caution{font-size:14px;color:#5E534A}
+.v7-resource-link{
+  display:inline-flex;justify-content:center;align-items:center;gap:9px;
+  min-height:46px;max-width:260px;text-align:center;
+  padding:10px 17px;background:#171614;color:#FFFDF9;
+  border:1px solid #171614;border-radius:6px;text-decoration:none;
+  font-size:15px;font-weight:800;line-height:1.35;
+}
+.v7-resource-link:hover{background:#58321F}
+@media(max-width:700px){
+  .v7-la-resource{grid-template-columns:1fr;padding:18px}
+  .v7-resource-link{max-width:none;width:100%}
+  .v7-market-takeaway{align-items:flex-start}
+  .v7-market-card .v4-market-stats{grid-template-columns:1fr;gap:8px;margin-bottom:20px}
+}
+@media(max-width:460px){
+  .v7-market-chart{padding:14px;gap:14px}
+  .v7-market-takeaway{padding:15px}
+  .v7-market-bar-track{height:21px}
+}
+@media(prefers-reduced-motion:reduce){.v7-market-bar-fill{transition:none}}
+@media print{.v7-la-resource{display:none!important}}
