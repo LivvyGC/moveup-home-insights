@@ -26,6 +26,7 @@ export function lookupCityMarket(city: string, state: string): MarketResponse {
     history: {
       city: rec.city, state: rec.state, month: rec.month, typicalHomeValue: rec.typicalHomeValue,
       yearOverYearPct: rec.yearOverYearPct, lastThreeMonthsPct: rec.lastThreeMonthsPct,
+      oneMonthPct: rec.oneMonthPct, sixMonthPct: rec.sixMonthPct,
       source: "Zillow Research ZHVI",
     },
     forecast: rec.forecast,
