@@ -1,0 +1,97 @@
+{
+  "generatedAt": "2026-11-14",
+  "sources": {
+    "zori": {
+      "name": "Zillow Research ZORI",
+      "url": "https://files.zillowstatic.com/research/public_csvs/zori/City_zori_uc_sfrcondomfr_sm_month.csv",
+      "page": "https://www.zillow.com/research/data/",
+      "filename": "City_zori_uc_sfrcondomfr_sm_month.csv",
+      "sha256": "7842d83fc2871717b64a3f5c3b98ddb6310b516448c9da822e3d3260aa917e73",
+      "measurement": "Smoothed Zillow Observed Rent Index; market asking-rent index, not lease renewals."
+    },
+    "apartmentList": {
+      "name": "Apartment List Rent Estimates",
+      "url": "https://www.apartmentlist.com/research/category/data-rent-estimates",
+      "filename": "Apartment_List_Rent_Estimates_2026_10.csv",
+      "sha256": "bc25bf0f7d354e6272c761dae3952d1be350925b1d146eab5f19891d3c0d4d25",
+      "measurement": "Median rent of new leases, city overall, not lease renewals."
+    },
+    "apartmentListMoM": {
+      "name": "Apartment List Rent Growth MoM",
+      "url": "https://www.apartmentlist.com/research/category/data-rent-estimates",
+      "filename": "Apartment_List_Rent_Growth_MoM_2026_10.csv",
+      "sha256": "039ef34f39b1946d9714202029c52af3c6be20589fe2dfd60003fb4cab05867c",
+      "measurement": "Month-over-month growth, secondary uploaded dataset."
+    }
+  },
+  "cities": {
+    "Los Angeles": {
+      "state": "CA",
+      "zori": {
+        "month": "2026-09",
+        "observationDate": "2026-09-30",
+        "typicalRent": 2771.89,
+        "yearAgoRent": 2748.67,
+        "yoyPct": 0.84
+      },
+      "apartmentList": {
+        "month": "2026-10",
+        "observationDate": "2026-10-31",
+        "typicalRent": 2083,
+        "yearAgoRent": 2095,
+        "yoyPct": -0.57
+      }
+    },
+    "San Francisco": {
+      "state": "CA",
+      "zori": {
+        "month": "2026-09",
+        "observationDate": "2026-09-30",
+        "typicalRent": 4784.41,
+        "yearAgoRent": 3784.92,
+        "yoyPct": 26.41
+      },
+      "apartmentList": {
+        "month": "2026-10",
+        "observationDate": "2026-10-31",
+        "typicalRent": 3842,
+        "yearAgoRent": 3091,
+        "yoyPct": 24.3
+      }
+    },
+    "San Diego": {
+      "state": "CA",
+      "zori": {
+        "month": "2026-09",
+        "observationDate": "2026-09-30",
+        "typicalRent": 3003.85,
+        "yearAgoRent": 2939.66,
+        "yoyPct": 2.18
+      },
+      "apartmentList": {
+        "month": "2026-10",
+        "observationDate": "2026-10-31",
+        "typicalRent": 2314,
+        "yearAgoRent": 2298,
+        "yoyPct": 0.7
+      }
+    },
+    "Seattle": {
+      "state": "WA",
+      "zori": {
+        "month": "2026-09",
+        "observationDate": "2026-09-30",
+        "typicalRent": 2226.62,
+        "yearAgoRent": 2215.05,
+        "yoyPct": 0.52
+      },
+      "apartmentList": {
+        "month": "2026-10",
+        "observationDate": "2026-10-31",
+        "typicalRent": 2073,
+        "yearAgoRent": 2118,
+        "yoyPct": -2.12
+      }
+    }
+  }
+}
