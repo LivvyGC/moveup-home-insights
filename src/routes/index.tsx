@@ -8,7 +8,6 @@ import { isStale } from "@/lib/renewalCalculator";
 import { buildTenantCase,coverageLabel,increaseLabel } from "@/lib/tenantCase";
 import { House } from "lucide-react";
 import { TenantIntakeDemo } from "@/components/TenantIntakeDemo";
-import { TenantOrganizationDirectory } from "@/components/TenantOrganizationDirectory";
 
 const CITIES: City[] = ["Los Angeles", "San Francisco", "San Diego", "Seattle"];
 type Bedroom = "1br" | "2br" | "other";
@@ -307,10 +306,6 @@ export function RenewalPage(){
         </section>
         </TenantIntakeDemo>:null}
       </div>:null}
-      {submitted?<section className="v6-network v9-routing v9-routing-simple" id="moveup-network" aria-label={"Explore potential local organizations in "+submitted.city+" (not connected)"}>
-        <h2>Explore potential local organizations in {submitted.city} (not connected)</h2>
-        <TenantOrganizationDirectory city={submitted.city} compact/>
-      </section>:null}
     </main>
     <footer className="v4-container v4-footer">MOVEUP · EDUCATIONAL RENTAL AGREEMENT REVIEW</footer>
   </div>;
