@@ -106,7 +106,7 @@ describe("V4 renter flow",()=>{
   expect(screen.queryByText(/Draft a message to your landlord/)).toBeNull();
   expect(screen.queryByRole("link",{name:/Open official LA complaint page/})).toBeNull();
   expect(screen.getByText("Your protections")).toBeTruthy();
-  expect(screen.getByText("Connect with tenant support")).toBeTruthy();
+  expect(screen.getByText(/Still unhappy with your rent adjustment\? Find help now\./)).toBeTruthy();
  });
  it("shows LA Housing complaint guidance for a possible local RSO concern, without claiming to file",()=>{
   render(<RenewalPage/>);fill({offer:"3000",bedrooms:"2br"});submit();
