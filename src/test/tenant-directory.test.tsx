@@ -30,7 +30,7 @@ describe("Public renter organization directory",()=>{
  });
  it("shows two curated groups initially, allows expansion and has real external links",()=>{
   render(<TenantOrganizationDirectory city="Los Angeles"/>);
-  expect(screen.getByText("Find renter organizations in Los Angeles")).toBeTruthy();
+  expect(screen.getByText("Renter organizations in Los Angeles")).toBeTruthy();
   expect(screen.getByRole("link",{name:/Visit Los Angeles Tenants Union website/})).toBeTruthy();
   expect(screen.queryByRole("link",{name:/Visit Tenants of California website/})).toBeNull();
   fireEvent.click(screen.getByRole("button",{name:/See all 3 listed groups/}));
