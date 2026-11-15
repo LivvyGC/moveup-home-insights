@@ -158,3 +158,54 @@ h1{font-weight:900;font-size:clamp(48px,7.8vw,118px);line-height:.95;letter-spac
 .summary{border:1.5px solid var(--ink);background:var(--mu-6);padding:44px 25px 25px;font-size:13px;line-height:1.65;position:relative}.summary:before{content:'"MODEL EXPLANATION"';position:absolute;top:15px;left:24px;font:600 10px 'IBM Plex Mono',monospace;color:var(--mu-21)}
 footer{display:flex;justify-content:space-between;gap:30px;border-top:2px solid var(--ink);padding-top:19px;margin-top:34px;font:500 10px/1.6 'IBM Plex Mono',monospace;color:var(--mu-23)}
 @media(max-width:850px){.layout{grid-template-columns:1fr}.shell{padding:35px 18px}header{padding:19px 18px}}@media(max-width:560px){h1{font-size:clamp(44px,12vw,65px)}.signalgrid{grid-template-columns:1fr}.moneygrid{grid-template-columns:repeat(2,1fr)}.stamp{display:none}.panel{padding:20px}.topright{max-width:150px;text-align:right;font-size:9px}.signal{min-height:0}.verdict .big{font-size:70px}footer{display:block}footer span{display:block;margin-bottom:12px}}
+
+
+/* MoveUp V2 readability: Inter throughout, no monospace for content. */
+:root {font-size:16px;}
+body,button,input,select,textarea,.topright,.eyebrow,.field label,.help,.tiny,.notice,
+.micro,.pill,.stamp,.sectionhead span,.moneyitem .name,.summary:before,footer {
+ font-family:Inter,Arial,sans-serif !important;
+}
+.topright,.eyebrow,.micro,.pill,.stamp,.sectionhead span,.summary:before,footer {font-size:12px;letter-spacing:.035em;}
+.lede,.sub,.field label,.help,.tiny,.notice,.signal-label,.signal .tiny,.verdict .desc,.rate-note,
+.moneyitem .name,.summary {font-size:15px;line-height:1.6;}
+.panel h2,.sectionhead h2{font-size:23px;}
+.field input,.field select{font-size:16px;}
+.signal .tiny,.source-line{overflow-wrap:anywhere;}
+.summary{font-size:16px;padding-top:54px;}
+.moneyitem .name{font-size:13px;min-height:44px;}
+.moneyitem .value{font-size:clamp(20px,2.1vw,27px);}
+.primary{font-size:14px;}
+.error{font-size:14px;}
+.local-insights{border:1.5px solid var(--ink);padding:26px;background:var(--card);}
+.local-note{font-size:15px;line-height:1.65;color:var(--mu-19);margin:10px 0 20px;}
+.market-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border:1px solid var(--mu-13);}
+.market-metrics>div{padding:18px 13px;border-right:1px solid var(--mu-13);}
+.market-metrics>div:last-child{border-right:0;}
+.market-metrics span{display:block;font-size:13px;line-height:1.4;color:var(--mu-23);margin-bottom:10px;}
+.market-metrics strong{font-size:clamp(18px,2.2vw,26px);font-weight:800;overflow-wrap:anywhere;letter-spacing:-.04em;}
+.source-line{font-size:13px;color:var(--mu-19);line-height:1.6;}
+.local-insights a{color:var(--mu-3);text-decoration:underline;text-underline-offset:3px;}
+.local-forecast{border-top:1px solid var(--mu-13);border-bottom:1px solid var(--mu-13);padding:17px 0;display:flex;flex-direction:column;gap:7px;}
+.local-forecast strong{font-size:13px;letter-spacing:.04em;}
+.local-forecast span{font-size:18px;font-weight:700;}
+.local-forecast small{font-size:13px;color:var(--mu-19);}
+.policy{margin-top:22px;}
+.policy h3{font-size:20px;margin:0;font-weight:800;}
+.policy-entry{padding:14px 0;border-top:1px solid var(--mu-13);}
+.policy-entry strong{font-size:17px;}
+.policy-entry p{font-size:14px;line-height:1.6;margin:8px 0;color:var(--mu-19);}
+.policy-entry a{font-size:13px;}
+.weights{padding:18px;background:var(--paper);border:1px solid var(--mu-13);margin-top:16px;}
+.weights>strong{font-size:16px;display:block;margin-bottom:13px;}
+.weights>div{display:flex;justify-content:space-between;gap:12px;border-top:1px solid var(--mu-13);padding:10px 0;font-size:14px;}
+.weights>p{font-size:13px;line-height:1.6;color:var(--mu-19);margin:12px 0 0;}
+@media(max-width:560px){
+ .local-insights{padding:19px;}
+ .market-metrics{grid-template-columns:1fr;}
+ .market-metrics>div{border-right:0;border-bottom:1px solid var(--mu-13);}
+ .market-metrics>div:last-child{border-bottom:0;}
+ .signal-label{max-width:100%;margin-top:4px;}
+ .shell{padding-bottom:40px;}
+ .signal .number{font-size:clamp(36px,12vw,60px);}
+}
