@@ -17,7 +17,7 @@ describe("V4 renter flow",()=>{
   expect(screen.getAllByRole("button",{name:"Fill with example numbers"})).toHaveLength(1);
   expect(screen.getByRole("button",{name:"Clear form"})).toBeTruthy();
   expect(screen.queryByText("Your protections")).toBeNull();
-  expect(screen.queryByText("Save your renewal summary")).toBeNull();
+  expect(screen.queryByText("Your prefilled renewal assessment")).toBeNull();
   expect(screen.queryByLabelText("Local rent control coverage")).toBeNull();
  });
  it("validates positive inputs and effective date",()=>{
@@ -54,7 +54,7 @@ describe("V4 renter flow",()=>{
   fireEvent.submit(form);
   expect(screen.getByText("Offer vs. Market")).toBeTruthy();
   expect(screen.getByText("Your protections")).toBeTruthy();
-  expect(screen.getByText("Save your renewal summary")).toBeTruthy();
+  expect(screen.getByText("Your prefilled renewal assessment")).toBeTruthy();
  });
  it("displays bedroom-matched benchmark and dated source",()=>{
   render(<RenewalPage/>);fill({offer:"2200",bedrooms:"2br"});submit();
@@ -83,9 +83,9 @@ describe("V4 renter flow",()=>{
  });
  it("changing core input removes stale result",()=>{
   render(<RenewalPage/>);fill();submit();
-  expect(screen.getByText("Save your renewal summary")).toBeTruthy();
+  expect(screen.getByText("Your prefilled renewal assessment")).toBeTruthy();
   fireEvent.change(screen.getByLabelText("Offered rent / month"),{target:{value:"2300"}});
-  expect(screen.queryByText("Save your renewal summary")).toBeNull();
+  expect(screen.queryByText("Your prefilled renewal assessment")).toBeNull();
  });
  it("reflects changed protection answers in the summary that is ready for support",()=>{
   render(<RenewalPage/>);fill({offer:"3000",bedrooms:"2br"});submit();
@@ -95,7 +95,8 @@ describe("V4 renter flow",()=>{
   expect(screen.getAllByText(/Reported covered: not independently verified/).length).toBeGreaterThan(0);
   expect(screen.getAllByText(/Reported exempt: not independently verified/).length).toBeGreaterThan(0);
   expect(screen.getAllByText(/No earlier increases reported/).length).toBeGreaterThan(0);
-  expect(screen.getByText(/summary that will be included automatically/i)).toBeTruthy();
+  expect(screen.getByText("Your prefilled renewal assessment")).toBeTruthy();
+  expect(screen.queryByText(/READY TO INCLUDE/)).toBeNull();
   expect(screen.queryByText("RENTER INQUIRY PREVIEW")).toBeNull();
  });
  it("does not show redundant action cards or an unrelated complaint prompt",()=>{
@@ -165,14 +166,19 @@ describe("V4 renter flow",()=>{
   expect(screen.getByLabelText("Local rent control coverage")).toBeTruthy();
   expect(screen.getByLabelText("State rent protection coverage")).toBeTruthy();
  });
- it("shows the reusable renewal summary before the three-field support form",()=>{
+ it("embeds the prefilled assessment inside the same contact submission form",()=>{
   const {container}=render(<RenewalPage/>);fill();submit();
   const support=container.querySelector("#moveup-connect");
   const summary=container.querySelector("#moveup-summary");
-  expect(support).toBeTruthy();expect(summary).toBeTruthy();
-  expect((summary?.compareDocumentPosition(support!)??0)&Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  const form=support?.querySelector(".v4-demo-delivery form");
+  const contact=form?.querySelector(".v8-contact-fields");
+  expect(support).toBeTruthy();expect(summary).toBeTruthy();expect(form).toBeTruthy();
+  expect(form?.contains(summary)).toBe(true);
+  expect((summary?.compareDocumentPosition(contact!)??0)&Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  expect(container.querySelectorAll(".v4-report")).toHaveLength(1);
+  expect(container.querySelectorAll(".v8-attached-summary")).toHaveLength(0);
   expect(container.querySelectorAll(".v8-contact-fields input")).toHaveLength(3);
-  expect(screen.getByRole("link",{name:"View your summary"}).getAttribute("href")).toBe("#moveup-summary");
+  expect(screen.getByText("Your prefilled renewal assessment")).toBeTruthy();
  });
  it("shows the organization directory only at the bottom next to the network story",()=>{
   const {container}=render(<RenewalPage/>);fill();submit();
