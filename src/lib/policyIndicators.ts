@@ -38,8 +38,8 @@ const shared: Record<string, PolicyIndicator[]> = {
     officialUrl:"https://floridarevenue.com/property/Pages/Taxpayers_Exemptions.aspx",lastReviewed:review,
   },{
     id:"fl-amendment-3-2027",scope:"Florida",title:"Amendment 3 — 2027 homestead assessment changes",
-    detail:"Florida Department of Revenue bulletin PTO 26-21 reports the voter-approved November 2026 amendment: the non-school-tax homestead exemption increases to a maximum $150,000 of assessed value for 2027, and $250,000 for 2028. The cap on non-homestead assessment growth is reduced from 10% to 5%.",
-    applicability:"Effective January 1, 2027, first affecting the 2027 tax roll. Buyer eligibility and additional timing rules apply; no savings are automatically credited to MoveUp costs.",
+    detail:"Florida Department of Revenue bulletin PTO 26-21 confirms Amendment 3 was approved on November 3, 2026. For qualifying owners, the non-school-tax homestead exemption can exclude up to $150,000 of assessed value in 2027 and $250,000 in 2028. The non-homestead assessment-increase cap falls from 10% to 5%.",
+    applicability:"Effective January 1, 2027 (2027 tax roll). People who were not Florida residents as of December 31, 2026 generally must wait until the fifth year of their homestead exemption to qualify for the increased exemption. The county property appraiser determines eligibility. No benefit automatically credited.",
     officialUrl:"https://floridarevenue.com/property/Documents/PTO_BUL_26-21.pdf",lastReviewed:review,
   }],
   WA: [{
@@ -50,7 +50,7 @@ const shared: Record<string, PolicyIndicator[]> = {
   }],
   CO: [{
     id:"co-senior",scope:"Colorado",title:"Senior and qualifying veteran exemption",
-    detail:"Colorado offers qualifying senior and disabled-veteran exemptions. Separately, 2026 legislation ends the qualified-senior primary residence property classification from tax year 2027; this is not the same as the standard senior exemption.",
+    detail:"Colorado separately provides a constitutional senior and qualifying veteran property-tax exemption. Senate Bill 26-116 ends the distinct qualified-senior primary residence valuation classification beginning in tax year 2027; it does not repeal the standard senior exemption.",
     applicability:"Property occupancy, age, disability and application requirements apply. No eligibility or tax reduction presumed.",
     officialUrl:"https://leg.colorado.gov/bills/sb26-116",lastReviewed:review,
   }],
