@@ -109,6 +109,9 @@ export function evaluateRenewal(intake: LegalIntake): RenewalFinding {
   const shortSeattleNotice = changePerMonth > 0 && noticeDays !== null && noticeDays < 180;
   const needsPriorIncreaseHistory = potentialStandardConcern && priorIncrease === "unknown";
   const links = officialActions[city];
+  const stateOnlyConcern = city !== "Seattle" &&
+    checks.some(check => check.rule.type === "statewide" && check.abovePublishedStandard) &&
+    !checks.some(check => check.rule.type === "city" && check.abovePublishedStandard);
 
   let action: ActionType = "review_offer";
   let heading = "Review your renewal options";
@@ -141,7 +144,8 @@ export function evaluateRenewal(intake: LegalIntake): RenewalFinding {
   return {
     action,heading,explanation,changePerMonth,increasePercent,checks,
     noticeDays,shortSeattleNotice,needsPriorIncreaseHistory,potentialStandardConcern,
-    actionUrl:links.url,actionName:links.name,
+    actionUrl:stateOnlyConcern?"https://oag.ca.gov/tenants":links.url,
+    actionName:stateOnlyConcern?"California Attorney General — statewide tenant protections":links.name,
     eligibilityUrl:links.eligibilityUrl,eligibilityName:links.eligibilityName,
   };
 }
