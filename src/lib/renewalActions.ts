@@ -47,9 +47,9 @@ export const officialActions: Record<City, {
   noticeUrl?: string;
 }> = {
   "Los Angeles": {
-    url: "https://housing.lacity.gov/residents/file-a-complaint",
-    name: "LA Housing — RSO/JCO complaint information",
-    eligibilityUrl: "https://housing.lacity.gov/rso-rent-increase-calculator",
+    url: "https://housing.lacity.gov/residents/file-a-rso-complaint",
+    name: "LA Housing — RSO complaint guidance",
+    eligibilityUrl: "https://housing.lacity.gov/",
     eligibilityName: "Check Los Angeles RSO coverage (ZIMAS guidance)",
   },
   "San Francisco": {
@@ -59,8 +59,8 @@ export const officialActions: Record<City, {
     eligibilityName: "Check San Francisco rent-control eligibility",
   },
   "San Diego": {
-    url: "https://www.sandiego.gov/city-attorney/resources/housing-protection-civil-code-compliance-unit",
-    name: "San Diego City Attorney — housing protection information",
+    url: "https://www.sandiego.gov/city-attorney/resources/hpu-complaint-form",
+    name: "San Diego City Attorney — HPU complaint form",
     eligibilityUrl: "https://oag.ca.gov/rentcaps",
     eligibilityName: "Check California rent-cap coverage",
   },
