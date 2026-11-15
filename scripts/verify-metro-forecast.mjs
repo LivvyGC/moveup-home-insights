@@ -27,7 +27,8 @@ try{
  if(nameI<0||baseI<0||!forecastIndices.length)process.exit(0);
  const results=[];
  for(const city of cities){
-  const options=rows.slice(1).filter(r=>r[nameI]?.split(",")[0].trim()===city&&
+  const state={"Los Angeles":"CA","San Francisco":"CA","San Diego":"CA","New York":"NY","Austin":"TX","Dallas":"TX","Miami":"FL","Orlando":"FL","Seattle":"WA","Denver":"CO"}[city];
+  const options=rows.slice(1).filter(r=>r[nameI]?.trim()===city+", "+state&&
     (regionI<0||r[regionI]==="msa"));
   const match=options.length===1?options[0]:null;
   if(!match){console.log("METRO_UNMATCHED",city,options.length);continue;}
