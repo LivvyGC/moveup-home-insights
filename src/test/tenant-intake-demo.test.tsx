@@ -39,7 +39,7 @@ describe("renter-to-organizer inquiry",()=>{
     render(<TenantIntakeDemo caseRecord={sample}/>);
     expect((screen.getByRole("button",{name:"Submit to database"}) as HTMLButtonElement).disabled).toBe(true);
     expect(readDemoRegistry(window.localStorage)).toHaveLength(0);
-    expect(screen.getByText(/No renter information is sent to a tenant organization/).parentElement).toBeTruthy();
+    expect(screen.getByText(/The shared network and organization delivery are not live yet/).parentElement).toBeTruthy();
     expect(CITY_ROUTING["Los Angeles"].connectedUnions).toBe(0);
   });
   it("registers a consented organizing-only inquiry under the selected city",async()=>{
