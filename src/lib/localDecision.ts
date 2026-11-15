@@ -10,6 +10,8 @@ export interface CityMarketRecord {
   typicalHomeValue: number | null;
   yearOverYearPct: number | null;
   lastThreeMonthsPct: number | null;
+  oneMonthPct?: number | null;
+  sixMonthPct?: number | null;
   forecast: null | {
     source: "Zillow Research ZHVF"; geography: "city";
     asOf: string; targetMonth: string; yearAheadPct: number;
@@ -33,13 +35,15 @@ const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v
 const r1 = (v: number) => Math.round(v * 10) / 10;
 
 // Rising *past* prices are read as cost-of-waiting pressure, not a forecast of gains.
-// Timeline ≤ 3 months uses the 3-month change (±1.5% = extreme), otherwise 1-year (±5%).
+// Matched historical windows: 1m (±0.75%), 3m (±1.5%), 6m (±3%).
+// These thresholds are experimental, not trained on observed future outcomes.
 export function localTrendRating(city: CityMarketRecord | null | undefined, timeline: number): number | null {
   if (!city) return null;
-  const recent = timeline <= 3;
-  const change = recent ? city.lastThreeMonthsPct : city.yearOverYearPct;
-  if (change === null || !Number.isFinite(change)) return null;
-  const extreme = recent ? 1.5 : 5;
+  // Buying horizon uses the corresponding *past* price-change window, not a future forecast.
+  // Do not substitute a 12-month trend when a 6-month window is missing.
+  const change = timeline === 1 ? city.oneMonthPct : timeline === 3 ? city.lastThreeMonthsPct : city.sixMonthPct;
+  if (change == null || !Number.isFinite(change)) return null;
+  const extreme = timeline === 1 ? 0.75 : timeline === 3 ? 1.5 : 3;
   return r1(50 + 50 * clamp(change / extreme, -1, 1));
 }
 // Illustrative city tax rate, NOT a verified effective rate. 0.5% → 100, 2.0% → 0.
