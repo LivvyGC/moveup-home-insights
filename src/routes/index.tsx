@@ -269,9 +269,9 @@ export function RenewalPage(){
           </div>
           <a className="v7-resource-link" href={LA_COMPLAINT_URL} target="_blank" rel="noopener noreferrer">Open official LA complaint page <span aria-hidden="true">↗</span></a>
         </aside>:null}
-        {caseRecord?<TenantIntakeDemo key={submitted.city+"-"+submitted.effective+"-"+submitted.offer} caseRecord={caseRecord}/>:null}
-        <section className="v4-section v4-report" aria-label="Tenant support summary">
+        <section id="moveup-summary" className="v4-section v4-report" aria-label="Tenant support summary">
           <div className="v4-heading"><h2>Save your renewal summary</h2></div>
+          <p className="v4-section-intro">This is the renewal summary that will be included automatically if you submit a request for support below.</p>
           <div className="v4-card">
             <div className="v4-report-title"><strong>MOVEUP / CASE SUMMARY</strong><span>{submitted.city} · {marketLabel} · starts {submitted.effective}</span></div>
             <div className="v4-summary-groups">
@@ -297,7 +297,7 @@ export function RenewalPage(){
               </div>
               <div className="v4-summary-group">
                 <h3>Next step</h3>
-                <p>Choose negotiation, protection review or tenant support based on what you need. No violation is required to take action.</p>
+                <p>Review your protections or request tenant support below. A suspected violation is not required to ask for help.</p>
               </div>
             </div>
             <details className="v4-report-details"><summary>Data, sources and legal qualifications</summary>
@@ -309,6 +309,7 @@ export function RenewalPage(){
             <button type="button" className="v4-print-button" onClick={()=>{if(typeof window!=="undefined")window.print();}}>Print / Save as PDF</button>
           </div>
         </section>
+        {caseRecord?<TenantIntakeDemo key={submitted.city+"-"+submitted.effective+"-"+submitted.offer} caseRecord={caseRecord}/>:null}
       </div>:null}
       <section className="v6-network" id="moveup-network" aria-label="MoveUp renter support network">
         <div className="v6-network-intro">
@@ -325,7 +326,7 @@ export function RenewalPage(){
           </div>
           <div className="v6-partner-model">
             <div><strong>Free for renters</strong><span>Offer comparison, renter protections and practical next steps.</span></div>
-            <div><strong>Designed for organizers</strong><span>Voluntary interest, structured case packets and future customizable intake.</span></div>
+            <div><strong>Designed for organizers</strong><span>Consent-based contact requests, ready-to-share renewal summaries and future customizable intake.</span></div>
             <p>12 researched public organization examples in 4 launch cities. This is a curated sample, not a full market count, partnership claim or paying customer total.</p>
           </div>
         </section>
