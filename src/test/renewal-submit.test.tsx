@@ -17,7 +17,7 @@ describe("V4 renter flow",()=>{
   expect(screen.getAllByRole("button",{name:"Fill with example numbers"})).toHaveLength(1);
   expect(screen.getByRole("button",{name:"Clear form"})).toBeTruthy();
   expect(screen.queryByText("Your protections")).toBeNull();
-  expect(screen.queryByText("Your prefilled renewal assessment")).toBeNull();
+  expect(screen.queryByText("Your assessment")).toBeNull();
   expect(screen.queryByLabelText("Local rent control coverage")).toBeNull();
  });
  it("validates positive inputs and effective date",()=>{
@@ -54,7 +54,7 @@ describe("V4 renter flow",()=>{
   fireEvent.submit(form);
   expect(screen.getByText("Offer vs. Market")).toBeTruthy();
   expect(screen.getByText("Your protections")).toBeTruthy();
-  expect(screen.getByText("Your prefilled renewal assessment")).toBeTruthy();
+  expect(screen.getByText("Your assessment")).toBeTruthy();
  });
  it("displays bedroom-matched benchmark and dated source",()=>{
   render(<RenewalPage/>);fill({offer:"2200",bedrooms:"2br"});submit();
@@ -83,9 +83,9 @@ describe("V4 renter flow",()=>{
  });
  it("changing core input removes stale result",()=>{
   render(<RenewalPage/>);fill();submit();
-  expect(screen.getByText("Your prefilled renewal assessment")).toBeTruthy();
+  expect(screen.getByText("Your assessment")).toBeTruthy();
   fireEvent.change(screen.getByLabelText("Offered rent / month"),{target:{value:"2300"}});
-  expect(screen.queryByText("Your prefilled renewal assessment")).toBeNull();
+  expect(screen.queryByText("Your assessment")).toBeNull();
  });
  it("reflects changed protection answers in the summary that is ready for support",()=>{
   render(<RenewalPage/>);fill({offer:"3000",bedrooms:"2br"});submit();
@@ -95,7 +95,7 @@ describe("V4 renter flow",()=>{
   expect(screen.getAllByText(/Reported covered: not independently verified/).length).toBeGreaterThan(0);
   expect(screen.getAllByText(/Reported exempt: not independently verified/).length).toBeGreaterThan(0);
   expect(screen.getAllByText(/No earlier increases reported/).length).toBeGreaterThan(0);
-  expect(screen.getByText("Your prefilled renewal assessment")).toBeTruthy();
+  expect(screen.getByText("Your assessment")).toBeTruthy();
   expect(screen.queryByText(/READY TO INCLUDE/)).toBeNull();
   expect(screen.queryByText("RENTER INQUIRY PREVIEW")).toBeNull();
  });
@@ -107,7 +107,7 @@ describe("V4 renter flow",()=>{
   expect(screen.queryByText(/Draft a message to your landlord/)).toBeNull();
   expect(screen.queryByRole("link",{name:/Open official LA complaint page/})).toBeNull();
   expect(screen.getByText("Your protections")).toBeTruthy();
-  expect(screen.getByText(/Still unhappy with your rent adjustment\? Find help now\./)).toBeTruthy();
+  expect(screen.getByRole("heading",{name:"Connect with tenant support"})).toBeTruthy();
  });
  it("shows LA Housing complaint guidance for a possible local RSO concern, without claiming to file",()=>{
   render(<RenewalPage/>);fill({offer:"3000",bedrooms:"2br"});submit();
@@ -178,25 +178,29 @@ describe("V4 renter flow",()=>{
   expect(container.querySelectorAll(".v4-report")).toHaveLength(1);
   expect(container.querySelectorAll(".v8-attached-summary")).toHaveLength(0);
   expect(container.querySelectorAll(".v8-contact-fields input")).toHaveLength(3);
-  expect(screen.getByText("Your prefilled renewal assessment")).toBeTruthy();
+  expect(screen.getByText("Your assessment")).toBeTruthy();
  });
- it("shows local organizations immediately with a single heading and no dropdown",()=>{
+ it("keeps all local organizations in the same support card after submission controls",()=>{
   const {container}=render(<RenewalPage/>);
-  expect(screen.queryByText("Explore potential local organizations in Los Angeles (not connected)")).toBeNull();
+  expect(screen.queryByText("Tenant organizations in Los Angeles")).toBeNull();
   fill();submit();
-  const network=container.querySelector("#moveup-network");
-  const form=container.querySelector("#moveup-connect");
+  const support=container.querySelector("#moveup-connect");
+  const network=container.querySelector(".v9-embedded-network");
+  const form=container.querySelector(".v4-demo-delivery form");
+  expect(support).toBeTruthy();
   expect(network).toBeTruthy();
+  expect(support?.contains(network)).toBe(true);
   expect((form?.compareDocumentPosition(network!)??0)&Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-  expect(screen.getByRole("heading",{name:"Explore potential local organizations in Los Angeles (not connected)"})).toBeTruthy();
-  expect(container.querySelector(".v9-routing-directory")).toBeNull();
-  expect(container.querySelector(".v9-routing-grid")).toBeNull();
-  expect(screen.queryByText("Where your inquiry goes")).toBeNull();
-  expect(screen.queryByText("Renter organizations in Los Angeles")).toBeNull();
-  expect(screen.getByRole("link",{name:/Visit Los Angeles Tenants Union website/})).toBeTruthy();
+  expect(screen.getByRole("heading",{name:"Tenant organizations in Los Angeles"})).toBeTruthy();
+  expect(container.querySelector("#moveup-network")).toBeNull();
   expect(container.querySelectorAll(".v6-directory")).toHaveLength(1);
+  expect(container.querySelectorAll(".v6-organization")).toHaveLength(3);
+  expect(screen.queryByRole("button",{name:/See all 3 listed groups/})).toBeNull();
+  expect(screen.queryByRole("button",{name:"Organizing"})).toBeNull();
+  expect(screen.getByRole("link",{name:/Visit Los Angeles Tenants Union website/})).toBeTruthy();
+  expect(screen.getByText(/Hackathon demo: submissions are saved in this browser only/)).toBeTruthy();
  });
- it("shows the submission receipt within the form without implying organization delivery",async()=>{
+ it("shows a brief success receipt while clarifying no organization delivery",async()=>{
   render(<RenewalPage/>);fill();submit();
   fireEvent.change(screen.getByRole("textbox",{name:"Full name"}),{target:{value:"Test Renter"}});
   fireEvent.change(screen.getByRole("textbox",{name:"Email address"}),{target:{value:"renter@example.com"}});
@@ -204,9 +208,9 @@ describe("V4 renter flow",()=>{
   fireEvent.click(screen.getByRole("checkbox",{name:"Consent to record this demo inquiry"}));
   fireEvent.click(screen.getByRole("button",{name:"Submit to database"}));
   await waitFor(()=>expect(screen.getByRole("status").textContent).toContain("Success!"));
-  expect(screen.getByRole("status").textContent).toContain("no organizations were contacted");
-  expect(screen.getByRole("status").textContent).toContain("browser-only demo database");
-  expect(screen.getByRole("heading",{name:"Explore potential local organizations in Los Angeles (not connected)"})).toBeTruthy();
+  expect(screen.getByRole("status").textContent).toContain("saved to the MoveUp demo database on this device");
+  expect(screen.getByText(/not connected recipients/)).toBeTruthy();
+  expect(screen.getByRole("heading",{name:"Tenant organizations in Los Angeles"})).toBeTruthy();
  });
  it("the report only appears after a completed analysis",()=>{
   render(<RenewalPage/>);
