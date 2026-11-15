@@ -71,10 +71,12 @@ describe("V4 renter flow",()=>{
     .toBeGreaterThan(parseFloat((meter.querySelector(".v4-offer-line") as HTMLDivElement).style.left));
   expect(container.querySelector(".v7-market-chart")).toBeNull();
  });
- it("unsupported bedrooms never display a made-up benchmark",()=>{
-  render(<RenewalPage/>);fill({bedrooms:"other"});submit();
-  expect(screen.getByText("Market benchmark not available")).toBeTruthy();
-  expect(screen.queryByRole("img",{name:/Your offer.*benchmark/})).toBeNull();
+ it("offers only bedroom sizes with a supported benchmark",()=>{
+  render(<RenewalPage/>);
+  const select=screen.getByLabelText("Bedrooms") as HTMLSelectElement;
+  expect(Array.from(select.options).map(option=>option.value)).toEqual(["1br","2br"]);
+  fill({bedrooms:"2br"});submit();
+  expect(screen.getByRole("img",{name:/Your offer.*benchmark/})).toBeTruthy();
  });
  it("a possible LA standard concern takes precedence over market price",()=>{
   render(<RenewalPage/>);fill({offer:"3000"});submit();
