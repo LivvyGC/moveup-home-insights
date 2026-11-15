@@ -16,8 +16,8 @@ describe("V4 independent market and legal assessment",()=>{
   expect(a.marketPosition).toBe("below");expect(a.tone).toBe("green");
  });
  it("unknown legal coverage never silently turns green",()=>{
-  const f=finding(2200,{stateCoverage:"unknown",localCoverage:"unknown"});
-  const a=assessMarketOffer(2200,2377,f,false);
+  const f=finding(2420,{stateCoverage:"unknown",localCoverage:"unknown"});
+  const a=assessMarketOffer(2420,2700,f,false);
   expect(a.legalScreen).toBe("needs_information");expect(a.tone).toBe("neutral");
  });
  it("a possible published-standard issue is orange even when below benchmark",()=>{
